@@ -5,6 +5,8 @@ import AppHeader from "@/layout/AppHeader";
 import AppSidebar from "@/layout/AppSidebar";
 import Backdrop from "@/layout/Backdrop";
 import React from "react";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function AdminLayout({
   children,
@@ -22,6 +24,17 @@ export default function AdminLayout({
 
   return (
     <div className="min-h-screen xl:flex">
+      <ToastContainer
+  position="top-right"
+  autoClose={3000}
+  hideProgressBar={false}
+  closeOnClick
+  pauseOnHover
+  draggable
+  theme="light"
+  style={{ zIndex: 999999 }} // <-- This is the key fix
+/>
+
       {/* Sidebar and Backdrop */}
       <AppSidebar />
       <Backdrop />
@@ -34,6 +47,7 @@ export default function AdminLayout({
         {/* Page Content */}
         <div className="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">{children}</div>
       </div>
+      
     </div>
   );
 }

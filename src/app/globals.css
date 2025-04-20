@@ -738,3 +738,6 @@ span.flatpickr-weekday,
   opacity: 0.8;
   cursor: grabbing; /* Changes the cursor to indicate dragging */
 }
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.5); /* Adjust icon color */
+}
