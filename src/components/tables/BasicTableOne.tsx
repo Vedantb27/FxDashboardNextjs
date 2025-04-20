@@ -1,3 +1,4 @@
+"use client"
 import React from "react";
 import {
   Table,
@@ -6,9 +7,35 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
-
 import Badge from "../ui/badge/Badge";
 import Image from "next/image";
+import axios from 'axios';
+import {useState, useEffect} from 'react';
+
+
+interface Trade{
+  sr_no: number;
+  position_id: number;
+  open_date: string;
+  open_time: string;
+  close_date: string;
+  close_time: string;
+  trade_duration: string;
+  trade_duration_seconds: string;
+  open_price: number;
+  close_price: number;
+  no_of_deals: number;
+  profit: number;
+  sl_price: number | null;
+  tp_price: number | null;
+  type: 'buy' | 'sell';
+  symbol: string;
+  volume: number;
+  history_from_date: string;
+  history_to_date: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 interface Order {
   id: number;
@@ -24,6 +51,8 @@ interface Order {
   status: string;
   budget: string;
 }
+
+
 
 // Define the table data using the interface
 const tableData: Order[] = [
@@ -112,6 +141,27 @@ const tableData: Order[] = [
 ];
 
 export default function BasicTableOne() {
+
+  const [tradingHistory, setTradingHistory] = useState<Trade[]>([]);
+
+   useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const response = await axios.get<Trade[]>(
+          'https://mocki.io/v1/95248ed5-b09a-4b76-8f67-cebc4c29b4b3'
+        );
+        setTradingHistory(response.data);
+      } catch (error) {
+        console.error('Error fetching trade history:', error);
+      }
+    };
+
+    fetchHistory();
+    console.log(tradingHistory)
+  }, []);
+  console.log('trading history is ',tradingHistory)
+
+
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
       <div className="max-w-full overflow-x-auto">
