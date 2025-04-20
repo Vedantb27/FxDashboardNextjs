@@ -239,7 +239,7 @@ export default function RecentOrders() {
                       typeof value === "number" ? profitNumber.toFixed(4) : value ?? "—";
 
                     // Determine badge color: success for positive, error for negative, warning/neutral for zero
-                    const badgeColor =
+                    const badgeColor:any =
                       profitNumber > 0 ? "success" : profitNumber < 0 ? "error" : "neutral";
 
                     return (
