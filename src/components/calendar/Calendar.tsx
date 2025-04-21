@@ -9,6 +9,7 @@ import {
   DateSelectArg,
   EventClickArg,
   EventContentArg,
+  FormatterInput,
 } from "@fullcalendar/core";
 import { useModal } from "@/hooks/useModal";
 import { Modal } from "@/components/ui/modal";
@@ -17,6 +18,8 @@ import { toast } from "react-toastify";
 import { formatDateToYYYYMMDD } from "@/utils/common";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import Badge from "../ui/badge/Badge";
+import dataconfig from "./dataconfig.json"
 
 interface CalendarEvent extends EventInput {
   id?: string;
@@ -26,6 +29,16 @@ interface CalendarEvent extends EventInput {
     calendar: string;
   };
 }
+
+interface TradeHistory {
+  sr_no: number;
+  position_id: number;
+  open_date: string;
+  close_date: string;
+  profit: number;
+}
+
+const ACCOUNT_BALANCE = 5000;
 
 const Calendar: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
@@ -37,6 +50,7 @@ const Calendar: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [disableDatePicker, setDisableDatePicker] = useState(false);
+  const [dailyProfits, setDailyProfits] = useState<{ [date: string]: number }>({});
   const calendarRef = useRef<FullCalendar>(null);
   const { isOpen, openModal, closeModal } = useModal();
 
@@ -48,15 +62,16 @@ const Calendar: React.FC = () => {
   };
 
   useEffect(() => {
-    const fetchEvents = async () => {
+    const fetchData = async () => {
       setIsLoading(true);
       try {
-        const response = await Request({
+        // Fetch notes
+        const notesResponse = await Request({
           method: "GET",
           url: "get-notes",
         });
-        if (response?.data) {
-          const fetchedEvents = response.data.map((item: any) => ({
+        if (notesResponse?.data) {
+          const fetchedEvents = notesResponse.data.map((item: any) => ({
             id: item.date,
             title: item.notes,
             start: item.date,
@@ -64,13 +79,35 @@ const Calendar: React.FC = () => {
           }));
           setEvents(fetchedEvents);
         }
+
+        // Fetch trade history
+        const tradeResponse = await Request({
+          method: "GET",
+          url: "trade-history",
+        });
+        // if (tradeResponse?.data) {
+       if (true) {
+        console.log("ok")
+      //  const trades: TradeHistory[] = tradeResponse.data;
+         const trades: TradeHistory[] = dataconfig;
+          // Calculate daily profits
+          const dailyProfitMap: { [date: string]: number } = {};
+          trades.forEach((trade) => {
+            const date = trade.close_date;
+            if (!dailyProfitMap[date]) {
+              dailyProfitMap[date] = 0;
+            }
+            dailyProfitMap[date] += trade.profit;
+          });
+          setDailyProfits(dailyProfitMap);
+        }
       } catch (error) {
-        toast.error("Error fetching events");
+        // toast.error("Error fetching data");
       } finally {
         setIsLoading(false);
       }
     };
-    fetchEvents();
+    fetchData();
   }, []);
 
   const handleDateSelect = (selectInfo: DateSelectArg) => {
@@ -177,10 +214,46 @@ const Calendar: React.FC = () => {
     setDisableDatePicker(false);
   };
 
+  // Custom day cell rendering
+  const renderDayCellContent = (arg: { date: Date; isOther: boolean }) => {
+    const dateStr = formatDateToYYYYMMDD(arg.date.toISOString());
+    const profit = dailyProfits[dateStr];
+    if (profit !== undefined) {
+      const percentage = ((profit / ACCOUNT_BALANCE) * 100).toFixed(2);
+      const isPositive = profit >= 0;
+      return (
+        <div className="flex flex-col items-center max-h-[150px]">
+          <span className={arg.isOther ? "opacity-50" : ""}>
+          <span className="text-blue-600 "> {arg.date.getDate()}</span>
+
+            <span
+              className={`text-xs ml-5 ${
+                isPositive ? "text-green-600" : "text-red-600"
+              }`}
+            >
+              {isPositive ? "+" : ""}{percentage}%
+            </span>
+          </span>
+        </div>
+      );
+    }
+    return arg.date.getDate();
+  };
+
+  // Custom day cell class names
+  const dayCellClassNames = (arg: { date: Date }) => {
+    const dateStr = formatDateToYYYYMMDD(arg.date.toISOString());
+    const profit = dailyProfits[dateStr];
+    if (profit !== undefined) {
+      return profit >= 0 ? "bg-green-100" : "bg-red-100";
+    }
+    return "";
+  };
+
   return (
     <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
       {isLoading ? (
-        <div className="flex justify-center items-center h-64">
+        <div className="flex justify-center items-center h-119">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-500"></div>
         </div>
       ) : (
@@ -209,6 +282,8 @@ const Calendar: React.FC = () => {
                 },
               },
             }}
+            dayCellContent={renderDayCellContent}
+            dayCellClassNames={dayCellClassNames}
           />
         </div>
       )}
@@ -245,7 +320,7 @@ const Calendar: React.FC = () => {
                 Event Color
               </label>
               <div className="flex flex-wrap items-center gap-4 sm:gap-5">
-                {Object.entries(calendarsEvents).map(([key, value]) => (
+                {Object.entries(calendarsEvents).map(([key, value]: any) => (
                   <div key={key} className="n-chk">
                     <div
                       className={`form-check form-check-${value} form-check-inline`}
@@ -272,7 +347,12 @@ const Calendar: React.FC = () => {
                             ></span>
                           </span>
                         </span>
-                        {key}
+                        <Badge
+                          variant="light"
+                          color={value == "danger" ? "error" : value}
+                        >
+                          {key}
+                        </Badge>
                       </label>
                     </div>
                   </div>
