@@ -162,7 +162,7 @@ export default function MonthlyTarget() {
             fontSize: "36px",
             fontWeight: "600",
             offsetY: -40,
-            color: "#1D2939",
+            color: "#0000FF",
             formatter: function (val) {
               return val + "%";
             },
