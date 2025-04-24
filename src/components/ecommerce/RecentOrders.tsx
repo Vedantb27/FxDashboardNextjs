@@ -11,6 +11,19 @@ import axios from 'axios';
 import { useState, useEffect } from 'react';
 import { useModal } from "@/hooks/useModal";
 import { Modal } from "@/components/ui/modal";
+import AUD from "@/icons/currencyPairs/AUD.png";
+import CAD from "@/icons/currencyPairs/CAD.png";
+import GBP from "@/icons/currencyPairs/GBP.png";
+import NZD from "@/icons/currencyPairs/NZD.png";
+import USD from "@/icons/currencyPairs/USD.png";
+import EUR from "@/icons/currencyPairs/EUR.png";
+import CHF from "@/icons/currencyPairs/CHF.png";
+import USOIL from "@/icons/currencyPairs/USOIL.png";
+import XAUUSD from "@/icons/currencyPairs/XAUUSD.png";
+import JPY from "@/icons/currencyPairs/JPY.png";
+import type { StaticImageData } from "next/image";
+
+
 
 
 interface Trade {
@@ -37,7 +50,51 @@ interface Trade {
   updatedAt: string;
 }
 
+// right after your imports...
+const ICONS = {
+  AUD,
+  CAD,
+  GBP,
+  NZD,
+  USD,
+  EUR,
+  CHF,
+  JPY,
+} as const;
 
+interface PairIconProps {
+  base: StaticImageData;
+  quote?: StaticImageData;
+  size?: number; // in px
+}
+
+const BASES = ["AUD", "CAD", "GBP", "NZD", "USD","EUR","CHF","JPY"] as const;
+const QUOTES = ["AUD", "CAD", "GBP", "NZD", "USD","EUR","CHF","JPY"] as const;
+
+// 3) automatically generate every base+quote pair mapping
+type Base = typeof BASES[number];
+type Quote = typeof QUOTES[number];
+
+const pairIconMap: Record<string, StaticImageData> = {};
+
+// for each base/quote combination (except same/same), point to the base icon
+for (const base of BASES) {
+  for (const quote of QUOTES) {
+    if (base === quote) continue;
+    const symbol = `${base}${quote}`;
+    pairIconMap[symbol] = ICONS[base];
+  }
+}
+
+
+// 4) special overrides for your one‑off symbols
+pairIconMap["USOIL"] = USOIL;
+pairIconMap["XAUUSD"] = XAUUSD;
+
+// 5) export a lookup function
+export function getIconForSymbol(symbol: string): StaticImageData | undefined {
+  return pairIconMap[symbol.toUpperCase()];
+}
 
 
 
@@ -207,6 +264,19 @@ export default function RecentOrders() {
                   if (!config.show) return null;
 
                   const value = trade[key as keyof Trade];
+
+                  if (key === "symbol") {
+                    const icon = getIconForSymbol(trade.symbol);
+                    return (
+                      <TableCell
+                        key={key}
+                        className="py-3 text-gray-500 text-theme-sm dark:text-gray-400 flex items-center gap-2"
+                      >
+                        {icon && <img src={icon.src} alt={trade.symbol} className="h-4 w-4 object-contain" />}
+                        <span>{trade.symbol}</span>
+                      </TableCell>
+                    );
+                  }
 
                   // Type column
                   if (key === "type") {

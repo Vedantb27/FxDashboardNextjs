@@ -45,54 +45,54 @@ export default function MonthlySalesChart() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [barColor, setBarColor] = useState<string>("#465fff"); // default blue
 
-   useEffect(() => {
-      const fetchHistory = async () => {
-        try {
-          const response = await axios.get<Trade[]>(
-            'https://mocki.io/v1/95248ed5-b09a-4b76-8f67-cebc4c29b4b3'
-          );
-          setTradingHistory(response.data);
-        } catch (error) {
-          console.error('Error fetching trade history:', error);
-        }
-      };
-  
-      fetchHistory();
-      //console.log(tradingHistory)
-    }, []);
-    
-    // Compute profits for all months in selected year
-useEffect(() => {
-  if (tradingHistory.length === 0) return;
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const response = await axios.get<Trade[]>(
+          'https://mocki.io/v1/95248ed5-b09a-4b76-8f67-cebc4c29b4b3'
+        );
+        setTradingHistory(response.data);
+      } catch (error) {
+        console.error('Error fetching trade history:', error);
+      }
+    };
 
-  const profitsByMonth = new Array(12).fill(0);
+    fetchHistory();
+    //console.log(tradingHistory)
+  }, []);
 
-  tradingHistory.forEach((trade) => {
-    const closeDate = new Date(trade.close_date);
-    const year = closeDate.getFullYear();
-    const month = closeDate.getMonth(); // 0 to 11
+  // Compute profits for all months in selected year
+  useEffect(() => {
+    if (tradingHistory.length === 0) return;
 
-    if (year === selectedYear) {
-      profitsByMonth[month] += trade.profit;
-    }
-  });
+    const profitsByMonth = new Array(12).fill(0);
 
-  setMonthlyProfits(profitsByMonth);
-}, [tradingHistory, selectedYear]);
+    tradingHistory.forEach((trade) => {
+      const closeDate = new Date(trade.close_date);
+      const year = closeDate.getFullYear();
+      const month = closeDate.getMonth(); // 0 to 11
 
-// Update chart bar color based on total profit
-useEffect(() => {
-  const total = monthlyProfits.reduce((acc, val) => acc + val, 0);
-  setBarColor(total >= 0 ? "#465fff" : "#ff4560");
-}, [monthlyProfits]);
+      if (year === selectedYear) {
+        profitsByMonth[month] += trade.profit;
+      }
+    });
 
-// Series with all months' data
-const series = [
-  {
-    name: "Profit",
-    data: monthlyProfits.map((p) => parseFloat(p.toFixed(2))),
-  },
-];
+    setMonthlyProfits(profitsByMonth);
+  }, [tradingHistory, selectedYear]);
+
+  // Update chart bar color based on total profit
+  useEffect(() => {
+    const total = monthlyProfits.reduce((acc, val) => acc + val, 0);
+    setBarColor(total >= 0 ? "#465fff" : "#ff4560");
+  }, [monthlyProfits]);
+
+  // Series with all months' data
+  const series = [
+    {
+      name: "Profit",
+      data: monthlyProfits.map((p) => parseFloat(p.toFixed(2))),
+    },
+  ];
   const options: ApexOptions = {
     colors: ["#465fff"],
     chart: {
@@ -172,9 +172,9 @@ const series = [
       },
     },
   };
-  
+
   const now = new Date();
- 
+
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -194,22 +194,22 @@ const series = [
         </h3>
 
         <div className="flex gap-2 items-center">
-  <button
-    onClick={() => setSelectedYear((prev) => prev - 1)}
-    className="text-sm px-3 py-1 bg-gray-100 dark:bg-white/5 rounded-lg hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-white"
-  >
-    ← 
-  </button>
-  <span className="text-gray-700 dark:text-white text-sm font-medium">
-    {selectedYear}
-  </span>
-  <button
-    onClick={() => setSelectedYear((prev) => prev + 1)}
-    className="text-sm px-3 py-1 bg-gray-100 dark:bg-white/5 rounded-lg hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-white"
-  >
-    →
-  </button>
-</div>
+          <button
+            onClick={() => setSelectedYear((prev) => prev - 1)}
+            className="text-sm px-3 py-1 bg-white dark:bg-white/5 rounded-lg hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-white"
+          >
+            ←
+          </button>
+          <span className="text-gray-700 dark:text-white text-sm font-medium">
+            {selectedYear}
+          </span>
+          <button
+            onClick={() => setSelectedYear((prev) => prev + 1)}
+            className="text-sm px-3 py-1 bg-gray-100 dark:bg-white/5 rounded-lg hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-white"
+          >
+            →
+          </button>
+        </div>
 
       </div>
 
