@@ -12,7 +12,27 @@ const ReactApexChart = dynamic(() => import("react-apexcharts"), {
 });
 
 interface Trade {
+  sr_no: number;
+  position_id: number;
+  open_date: string;
+  open_time: string;
+  close_date: string;
+  close_time: string;
+  trade_duration: string;
+  trade_duration_seconds: string;
+  open_price: number;
+  close_price: number;
+  no_of_deals: number;
   profit: number;
+  sl_price: number | null;
+  tp_price: number | null;
+  type: 'buy' | 'sell';
+  symbol: string;
+  volume: number;
+  history_from_date: string;
+  history_to_date: string;
+  createdAt: string;
+  updatedAt: string;
   // (other fields omitted)
 }
 
@@ -91,7 +111,7 @@ export const EcommerceMetrics = () => {
         />
         
         
-        <div className="mt-4 ">
+        {/* <div className="mt-4 ">
           <Badge color={netPLIsPositive ? "success" : "error"}>
           <span>Total gain</span>
             {netPLIsPositive ? (
@@ -101,7 +121,7 @@ export const EcommerceMetrics = () => {
             )}
             {netPLFormatted}
           </Badge>
-        </div>
+        </div> */}
       </div>
 
       {/* Orders */}
