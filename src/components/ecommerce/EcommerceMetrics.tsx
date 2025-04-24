@@ -38,11 +38,14 @@ export const EcommerceMetrics = () => {
   const totalClosed = tradingHistory.filter((t) => t.profit !== 0).length;
   const winRate = totalClosed > 0 ? (wins / totalClosed) * 100 : 0;
   const winRateSeries = [parseFloat(winRate.toFixed(2))];
+  
+  const totalOrders = tradingHistory.length;
 
    // 2. Compute net P&L
    const netPL = tradingHistory.reduce((sum, t) => sum + t.profit, 0);
    const netPLFormatted = `${netPL >= 0 ? "+" : ""}${netPL.toFixed(2)}$`;
    const netPLIsPositive = netPL >= 0;
+   
 
   // Apex radial-bar options
   const winRateOptions: ApexOptions = {
@@ -77,16 +80,20 @@ export const EcommerceMetrics = () => {
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
      
         {/* Win Rate Card */}
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 flex flex-col items-center justify-center dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 flex flex-col items-center justify-between dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
         <h4 className="text-gray-500 mb-2">Win Rate</h4>
+        
         <ReactApexChart
           options={winRateOptions}
           series={winRateSeries}
           type="radialBar"
           height={200}
         />
-        <div className="mt-4">
+        
+        
+        <div className="mt-4 ">
           <Badge color={netPLIsPositive ? "success" : "error"}>
+          <span>Total gain</span>
             {netPLIsPositive ? (
               <ArrowUpIcon className="text-success-500" />
             ) : (
@@ -105,10 +112,10 @@ export const EcommerceMetrics = () => {
         <div className="flex items-end justify-between mt-5">
           <div>
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              Orders
+              Total Orders
             </span>
             <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-              5,359
+             {totalOrders}
             </h4>
           </div>
           <Badge color="error">
