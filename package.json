@@ -15,6 +15,7 @@
     "@fullcalendar/list": "^6.1.15",
     "@fullcalendar/react": "^6.1.17",
     "@fullcalendar/timegrid": "^6.1.15",
+    "@hookform/resolvers": "^5.0.1",
     "@react-jvectormap/core": "^1.0.4",
     "@react-jvectormap/world": "^1.1.2",
     "@tailwindcss/forms": "^0.5.9",
@@ -22,6 +23,7 @@
     "apexcharts": "^4.3.0",
     "autoprefixer": "^10.4.20",
     "axios": "^1.8.4",
+    "firebase": "^11.6.0",
     "flatpickr": "^4.6.13",
     "flowbite": "^3.1.2",
     "next": "15.2.3",
@@ -32,9 +34,11 @@
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^19.0.0",
     "react-dropzone": "^14.3.5",
+    "react-hook-form": "^7.56.0",
     "react-toastify": "^11.0.5",
     "swiper": "^11.2.0",
-    "tailwind-merge": "^2.6.0"
+    "tailwind-merge": "^2.6.0",
+    "zod": "^3.24.3"
   },
   "devDependencies": {
     "@svgr/webpack": "^8.1.0",

@@ -245,7 +245,7 @@ const Calendar: React.FC = () => {
     const dateStr = formatDateToYYYYMMDD(arg.date.toISOString());
     const profit = dailyProfits[dateStr];
     if (profit !== undefined) {
-      return profit >= 0 ? "bg-green-100" : "bg-red-100";
+      return profit >= 0 ? "bg-success-500/15" : "bg-error-500/15";
     }
     return "";
   };

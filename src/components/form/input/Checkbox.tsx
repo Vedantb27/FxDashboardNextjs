@@ -1,21 +1,19 @@
 import type React from "react";
+import { InputHTMLAttributes } from "react";
 
-interface CheckboxProps {
+interface CheckboxProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
-  checked: boolean;
   className?: string;
   id?: string;
-  onChange: (checked: boolean) => void;
   disabled?: boolean;
 }
 
 const Checkbox: React.FC<CheckboxProps> = ({
   label,
-  checked,
-  id,
-  onChange,
   className = "",
+  id,
   disabled = false,
+  ...inputProps // Spread the rest of the props (including checked, onChange, etc.)
 }) => {
   return (
     <label
@@ -29,11 +27,10 @@ const Checkbox: React.FC<CheckboxProps> = ({
           type="checkbox"
           className={`w-5 h-5 appearance-none cursor-pointer dark:border-gray-700 border border-gray-300 checked:border-transparent rounded-md checked:bg-brand-500 disabled:opacity-60 
           ${className}`}
-          checked={checked}
-          onChange={(e) => onChange(e.target.checked)}
           disabled={disabled}
+          {...inputProps} // Spread react-hook-form props (includes checked, onChange, etc.)
         />
-        {checked && (
+        {inputProps.checked && (
           <svg
             className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
             xmlns="http://www.w3.org/2000/svg"

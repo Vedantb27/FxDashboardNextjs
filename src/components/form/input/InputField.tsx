@@ -8,8 +8,8 @@ interface InputProps {
   defaultValue?: string | number;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   className?: string;
-  min?: string;
-  max?: string;
+  min?: string | number; // Allow string or number for min
+  max?: string | number; // Allow string or number for max
   step?: number;
   disabled?: boolean;
   success?: boolean;
