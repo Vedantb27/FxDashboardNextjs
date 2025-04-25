@@ -266,17 +266,56 @@ export default function RecentOrders() {
                   const value = trade[key as keyof Trade];
 
                   if (key === "symbol") {
-                    const icon = getIconForSymbol(trade.symbol);
+                    const symbol = trade.symbol.toUpperCase();
+                    const base = symbol.substring(0, 3);
+                    const quote = symbol.substring(3);
+                  
+                    const baseIcon = ICONS[base as keyof typeof ICONS];
+                    const quoteIcon = ICONS[quote as keyof typeof ICONS];
+                    const fallbackIcon = getIconForSymbol(symbol); // For XAUUSD, USOIL, etc.
+                  
                     return (
                       <TableCell
                         key={key}
-                        className="py-3 text-gray-500 text-theme-sm dark:text-gray-400 flex items-center gap-2"
+                        className="py-3 text-gray-500 text-theme-sm dark:text-gray-400"
                       >
-                        {icon && <img src={icon.src} alt={trade.symbol} className="h-4 w-4 object-contain" />}
-                        <span>{trade.symbol}</span>
+                       <div className="flex items-center gap-2">
+  {/* Overlapping base icon on the left side of quote icon */}
+  <div className="relative w-6 h-4">
+    {baseIcon && quoteIcon ? (
+      <>
+        {/* Quote icon - base will overlap this from the left */}
+        <img
+          src={quoteIcon.src}
+          alt={quote}
+          className="absolute left-0 top-0 h-4 w-4 object-contain z-0"
+        />
+        {/* Base icon - overlaps quote by 35% */}
+        <img
+          src={baseIcon.src}
+          alt={base}
+          className="absolute left-[-45%] top-0 h-4 w-4 object-contain z-10"
+        />
+      </>
+    ) : (
+      fallbackIcon && (
+        <img
+          src={fallbackIcon.src}
+          alt={symbol}
+          className="h-8 w-8 object-contain"
+        />
+      )
+    )}
+  </div>
+
+  {/* Symbol text */}
+  <span>{symbol}</span>
+</div>
+
                       </TableCell>
                     );
                   }
+                  
 
                   // Type column
                   if (key === "type") {
