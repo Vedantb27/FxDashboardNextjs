@@ -294,7 +294,7 @@ export default function RecentOrders() {
         <img
           src={baseIcon.src}
           alt={base}
-          className="absolute left-[-45%] top-0 h-4 w-4 object-contain z-10"
+          className="absolute left-[-35%] top-[-50%] h-4 w-4 object-contain z-10"
         />
       </>
     ) : (
