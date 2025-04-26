@@ -12,6 +12,7 @@ import axios from "axios";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "./lib/firebase";
 import { useRouter } from "next/navigation";
+import { BASE_API_URL } from "@/utils/envConfig";
 
 // Validation schema
 const schema = z.object({
@@ -44,7 +45,7 @@ export default function SignUpForm() {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post("http://localhost:5000/api/auth/signup", {
+      const response = await axios.post(`${BASE_API_URL}/auth/signup`, {
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
@@ -66,7 +67,7 @@ export default function SignUpForm() {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
-      const response = await axios.post("http://localhost:5000/api/auth/signup", {
+      const response = await axios.post(`${BASE_API_URL}/auth/signup`, {
         firstName: user.displayName?.split(" ")[0] || "User",
         lastName: user.displayName?.split(" ")[1] || "Name",
         email: user.email,

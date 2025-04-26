@@ -13,6 +13,7 @@ import axios from "axios";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "./lib/firebase";
 import { useRouter } from "next/navigation";
+import { AUTH_STORAGE_KEY, BASE_API_URL } from "@/utils/envConfig";
 
 // Validation schema
 const schema = z.object({
@@ -46,12 +47,12 @@ export default function SignInForm() {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post("http://localhost:5000/api/auth/login", {
+      const response = await axios.post(`${BASE_API_URL}/auth/login`, {
         email: data.email,
         password: data.password,
       });
-      localStorage.setItem("token", response.data.token);
-      router.push("/dashboard");
+      sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(response.data));
+      router.push("/");
     } catch (err: any) {
       setError(err.response?.data?.error || "Something went wrong");
     } finally {
@@ -68,12 +69,12 @@ export default function SignInForm() {
       const user = result.user;
       const idToken = await user.getIdToken(true); // Force refresh
       console.log('Google ID Token:', idToken); // Log for debugging
-      const response = await axios.post("http://localhost:5000/api/auth/login", {
+      const response = await axios.post(`${BASE_API_URL}/auth/login`, {
         email: user.email,
         googleIdToken: idToken,
       });
-      localStorage.setItem("token", response.data.token);
-      router.push("/dashboard");
+      sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(response.data));
+      router.push("/");
     } catch (err: any) {
       console.error("Google login error:", err);
       if (err.code === "auth/popup-closed-by-user") {
