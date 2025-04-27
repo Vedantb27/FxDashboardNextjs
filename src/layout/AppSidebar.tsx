@@ -16,6 +16,7 @@ import {
   PlugInIcon,
   TableIcon,
   UserCircleIcon,
+  AccountBalanceWalletOutline
 } from "../icons/index";
 import SidebarWidget from "./SidebarWidget";
 
@@ -41,6 +42,11 @@ const navItems: NavItem[] = [
     icon: <UserCircleIcon />,
     name: "User Profile",
     path: "/profile",
+  },
+  {
+    icon: <AccountBalanceWalletOutline />,
+    name: "Accounts",
+    path: "/accounts",
   },
 
   {

@@ -36,6 +36,7 @@
     "react-dom": "^19.0.0",
     "react-dropzone": "^14.3.5",
     "react-hook-form": "^7.56.0",
+    "react-spinners": "^0.17.0",
     "react-toastify": "^11.0.5",
     "swiper": "^11.2.0",
     "tailwind-merge": "^2.6.0",

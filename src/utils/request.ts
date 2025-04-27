@@ -6,7 +6,7 @@ interface RequestParams {
   method: string;
   url: string;
   data?: object;
-  params?: object; // Make params optional
+  params?: object;
 }
 
 const Request = async ({ method, url, data = {}, params = {} }: RequestParams) => {
@@ -22,11 +22,11 @@ const Request = async ({ method, url, data = {}, params = {} }: RequestParams) =
       ])
     );
   }
-
-  // const token = JSON.parse(sessionStorage.getItem(`${AUTH_STORAGE_KEY}`));
-  // const headers = {
-  //   Authorization: `Bearer ${token?.token}`,
-  // };
+const tokenData:any=sessionStorage.getItem(`${AUTH_STORAGE_KEY}`)
+  const token = JSON.parse(tokenData);
+  const headers = {
+    Authorization: `Bearer ${token?.token}`,
+  };
 
   try {
     const response = await axios({
@@ -34,7 +34,7 @@ const Request = async ({ method, url, data = {}, params = {} }: RequestParams) =
       url: `${BASE_API_URL}/${url}`,
       data: Array.isArray(data) ? data : filterEmptyFields(data),
       params,
-      // headers: headers,
+      headers: headers,
     });
     if (response?.data?.status === 201) {
       toast.success(response?.data?.message);
@@ -42,8 +42,9 @@ const Request = async ({ method, url, data = {}, params = {} }: RequestParams) =
     return response?.data;
   } catch (error:any) {
     if (error?.response?.status === 401) {
+      toast.error('Session expired. Please log in again.');
       sessionStorage.removeItem(`${AUTH_STORAGE_KEY}`);
-      window.location.href = '/';
+      // window.location.href = '/';
     }
     if (error?.response?.data?.message) {
       toast.error(error?.response?.data?.message);
