@@ -9,7 +9,6 @@ import {
   DateSelectArg,
   EventClickArg,
   EventContentArg,
-  FormatterInput,
 } from "@fullcalendar/core";
 import { useModal } from "@/hooks/useModal";
 import { Modal } from "@/components/ui/modal";
@@ -19,7 +18,8 @@ import { formatDateToYYYYMMDD } from "@/utils/common";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Badge from "../ui/badge/Badge";
-import dataconfig from "./dataconfig.json"
+import { useGlobalState } from "@/context/GlobalStateContext";
+import dataconfig from "./dataconfig.json";
 
 interface CalendarEvent extends EventInput {
   id?: string;
@@ -38,6 +38,13 @@ interface TradeHistory {
   profit: number;
 }
 
+interface MT5Account {
+  accountNumber: number;
+  server: string;
+  platform: string;
+  createdAt: string;
+}
+
 const ACCOUNT_BALANCE = 5000;
 
 const Calendar: React.FC = () => {
@@ -51,8 +58,13 @@ const Calendar: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [disableDatePicker, setDisableDatePicker] = useState(false);
   const [dailyProfits, setDailyProfits] = useState<{ [date: string]: number }>({});
+  const [mt5Accounts, setMT5Accounts] = useState<MT5Account[]>([]);
+  const [selectedMT5Account, setSelectedMT5Account]:any = useState(null);
+  const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
   const calendarRef = useRef<FullCalendar>(null);
   const { isOpen, openModal, closeModal } = useModal();
+  const { state, dispatch } = useGlobalState();
+  console.log(state, "statestate");
 
   const calendarsEvents = {
     Danger: "danger",
@@ -62,6 +74,31 @@ const Calendar: React.FC = () => {
   };
 
   useEffect(() => {
+    const fetchMT5Accounts = async () => {
+      setIsLoadingAccounts(true);
+      try {
+        const response = await Request({
+          method: "GET",
+          url: "mt5-accounts",
+        });
+        if (response) {
+          setMT5Accounts(response || []);
+          if (response.length > 0) {
+            setSelectedMT5Account(response[0]?.accountNumber);
+          }
+        }
+      } catch (error) {
+        toast.error("Error fetching MT5 accounts");
+      } finally {
+        setIsLoadingAccounts(false);
+      }
+    };
+    fetchMT5Accounts();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedMT5Account) return;
+
     const fetchData = async () => {
       setIsLoading(true);
       try {
@@ -80,17 +117,38 @@ const Calendar: React.FC = () => {
           setEvents(fetchedEvents);
         }
 
-        // Fetch trade history
-        const tradeResponse = await Request({
-          method: "GET",
-          url: "trade-history",
-        });
-        // if (tradeResponse?.data) {
-       if (true) {
-        console.log("ok")
-      //  const trades: TradeHistory[] = tradeResponse.data;
-         const trades: TradeHistory[] = dataconfig;
-          // Calculate daily profits
+        // Fetch trade history only if not already present
+        if (!state.tradeHistory[selectedMT5Account]) {
+          const tradeResponse = await Request({
+            method: "GET",
+            url: "trade-history",
+            params: { mt5AccountNumber: selectedMT5Account },
+          });
+          if (tradeResponse) {
+            const trades: TradeHistory[] = tradeResponse;
+            console.log(trades, "trades");
+            // Store trade history in global reducer with MT5 account number
+            dispatch({
+              type: "SET_TRADE_HISTORY",
+              payload: {
+                mt5AccountNumber: selectedMT5Account,
+                trades,
+              },
+            });
+            // Calculate daily profits locally
+            const dailyProfitMap: { [date: string]: number } = {};
+            trades.forEach((trade) => {
+              const date = trade?.close_date;
+              if (!dailyProfitMap[date]) {
+                dailyProfitMap[date] = 0;
+              }
+              dailyProfitMap[date] += trade?.profit;
+            });
+            setDailyProfits(dailyProfitMap);
+          }
+        } else {
+          // Use existing trade history for daily profits
+          const trades = state.tradeHistory[selectedMT5Account] || [];
           const dailyProfitMap: { [date: string]: number } = {};
           trades.forEach((trade) => {
             const date = trade.close_date;
@@ -108,7 +166,7 @@ const Calendar: React.FC = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [dispatch, state.tradeHistory, selectedMT5Account]);
 
   const handleDateSelect = (selectInfo: DateSelectArg) => {
     resetModalFields();
@@ -224,8 +282,7 @@ const Calendar: React.FC = () => {
       return (
         <div className="flex flex-col items-center max-h-[150px]">
           <span className={arg.isOther ? "opacity-50" : ""}>
-          <span className="text-blue-600 "> {arg.date.getDate()}</span>
-
+            <span className="text-blue-600 "> {arg.date.getDate()}</span>
             <span
               className={`text-xs ml-5 ${
                 isPositive ? "text-green-600" : "text-red-600"
@@ -252,6 +309,40 @@ const Calendar: React.FC = () => {
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+      <div className="p-4">
+        <div className="relative w-64">
+          <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            MT5 Account
+          </label>
+          {isLoadingAccounts ? (
+            <div className="flex items-center justify-center h-10 w-full rounded-md border border-gray-300 bg-gray-50 dark:bg-gray-800 px-4 py-2">
+              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-brand-500"></div>
+            </div>
+          ) : (
+            <select
+              value={selectedMT5Account !== null ? selectedMT5Account.toString() : ""}
+              onChange={(e) => {
+                const value = e.target.value;
+                // const parsedValue = Number(value);
+                console.log("Selected MT5 Account:", value); // Debug log
+                setSelectedMT5Account(value);
+              }}
+              className="appearance-none h-10 w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors duration-200 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M6%208L10%2012L14%208%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%222%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_0.75rem_center] bg-[length:16px_16px] disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={mt5Accounts.length === 0}
+            >
+              {mt5Accounts.length === 0 ? (
+                <option value="">No accounts available</option>
+              ) : (
+                mt5Accounts.map((account) => (
+                  <option key={account.accountNumber} value={account.accountNumber.toString()}>
+                    {account.accountNumber} ({account.server})
+                  </option>
+                ))
+              )}
+            </select>
+          )}
+        </div>
+      </div>
       {isLoading ? (
         <div className="flex justify-center items-center h-119">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-500"></div>

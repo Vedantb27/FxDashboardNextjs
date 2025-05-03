@@ -44,7 +44,7 @@ const tokenData:any=sessionStorage.getItem(`${AUTH_STORAGE_KEY}`)
     if (error?.response?.status === 401) {
       toast.error('Session expired. Please log in again.');
       sessionStorage.removeItem(`${AUTH_STORAGE_KEY}`);
-      // window.location.href = '/';
+      window.location.href = '/';
     }
     if (error?.response?.data?.message) {
       toast.error(error?.response?.data?.message);

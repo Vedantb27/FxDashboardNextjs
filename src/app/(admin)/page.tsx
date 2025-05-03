@@ -11,7 +11,7 @@ import BasicTableOne from "@/components/tables/BasicTableOne";
 export const metadata: Metadata = {
   title:
     "Trade",
-  description: "Trading Analys",
+  description: "Trading Analysis",
 };
 
 export default function Ecommerce() {
