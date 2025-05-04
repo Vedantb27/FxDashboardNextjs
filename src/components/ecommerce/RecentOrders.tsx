@@ -144,9 +144,7 @@ export default function RecentOrders() {
     };
 
     fetchHistory();
-    //console.log(tradingHistory)
   }, []);
-  console.log('trading history is ', tradingHistory)
 
 
   return (

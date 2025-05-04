@@ -157,9 +157,7 @@ export default function BasicTableOne() {
     };
 
     fetchHistory();
-    console.log(tradingHistory)
   }, []);
-  console.log('trading history is ',tradingHistory)
 
 
   return (

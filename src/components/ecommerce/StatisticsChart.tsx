@@ -54,10 +54,8 @@ export default function StatisticsChart() {
     };
 
     fetchHistory();
-    //console.log(tradingHistory)
   }, []);
 
-  // 1️⃣ Sort by close timestamp
   const sorted = [...tradingHistory].sort((a, b) => {
     const tA = new Date(`${a.close_date}T${a.close_time}`).getTime();
     const tB = new Date(`${b.close_date}T${b.close_time}`).getTime();
