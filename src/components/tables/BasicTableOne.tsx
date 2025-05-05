@@ -203,7 +203,7 @@ export default function BasicTableOne() {
 
             {/* Table Body */}
             <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-              {tableData.map((order) => (
+              {tableData?.map((order) => (
                 <TableRow key={order.id}>
                   <TableCell className="px-5 py-4 sm:px-6 text-start">
                     <div className="flex items-center gap-3">
@@ -230,7 +230,7 @@ export default function BasicTableOne() {
                   </TableCell>
                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                     <div className="flex -space-x-2">
-                      {order.team.images.map((teamImage, index) => (
+                      {order.team.images?.map((teamImage, index) => (
                         <div
                           key={index}
                           className="w-6 h-6 overflow-hidden border-2 border-white rounded-full dark:border-gray-900"

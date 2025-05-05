@@ -12,7 +12,7 @@ interface RequestParams {
 const Request = async ({ method, url, data = {}, params = {} }: RequestParams) => {
   function filterEmptyFields(payload: object) {
     return Object.fromEntries(
-      Object.entries(payload).map(([key, value]) => [
+      Object.entries(payload)?.map(([key, value]) => [
         key,
         key === 'SearchTerm'
           ? value

@@ -210,7 +210,7 @@ export default function RecentOrders() {
           <div className="mt-4">
             <h4 className="text-md font-semibold mb-2 text-gray-700 dark:text-gray-300">Toggle Table Columns</h4>
             <div className="grid grid-cols-2 gap-4">
-              {Object.entries(headersConfig).map(([key, config]) => (
+              {Object.entries(headersConfig)?.map(([key, config]) => (
                 <label key={key} className="flex items-center gap-2 text-sm text-gray-800 dark:text-gray-200">
                   <input
                     type="checkbox"
@@ -239,7 +239,7 @@ export default function RecentOrders() {
           {/* Table Header */}
           <TableHeader className="border-gray-100 dark:border-gray-800 border-y">
             <TableRow>
-              {Object.entries(headersConfig).map(([key, config]) => (
+              {Object.entries(headersConfig)?.map(([key, config]) => (
                 config.show && (
                   <TableCell
                     key={key}
@@ -256,9 +256,9 @@ export default function RecentOrders() {
           {/* Table Body */}
 
           <TableBody className="divide-y divide-gray-100 dark:divide-gray-800">
-            {tradingHistory.map((trade, rowIndex) => (
+            {tradingHistory?.map((trade, rowIndex) => (
               <TableRow key={rowIndex}>
-                {Object.entries(headersConfig).map(([key, config]) => {
+                {Object.entries(headersConfig)?.map(([key, config]) => {
                   if (!config.show) return null;
 
                   const value = trade[key as keyof Trade];

@@ -138,7 +138,7 @@ export default function MT5CredentialsPage() {
           </tr>
         </thead>
         <tbody>
-          {[...Array(5)].map((_, index) => (
+          {[...Array(5)]?.map((_, index) => (
             <tr
               key={index}
               className="border-b border-gray-200 dark:border-gray-800"
@@ -231,7 +231,7 @@ export default function MT5CredentialsPage() {
                 </tr>
               </thead>
               <tbody>
-                {accounts.map((account,index) => (
+                {accounts?.map((account,index) => (
                   <tr
                     key={index}
                     className="border-b border-gray-200 dark:border-gray-800"

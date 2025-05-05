@@ -66,10 +66,10 @@ const SkeletonLoader: React.FC = () => {
           <div className="h-6 w-48 bg-gray-200 dark:bg-gray-700 rounded"></div>
         </div>
         <div className="grid grid-cols-7 gap-1">
-          {[...Array(7)].map((_, i) => (
+          {[...Array(7)]?.map((_, i) => (
             <div key={i} className="h-6 bg-gray-200 dark:bg-gray-700 rounded"></div>
           ))}
-          {[...Array(35)].map((_, i) => (
+          {[...Array(35)]?.map((_, i) => (
             <div
               key={i}
               className="h-20 bg-gray-200 dark:bg-gray-700 rounded border border-gray-300 dark:border-gray-600"
@@ -142,7 +142,7 @@ const Calendar: React.FC = () => {
           params: { mt5AccountNumber: selectedMT5Account },
         });
         if (notesResponse?.data) {
-          const fetchedEvents = notesResponse.data.map((item: any) => ({
+          const fetchedEvents = notesResponse?.data?.map((item: any) => ({
             id: item.date,
             title: item.notes,
             start: item.date,
@@ -248,7 +248,7 @@ const Calendar: React.FC = () => {
 
         if (selectedEvent) {
           setEvents((prevEvents) =>
-            prevEvents.map((event) =>
+            prevEvents?.map((event) =>
               event.id === selectedEvent.id ? updatedEvent : event
             )
           );
@@ -368,7 +368,7 @@ const Calendar: React.FC = () => {
                   {mt5Accounts.length === 0 ? (
                     <option value="">No accounts available</option>
                   ) : (
-                    mt5Accounts.map((account) => (
+                    mt5Accounts?.map((account) => (
                       <option key={account.accountNumber} value={account.accountNumber.toString()}>
                         {account.accountNumber} ({account.server})
                       </option>
@@ -432,6 +432,7 @@ const Calendar: React.FC = () => {
                 id="event-title"
                 type="text"
                 autoComplete="off"
+                maxLength={100}
                 value={eventTitle}
                 onChange={(e) => setEventTitle(e.target.value)}
                 className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
@@ -442,7 +443,7 @@ const Calendar: React.FC = () => {
                 Event Color
               </label>
               <div className="flex flex-wrap items-center gap-4 sm:gap-5">
-                {Object.entries(calendarsEvents).map(([key, value]: any) => (
+                {Object.entries(calendarsEvents)?.map(([key, value]: any) => (
                   <div key={key} className="n-chk">
                     <div
                       className={`form-check form-check-${value} form-check-inline`}

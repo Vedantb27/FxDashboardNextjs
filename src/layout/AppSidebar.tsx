@@ -109,7 +109,7 @@ const AppSidebar: React.FC = () => {
     menuType: "main" | "others"
   ) => (
     <ul className="flex flex-col gap-4">
-      {navItems.map((nav, index) => (
+      {navItems?.map((nav, index) => (
         <li key={nav.name}>
           {nav.subItems ? (
             <button
@@ -184,7 +184,7 @@ const AppSidebar: React.FC = () => {
               }}
             >
               <ul className="mt-2 space-y-1 ml-9">
-                {nav.subItems.map((subItem) => (
+                {nav.subItems?.map((subItem) => (
                   <li key={subItem.name}>
                     <Link
                       href={subItem.path}

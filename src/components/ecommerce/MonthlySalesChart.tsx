@@ -88,7 +88,7 @@ export default function MonthlySalesChart() {
   const series = [
     {
       name: "Profit",
-      data: monthlyProfits.map((p) => parseFloat(p.toFixed(2))),
+      data: monthlyProfits?.map((p) => parseFloat(p.toFixed(2))),
     },
   ];
   const options: ApexOptions = {
