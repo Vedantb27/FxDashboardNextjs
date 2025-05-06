@@ -67,8 +67,7 @@ export default function SignInForm() {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
-      const idToken = await user.getIdToken(true); // Force refresh
-      console.log('Google ID Token:', idToken); // Log for debugging
+      const idToken = await user.getIdToken(true); 
       const response = await axios.post(`${BASE_API_URL}/auth/login`, {
         email: user.email,
         googleIdToken: idToken,

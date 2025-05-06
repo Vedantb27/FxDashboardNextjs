@@ -47,8 +47,8 @@ export default function MT5CredentialsPage() {
         method: "GET",
         url: "mt5-accounts",
       });
-      if (response?.status === 200) {
-        setAccounts(response.data);
+      if (Array.isArray(response) && response.length > 0) {
+        setAccounts(response);
       }
     } catch (error) {
       console.error("Error fetching accounts:", error);
@@ -60,7 +60,6 @@ export default function MT5CredentialsPage() {
   useEffect(() => {
     fetchAccounts();
   }, []);
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -101,7 +100,6 @@ export default function MT5CredentialsPage() {
         data: formData,
       });
       if (response?.status === 201) {
-        toast.success("MT5 Account added successfully");
         setFormData({
           accountNumber: "",
           password: "",
@@ -120,7 +118,6 @@ export default function MT5CredentialsPage() {
     }
   };
 
-  // Skeleton Loader Component
   const SkeletonLoader = () => (
     <div className="overflow-x-auto">
       <table className="w-full table-auto">
@@ -141,7 +138,7 @@ export default function MT5CredentialsPage() {
           </tr>
         </thead>
         <tbody>
-          {[...Array(5)].map((_, index) => (
+          {[...Array(5)]?.map((_, index) => (
             <tr
               key={index}
               className="border-b border-gray-200 dark:border-gray-800"
@@ -234,9 +231,9 @@ export default function MT5CredentialsPage() {
                 </tr>
               </thead>
               <tbody>
-                {accounts.map((account) => (
+                {accounts?.map((account,index) => (
                   <tr
-                    key={account.id}
+                    key={index}
                     className="border-b border-gray-200 dark:border-gray-800"
                   >
                     <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">

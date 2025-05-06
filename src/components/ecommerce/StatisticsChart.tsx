@@ -54,10 +54,8 @@ export default function StatisticsChart() {
     };
 
     fetchHistory();
-    //console.log(tradingHistory)
   }, []);
 
-  // 1️⃣ Sort by close timestamp
   const sorted = [...tradingHistory].sort((a, b) => {
     const tA = new Date(`${a.close_date}T${a.close_time}`).getTime();
     const tB = new Date(`${b.close_date}T${b.close_time}`).getTime();
@@ -70,7 +68,7 @@ export default function StatisticsChart() {
 
    // 3️⃣ Build the equity series
    let running = initialBalance;
-   const equityData = sorted.map((t) => {
+   const equityData = sorted?.map((t) => {
      running += t.profit;
      return {
        x: new Date(`${t.close_date}T${t.close_time}`).getTime(),

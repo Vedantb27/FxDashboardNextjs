@@ -58,10 +58,8 @@ export default function MonthlySalesChart() {
     };
 
     fetchHistory();
-    //console.log(tradingHistory)
   }, []);
 
-  // Compute profits for all months in selected year
   useEffect(() => {
     if (tradingHistory.length === 0) return;
 
@@ -90,7 +88,7 @@ export default function MonthlySalesChart() {
   const series = [
     {
       name: "Profit",
-      data: monthlyProfits.map((p) => parseFloat(p.toFixed(2))),
+      data: monthlyProfits?.map((p) => parseFloat(p.toFixed(2))),
     },
   ];
   const options: ApexOptions = {

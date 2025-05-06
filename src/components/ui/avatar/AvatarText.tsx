@@ -9,7 +9,7 @@ const AvatarText: React.FC<AvatarTextProps> = ({ name, className = "" }) => {
   // Generate initials from name
   const initials = name
     .split(" ")
-    .map((word) => word[0])
+    ?.map((word) => word[0])
     .join("")
     .toUpperCase()
     .slice(0, 2);

@@ -45,7 +45,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
     if (onChange) onChange(newSelectedOptions);
   };
 
-  const selectedValuesText = selectedOptions.map(
+  const selectedValuesText = selectedOptions?.map(
     (value) => options.find((option) => option.value === value)?.text || ""
   );
 
@@ -61,7 +61,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
             <div className="mb-2 flex h-11 rounded-lg border border-gray-300 py-1.5 pl-3 pr-3 shadow-theme-xs outline-hidden transition focus:border-brand-300 focus:shadow-focus-ring dark:border-gray-700 dark:bg-gray-900 dark:focus:border-brand-300">
               <div className="flex flex-wrap flex-auto gap-2">
                 {selectedValuesText.length > 0 ? (
-                  selectedValuesText.map((text, index) => (
+                  selectedValuesText?.map((text, index) => (
                     <div
                       key={index}
                       className="group flex items-center justify-center rounded-full border-[0.7px] border-transparent bg-gray-100 py-1 pl-2.5 pr-2 text-sm text-gray-800 hover:border-gray-200 dark:bg-gray-800 dark:text-white/90 dark:hover:border-gray-800"
@@ -134,7 +134,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex flex-col">
-                {options.map((option, index) => (
+                {options?.map((option, index) => (
                   <div key={index}>
                     <div
                       className={`hover:bg-primary/5 w-full cursor-pointer rounded-t border-b border-gray-200 dark:border-gray-800`}

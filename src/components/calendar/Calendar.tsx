@@ -47,6 +47,40 @@ interface MT5Account {
 
 const ACCOUNT_BALANCE = 5000;
 
+// Skeleton Loader Component
+const SkeletonLoader: React.FC = () => {
+  return (
+    <div className="animate-pulse">
+      {/* MT5 Account Selector Skeleton */}
+      <div className="p-4">
+        <div className="w-64">
+          <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+          <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded"></div>
+        </div>
+      </div>
+      {/* Calendar Grid Skeleton */}
+      <div className="p-4">
+        <div className="flex justify-between mb-4">
+          <div className="h-6 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          <div className="h-6 w-40 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          <div className="h-6 w-48 bg-gray-200 dark:bg-gray-700 rounded"></div>
+        </div>
+        <div className="grid grid-cols-7 gap-1">
+          {[...Array(7)]?.map((_, i) => (
+            <div key={i} className="h-6 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          ))}
+          {[...Array(35)]?.map((_, i) => (
+            <div
+              key={i}
+              className="h-20 bg-gray-200 dark:bg-gray-700 rounded border border-gray-300 dark:border-gray-600"
+            ></div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Calendar: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [eventTitle, setEventTitle] = useState("");
@@ -59,12 +93,11 @@ const Calendar: React.FC = () => {
   const [disableDatePicker, setDisableDatePicker] = useState(false);
   const [dailyProfits, setDailyProfits] = useState<{ [date: string]: number }>({});
   const [mt5Accounts, setMT5Accounts] = useState<MT5Account[]>([]);
-  const [selectedMT5Account, setSelectedMT5Account]:any = useState(null);
+  const [selectedMT5Account, setSelectedMT5Account]: any = useState(null);
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
   const calendarRef = useRef<FullCalendar>(null);
   const { isOpen, openModal, closeModal } = useModal();
   const { state, dispatch } = useGlobalState();
-  console.log(state, "statestate");
 
   const calendarsEvents = {
     Danger: "danger",
@@ -106,9 +139,10 @@ const Calendar: React.FC = () => {
         const notesResponse = await Request({
           method: "GET",
           url: "get-notes",
+          params: { mt5AccountNumber: selectedMT5Account },
         });
         if (notesResponse?.data) {
-          const fetchedEvents = notesResponse.data.map((item: any) => ({
+          const fetchedEvents = notesResponse?.data?.map((item: any) => ({
             id: item.date,
             title: item.notes,
             start: item.date,
@@ -126,8 +160,6 @@ const Calendar: React.FC = () => {
           });
           if (tradeResponse) {
             const trades: TradeHistory[] = tradeResponse;
-            console.log(trades, "trades");
-            // Store trade history in global reducer with MT5 account number
             dispatch({
               type: "SET_TRADE_HISTORY",
               payload: {
@@ -202,6 +234,7 @@ const Calendar: React.FC = () => {
           date: formattedDate,
           notes: eventTitle,
           color: eventLevel,
+          mt5AccountNumber: selectedMT5Account,
         },
       });
 
@@ -215,7 +248,7 @@ const Calendar: React.FC = () => {
 
         if (selectedEvent) {
           setEvents((prevEvents) =>
-            prevEvents.map((event) =>
+            prevEvents?.map((event) =>
               event.id === selectedEvent.id ? updatedEvent : event
             )
           );
@@ -244,7 +277,7 @@ const Calendar: React.FC = () => {
       const response = await Request({
         method: "DELETE",
         url: "delete-notes",
-        data: { date: formatDateToYYYYMMDD(selectedEvent.start) },
+        data: { date: formatDateToYYYYMMDD(selectedEvent.start), mt5AccountNumber: selectedMT5Account },
       });
 
       if (response?.message) {
@@ -309,74 +342,72 @@ const Calendar: React.FC = () => {
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
-      <div className="p-4">
-        <div className="relative w-64">
-          <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-            MT5 Account
-          </label>
-          {isLoadingAccounts ? (
-            <div className="flex items-center justify-center h-10 w-full rounded-md border border-gray-300 bg-gray-50 dark:bg-gray-800 px-4 py-2">
-              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-brand-500"></div>
-            </div>
-          ) : (
-            <select
-              value={selectedMT5Account !== null ? selectedMT5Account.toString() : ""}
-              onChange={(e) => {
-                const value = e.target.value;
-                // const parsedValue = Number(value);
-                console.log("Selected MT5 Account:", value); // Debug log
-                setSelectedMT5Account(value);
-              }}
-              className="appearance-none h-10 w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors duration-200 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M6%208L10%2012L14%208%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%222%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_0.75rem_center] bg-[length:16px_16px] disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={mt5Accounts.length === 0}
-            >
-              {mt5Accounts.length === 0 ? (
-                <option value="">No accounts available</option>
-              ) : (
-                mt5Accounts.map((account) => (
-                  <option key={account.accountNumber} value={account.accountNumber.toString()}>
-                    {account.accountNumber} ({account.server})
-                  </option>
-                ))
-              )}
-            </select>
-          )}
-        </div>
-      </div>
       {isLoading ? (
-        <div className="flex justify-center items-center h-119">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-500"></div>
-        </div>
+        <SkeletonLoader />
       ) : (
-        <div className="custom-calendar">
-          <FullCalendar
-            ref={calendarRef}
-            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-            initialView="dayGridMonth"
-            headerToolbar={{
-              left: "prev,next addEventButton",
-              center: "title",
-              right: "dayGridMonth,timeGridWeek,timeGridDay",
-            }}
-            events={events}
-            selectable={true}
-            select={handleDateSelect}
-            eventClick={handleEventClick}
-            eventContent={renderEventContent}
-            customButtons={{
-              addEventButton: {
-                text: "Add Event +",
-                click: () => {
-                  resetModalFields();
-                  setDisableDatePicker(false);
-                  openModal();
+        <>
+          <div className="p-4">
+            <div className="relative w-64">
+              <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                MT5 Account
+              </label>
+              {isLoadingAccounts ? (
+                <div className="flex items-center justify-center h-10 w-full rounded-md border border-gray-300 bg-gray-50 dark:bg-gray-800 px-4 py-2">
+                  <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-brand-500"></div>
+                </div>
+              ) : (
+                <select
+                  value={selectedMT5Account !== null ? selectedMT5Account.toString() : ""}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setSelectedMT5Account(value);
+                  }}
+                  className="appearance-none h-10 w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors duration-200 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M6%208L10%2012L14%208%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%222%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_0.75rem_center] bg-[length:16px_16px] disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={mt5Accounts.length === 0}
+                >
+                  {mt5Accounts.length === 0 ? (
+                    <option value="">No accounts available</option>
+                  ) : (
+                    mt5Accounts?.map((account) => (
+                      <option key={account.accountNumber} value={account.accountNumber.toString()}>
+                        {account.accountNumber} ({account.server})
+                      </option>
+                    ))
+                  )}
+                </select>
+              )}
+            </div>
+          </div>
+          <div className="custom-calendar">
+            <FullCalendar
+              ref={calendarRef}
+              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+              initialView="dayGridMonth"
+              headerToolbar={{
+                left: "prev,next addEventButton",
+                center: "title",
+                right: "dayGridMonth,timeGridWeek,timeGridDay",
+              }}
+              events={events}
+              selectable={true}
+              select={handleDateSelect}
+              eventClick={handleEventClick}
+              eventContent={renderEventContent}
+              customButtons={{
+                addEventButton: {
+                  text: "Add Event +",
+                  click: () => {
+                    resetModalFields();
+                    setDisableDatePicker(false);
+                    openModal();
+                  },
                 },
-              },
-            }}
-            dayCellContent={renderDayCellContent}
-            dayCellClassNames={dayCellClassNames}
-          />
-        </div>
+              }}
+              dayCellContent={renderDayCellContent}
+              dayCellClassNames={dayCellClassNames}
+            />
+          </div>
+        </>
       )}
       <Modal
         isOpen={isOpen}
@@ -401,6 +432,7 @@ const Calendar: React.FC = () => {
                 id="event-title"
                 type="text"
                 autoComplete="off"
+                maxLength={100}
                 value={eventTitle}
                 onChange={(e) => setEventTitle(e.target.value)}
                 className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
@@ -411,7 +443,7 @@ const Calendar: React.FC = () => {
                 Event Color
               </label>
               <div className="flex flex-wrap items-center gap-4 sm:gap-5">
-                {Object.entries(calendarsEvents).map(([key, value]: any) => (
+                {Object.entries(calendarsEvents)?.map(([key, value]: any) => (
                   <div key={key} className="n-chk">
                     <div
                       className={`form-check form-check-${value} form-check-inline`}
