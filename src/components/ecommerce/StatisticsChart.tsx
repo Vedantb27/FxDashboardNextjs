@@ -99,10 +99,6 @@ export default function StatisticsChart() {
         type: "x",
         autoScaleYaxis: true,
       },
-      pan: {
-        enabled: true,
-        type: "x",
-      },
     },
     legend: {
       show: false,
