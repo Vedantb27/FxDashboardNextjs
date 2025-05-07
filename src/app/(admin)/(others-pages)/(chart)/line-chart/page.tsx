@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description:
     "This is Next.js Line Chart page for TailAdmin - Next.js Tailwind CSS Admin Dashboard Template",
 };
-export default function LineChart() {
+export default function Page() {
   return (
     <div>
       <PageBreadcrumb pageTitle="Line Chart" />

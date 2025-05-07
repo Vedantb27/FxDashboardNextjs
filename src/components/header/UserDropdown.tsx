@@ -4,7 +4,7 @@ import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
-import { AUTH_STORAGE_KEY } from "@/utils/envConfig";
+import { AUTH_STORAGE_KEY } from "../../utils/envConfig";
 import { IconUser } from '@tabler/icons-react';
 
 export default function UserDropdown() {

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     "This is Next.jspage for TailAdmin  Tailwind CSS Admin Dashboard Template",
   // other metadata
 };
-export default function page() {
+export default function Page() {
   return (
     <div>
       <MT5CredentialsPage />

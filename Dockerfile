@@ -1,5 +1,5 @@
 # Stage 1: Build the application
-FROM node:18 AS builder
+FROM node:20 AS builder
 
 WORKDIR /app
 
@@ -17,7 +17,7 @@ RUN npm install
 RUN npm run build
 
 # Stage 2: Run the production app
-FROM node:18 AS runner
+FROM node:20 AS runner
 
 WORKDIR /app
 
