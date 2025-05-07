@@ -9,18 +9,18 @@ import {
 import Badge from "../ui/badge/Badge";
 import axios from 'axios';
 import { useState, useEffect } from 'react';
-import { useModal } from "@/hooks/useModal";
-import { Modal } from "@/components/ui/modal";
-import AUD from "@/icons/currencyPairs/AUD.png";
-import CAD from "@/icons/currencyPairs/CAD.png";
-import GBP from "@/icons/currencyPairs/GBP.png";
-import NZD from "@/icons/currencyPairs/NZD.png";
-import USD from "@/icons/currencyPairs/USD.png";
-import EUR from "@/icons/currencyPairs/EUR.png";
-import CHF from "@/icons/currencyPairs/CHF.png";
-import USOIL from "@/icons/currencyPairs/USOIL.png";
-import XAUUSD from "@/icons/currencyPairs/XAUUSD.png";
-import JPY from "@/icons/currencyPairs/JPY.png";
+import { useModal } from "../../hooks/useModal";
+import { Modal } from "../../components/ui/modal";
+import AUD from "../../icons/currencyPairs/AUD.png";
+import CAD from "../../icons/currencyPairs/CAD.png";
+import GBP from "../../icons/currencyPairs/GBP.png";
+import NZD from "../../icons/currencyPairs/NZD.png";
+import USD from "../../icons/currencyPairs/USD.png";
+import EUR from "../../icons/currencyPairs/EUR.png";
+import CHF from "../../icons/currencyPairs/CHF.png";
+import USOIL from "../../icons/currencyPairs/USOIL.png";
+import XAUUSD from "../../icons/currencyPairs/XAUUSD.png";
+import JPY from "../../icons/currencyPairs/JPY.png";
 import type { StaticImageData } from "next/image";
 
 

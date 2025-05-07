@@ -1,5 +1,4 @@
-import MT5CredentialsPage from "@/components/accounts/MT5CredentialsPage";
-import PageBreadcrumb from "@/components/common/PageBreadCrumb";
+import MT5CredentialsPage from "../../../../components/accounts/MT5CredentialsPage";
 import { Metadata } from "next";
 import React from "react";
 

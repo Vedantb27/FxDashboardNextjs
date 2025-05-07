@@ -4,7 +4,7 @@ import { ApexOptions } from "apexcharts";
 
 import dynamic from "next/dynamic";
 import { Dropdown } from "../ui/dropdown/Dropdown";
-import { MoreDotIcon } from "@/icons";
+import { MoreDotIcon } from "../../icons";
 import { useState, useEffect } from "react";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import axios from "axios";

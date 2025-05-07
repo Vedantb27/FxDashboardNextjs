@@ -4,7 +4,7 @@ import ComponentCard from "../../common/ComponentCard";
 
 import { Modal } from "../../ui/modal";
 import Button from "../../ui/button/Button";
-import { useModal } from "@/hooks/useModal";
+import { useModal } from "../../../hooks/useModal";
 
 export default function DefaultModal() {
   const { isOpen, openModal, closeModal } = useModal();

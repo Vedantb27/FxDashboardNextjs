@@ -1,14 +1,14 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import PageBreadcrumb from "@/components/common/PageBreadCrumb";
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import { toast } from "react-toastify";
 import { ClipLoader } from "react-spinners";
-import Request from "@/utils/request";
-import Button from "@/components/ui/button/Button";
-import { Modal } from "@/components/ui/modal";
-import Label from "@/components/form/Label";
-import Input from "@/components/form/input/InputField";
-import { useModal } from "@/hooks/useModal";
+import Request from "../../utils/request";
+import Button from "../../components/ui/button/Button";
+import { Modal } from "../../components/ui/modal";
+import Label from "../../components/form/Label";
+import Input from "../../components/form/input/InputField";
+import { useModal } from "../../hooks/useModal";
 import mt5 from '../../icons/mt5.png';
 import Image from "next/image";
 

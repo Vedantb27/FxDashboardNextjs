@@ -4,7 +4,7 @@ import Badge from "../ui/badge/Badge";
 import dynamic from "next/dynamic";
 import axios from "axios";
 import { ApexOptions } from "apexcharts";
-import { ArrowDownIcon, ArrowUpIcon, BoxIconLine, GroupIcon } from "@/icons";
+import { ArrowDownIcon, BoxIconLine } from "../../icons";
 
 // Dynamically import to avoid SSR issues
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {

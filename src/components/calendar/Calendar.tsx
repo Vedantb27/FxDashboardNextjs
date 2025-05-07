@@ -10,16 +10,15 @@ import {
   EventClickArg,
   EventContentArg,
 } from "@fullcalendar/core";
-import { useModal } from "@/hooks/useModal";
-import { Modal } from "@/components/ui/modal";
-import Request from "@/utils/request";
+import { useModal } from "../../hooks/useModal";
+import { Modal } from "../../components/ui/modal";
+import Request from "../../utils/request";
 import { toast } from "react-toastify";
-import { formatDateToYYYYMMDD } from "@/utils/common";
+import { formatDateToYYYYMMDD } from "../../utils/common";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Badge from "../ui/badge/Badge";
-import { useGlobalState } from "@/context/GlobalStateContext";
-import dataconfig from "./dataconfig.json";
+import { useGlobalState } from "../../context/GlobalStateContext";
 
 interface CalendarEvent extends EventInput {
   id?: string;

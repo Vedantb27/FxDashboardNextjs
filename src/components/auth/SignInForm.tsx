@@ -1,9 +1,9 @@
 "use client";
-import Checkbox from "@/components/form/input/Checkbox";
-import Input from "@/components/form/input/InputField";
-import Label from "@/components/form/Label";
-import Button from "@/components/ui/button/Button";
-import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "@/icons";
+import Checkbox from "../../components/form/input/Checkbox";
+import Input from "../../components/form/input/InputField";
+import Label from "../../components/form/Label";
+import Button from "../../components/ui/button/Button";
+import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
 import Link from "next/link";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -13,7 +13,7 @@ import axios from "axios";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "./lib/firebase";
 import { useRouter } from "next/navigation";
-import { AUTH_STORAGE_KEY, BASE_API_URL } from "@/utils/envConfig";
+import { AUTH_STORAGE_KEY, BASE_API_URL } from "../../utils/envConfig";
 
 // Validation schema
 const schema = z.object({
