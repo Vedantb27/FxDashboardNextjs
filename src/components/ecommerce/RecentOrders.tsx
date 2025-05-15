@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import {
   Table,
   TableBody,
@@ -7,8 +7,7 @@ import {
   TableRow,
 } from "../ui/table";
 import Badge from "../ui/badge/Badge";
-import axios from 'axios';
-import { useState, useEffect } from 'react';
+import { useState } from "react";
 import { useModal } from "../../hooks/useModal";
 import { Modal } from "../../components/ui/modal";
 import AUD from "../../icons/currencyPairs/AUD.png";
@@ -22,9 +21,6 @@ import USOIL from "../../icons/currencyPairs/USOIL.png";
 import XAUUSD from "../../icons/currencyPairs/XAUUSD.png";
 import JPY from "../../icons/currencyPairs/JPY.png";
 import type { StaticImageData } from "next/image";
-
-
-
 
 interface Trade {
   sr_no: number;
@@ -41,7 +37,7 @@ interface Trade {
   profit: number;
   sl_price: number | null;
   tp_price: number | null;
-  type: 'buy' | 'sell';
+  type: "buy" | "sell";
   symbol: string;
   volume: number;
   history_from_date: string;
@@ -50,7 +46,11 @@ interface Trade {
   updatedAt: string;
 }
 
-// right after your imports...
+interface RecentOrdersProps {
+  tradeHistory: Trade[];
+}
+
+// Icon mappings
 const ICONS = {
   AUD,
   CAD,
@@ -68,16 +68,14 @@ interface PairIconProps {
   size?: number; // in px
 }
 
-const BASES = ["AUD", "CAD", "GBP", "NZD", "USD","EUR","CHF","JPY"] as const;
-const QUOTES = ["AUD", "CAD", "GBP", "NZD", "USD","EUR","CHF","JPY"] as const;
+const BASES = ["AUD", "CAD", "GBP", "NZD", "USD", "EUR", "CHF", "JPY"] as const;
+const QUOTES = ["AUD", "CAD", "GBP", "NZD", "USD", "EUR", "CHF", "JPY"] as const;
 
-// 3) automatically generate every base+quote pair mapping
 type Base = typeof BASES[number];
 type Quote = typeof QUOTES[number];
 
 const pairIconMap: Record<string, StaticImageData> = {};
 
-// for each base/quote combination (except same/same), point to the base icon
 for (const base of BASES) {
   for (const quote of QUOTES) {
     if (base === quote) continue;
@@ -86,21 +84,14 @@ for (const base of BASES) {
   }
 }
 
-
-// 4) special overrides for your one‑off symbols
 pairIconMap["USOIL"] = USOIL;
 pairIconMap["XAUUSD"] = XAUUSD;
 
-// 5) export a lookup function
 export function getIconForSymbol(symbol: string): StaticImageData | undefined {
   return pairIconMap[symbol.toUpperCase()];
 }
 
-
-
-
-export default function RecentOrders() {
-
+export default function RecentOrders({ tradeHistory }: RecentOrdersProps) {
   const [headersConfig, setHeadersConfig] = useState<{
     [key in keyof Trade]?: {
       label: string;
@@ -125,27 +116,8 @@ export default function RecentOrders() {
     tp_price: { label: "TP", show: true },
     volume: { label: "Volume", show: false },
   });
-  ;
-  
 
-  const [tradingHistory, setTradingHistory] = useState<Trade[]>([]);
   const { isOpen, openModal, closeModal } = useModal();
-
-  useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const response = await axios.get<Trade[]>(
-          'https://mocki.io/v1/95248ed5-b09a-4b76-8f67-cebc4c29b4b3'
-        );
-        setTradingHistory(response.data);
-      } catch (error) {
-        console.error('Error fetching trade history:', error);
-      }
-    };
-
-    fetchHistory();
-  }, []);
-
 
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
@@ -208,10 +180,15 @@ export default function RecentOrders() {
           className="max-w-[700px] p-6 lg:p-10"
         >
           <div className="mt-4">
-            <h4 className="text-md font-semibold mb-2 text-gray-700 dark:text-gray-300">Toggle Table Columns</h4>
+            <h4 className="text-md font-semibold mb-2 text-gray-700 dark:text-gray-300">
+              Toggle Table Columns
+            </h4>
             <div className="grid grid-cols-2 gap-4">
               {Object.entries(headersConfig)?.map(([key, config]) => (
-                <label key={key} className="flex items-center gap-2 text-sm text-gray-800 dark:text-gray-200">
+                <label
+                  key={key}
+                  className="flex items-center gap-2 text-sm text-gray-800 dark:text-gray-200"
+                >
                   <input
                     type="checkbox"
                     checked={config.show}
@@ -231,7 +208,6 @@ export default function RecentOrders() {
               ))}
             </div>
           </div>
-
         </Modal>
       </div>
       <div className="max-w-full overflow-x-auto">
@@ -239,7 +215,7 @@ export default function RecentOrders() {
           {/* Table Header */}
           <TableHeader className="border-gray-100 dark:border-gray-800 border-y">
             <TableRow>
-              {Object.entries(headersConfig)?.map(([key, config]) => (
+              {Object.entries(headersConfig)?.map(([key, config]) =>
                 config.show && (
                   <TableCell
                     key={key}
@@ -249,14 +225,13 @@ export default function RecentOrders() {
                     {config.label}
                   </TableCell>
                 )
-              ))}
+              )}
             </TableRow>
           </TableHeader>
 
           {/* Table Body */}
-
           <TableBody className="divide-y divide-gray-100 dark:divide-gray-800">
-            {tradingHistory?.map((trade, rowIndex) => (
+            {tradeHistory?.map((trade, rowIndex) => (
               <TableRow key={rowIndex}>
                 {Object.entries(headersConfig)?.map(([key, config]) => {
                   if (!config.show) return null;
@@ -267,63 +242,59 @@ export default function RecentOrders() {
                     const symbol = trade.symbol.toUpperCase();
                     const base = symbol.substring(0, 3);
                     const quote = symbol.substring(3);
-                  
+
                     const baseIcon = ICONS[base as keyof typeof ICONS];
                     const quoteIcon = ICONS[quote as keyof typeof ICONS];
-                    const fallbackIcon = getIconForSymbol(symbol); // For XAUUSD, USOIL, etc.
-                  
+                    const fallbackIcon = getIconForSymbol(symbol);
+
                     return (
                       <TableCell
                         key={key}
                         className="py-3 text-gray-500 text-theme-sm dark:text-gray-400"
                       >
-                       <div className="flex items-center gap-2">
-  {/* Overlapping base icon on the left side of quote icon */}
-  <div className="relative w-6 h-4">
-    {baseIcon && quoteIcon ? (
-      <>
-        {/* Quote icon - base will overlap this from the left */}
-        <img
-          src={quoteIcon.src}
-          alt={quote}
-          className="absolute left-0 top-0 h-4 w-4 object-contain z-0"
-        />
-        {/* Base icon - overlaps quote by 35% */}
-        <img
-          src={baseIcon.src}
-          alt={base}
-          className="absolute left-[-35%] top-[-50%] h-4 w-4 object-contain z-10"
-        />
-      </>
-    ) : (
-      fallbackIcon && (
-        <img
-          src={fallbackIcon.src}
-          alt={symbol}
-          className="h-8 w-8 object-contain"
-        />
-      )
-    )}
-  </div>
-
-  {/* Symbol text */}
-  <span>{symbol}</span>
-</div>
-
+                        <div className="flex items-center gap-2">
+                          <div className="relative w-6 h-4">
+                            {baseIcon && quoteIcon ? (
+                              <>
+                                <img
+                                  src={quoteIcon.src}
+                                  alt={quote}
+                                  className="absolute left-0 top-0 h-4 w-4 object-contain z-0"
+                                />
+                                <img
+                                  src={baseIcon.src}
+                                  alt={base}
+                                  className="absolute left-[-35%] top-[-50%] h-4 w-4 object-contain z-10"
+                                />
+                              </>
+                            ) : (
+                              fallbackIcon && (
+                                <img
+                                  src={fallbackIcon.src}
+                                  alt={symbol}
+                                  className="h-8 w-8 object-contain"
+                                />
+                              )
+                            )}
+                          </div>
+                          <span>{symbol}</span>
+                        </div>
                       </TableCell>
                     );
                   }
-                  
 
-                  // Type column
                   if (key === "type") {
                     return (
                       <TableCell
                         key={key}
                         className="py-3 text-gray-500 text-theme-sm dark:text-gray-400"
                       >
-                        <Badge size="sm" color={value === "buy" ? "success" : "error"}>
-                          {String(value).charAt(0).toUpperCase() + String(value).slice(1)}
+                        <Badge
+                          size="sm"
+                          color={value === "buy" ? "success" : "error"}
+                        >
+                          {String(value).charAt(0).toUpperCase() +
+                            String(value).slice(1)}
                         </Badge>
                       </TableCell>
                     );
@@ -351,8 +322,6 @@ export default function RecentOrders() {
                     );
                   }
 
-
-                  // Date columns (you might format these later)
                   if (key === "open_date" || key === "close_date") {
                     return (
                       <TableCell
@@ -364,7 +333,6 @@ export default function RecentOrders() {
                     );
                   }
 
-                  // Time columns
                   if (key === "open_time" || key === "close_time") {
                     return (
                       <TableCell
@@ -376,7 +344,6 @@ export default function RecentOrders() {
                     );
                   }
 
-                  // Position ID
                   if (key === "position_id") {
                     return (
                       <TableCell
@@ -388,9 +355,14 @@ export default function RecentOrders() {
                     );
                   }
 
-                  // SL / TP or other numeric columns
-                  if (key === "sl_price" || key === "tp_price" || key === "open_price" || key === "close_price") {
-                    const formattedValue = typeof value === "number" ? value.toFixed(4) : value ?? "—";
+                  if (
+                    key === "sl_price" ||
+                    key === "tp_price" ||
+                    key === "open_price" ||
+                    key === "close_price"
+                  ) {
+                    const formattedValue =
+                      typeof value === "number" ? value.toFixed(4) : value ?? "—";
                     return (
                       <TableCell
                         key={key}
@@ -401,7 +373,6 @@ export default function RecentOrders() {
                     );
                   }
 
-                  // Default fallback for any other shown column
                   return (
                     <TableCell
                       key={key}
@@ -414,8 +385,6 @@ export default function RecentOrders() {
               </TableRow>
             ))}
           </TableBody>
-
-
         </Table>
       </div>
     </div>

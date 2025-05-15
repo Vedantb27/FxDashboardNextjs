@@ -1,13 +1,9 @@
 "use client";
 import React from "react";
-// import Chart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
 import ChartTab from "../common/ChartTab";
 import dynamic from "next/dynamic";
-import { useState, useEffect } from "react";
-import axios from "axios";
 
-// Dynamically import the ReactApexChart component
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
 });
@@ -36,48 +32,32 @@ interface Trade {
   updatedAt: string;
 }
 
-export default function StatisticsChart() {
+interface StatisticsChartProps {
+  tradeHistory: Trade[];
+}
 
-   const [tradingHistory, setTradingHistory] = useState<Trade[]>([]);
-   const currentBalance = 4850;
+export default function StatisticsChart({ tradeHistory }: StatisticsChartProps) {
+  const currentBalance = 4850;
 
-   useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const response = await axios.get<Trade[]>(
-          'https://mocki.io/v1/95248ed5-b09a-4b76-8f67-cebc4c29b4b3'
-        );
-        setTradingHistory(response.data);
-      } catch (error) {
-        console.error('Error fetching trade history:', error);
-      }
-    };
-
-    fetchHistory();
-  }, []);
-
-  const sorted = [...tradingHistory].sort((a, b) => {
+  const sorted = [...tradeHistory].sort((a, b) => {
     const tA = new Date(`${a.close_date}T${a.close_time}`).getTime();
     const tB = new Date(`${b.close_date}T${b.close_time}`).getTime();
     return tA - tB;
   });
 
-  // 2️⃣ Compute initial balance so that final point is currentBalance
   const totalProfit = sorted.reduce((sum, t) => sum + t.profit, 0);
   const initialBalance = currentBalance - totalProfit;
 
-   // 3️⃣ Build the equity series
-   let running = initialBalance;
-   const equityData = sorted?.map((t) => {
-     running += t.profit;
-     return {
-       x: new Date(`${t.close_date}T${t.close_time}`).getTime(),
-       y: Number(running.toFixed(2)),
-     };
-   })
+  let running = initialBalance;
+  const equityData = sorted.map((t) => {
+    running += t.profit;
+    return {
+      x: new Date(`${t.close_date}T${t.close_time}`).getTime(),
+      y: Number(running.toFixed(2)),
+    };
+  });
 
- 
-   const options: ApexOptions = {
+  const options: ApexOptions = {
     chart: {
       fontFamily: "Outfit, sans-serif",
       height: 310,

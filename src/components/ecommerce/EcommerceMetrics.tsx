@@ -1,8 +1,7 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Badge from "../ui/badge/Badge";
 import dynamic from "next/dynamic";
-import axios from "axios";
 import { ApexOptions } from "apexcharts";
 import { ArrowDownIcon, BoxIconLine } from "../../icons";
 
@@ -26,46 +25,32 @@ interface Trade {
   profit: number;
   sl_price: number | null;
   tp_price: number | null;
-  type: 'buy' | 'sell';
+  type: "buy" | "sell";
   symbol: string;
   volume: number;
   history_from_date: string;
   history_to_date: string;
   createdAt: string;
   updatedAt: string;
-  // (other fields omitted)
 }
 
-export const EcommerceMetrics = () => {
-  const [tradingHistory, setTradingHistory] = useState<Trade[]>([]);
+interface EcommerceMetricsProps {
+  tradeHistory: Trade[];
+}
 
-  useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const { data } = await axios.get<Trade[]>(
-          "https://mocki.io/v1/95248ed5-b09a-4b76-8f67-cebc4c29b4b3"
-        );
-        setTradingHistory(data);
-      } catch (err) {
-        console.error("Error fetching trade history:", err);
-      }
-    };
-    fetchHistory();
-  }, []);
-
+export const EcommerceMetrics = ({ tradeHistory }: EcommerceMetricsProps) => {
   // Compute win-rate
-  const wins = tradingHistory.filter((t) => t.profit > 0).length;
-  const totalClosed = tradingHistory.filter((t) => t.profit !== 0).length;
+  const wins = tradeHistory.filter((t) => t.profit > 0).length;
+  const totalClosed = tradeHistory.filter((t) => t.profit !== 0).length;
   const winRate = totalClosed > 0 ? (wins / totalClosed) * 100 : 0;
   const winRateSeries = [parseFloat(winRate.toFixed(2))];
-  
-  const totalOrders = tradingHistory.length;
 
-   // 2. Compute net P&L
-   const netPL = tradingHistory.reduce((sum, t) => sum + t.profit, 0);
-   const netPLFormatted = `${netPL >= 0 ? "+" : ""}${netPL.toFixed(2)}$`;
-   const netPLIsPositive = netPL >= 0;
-   
+  const totalOrders = tradeHistory.length;
+
+  // Compute net P&L
+  const netPL = tradeHistory.reduce((sum, t) => sum + t.profit, 0);
+  const netPLFormatted = `${netPL >= 0 ? "+" : ""}${netPL.toFixed(2)}$`;
+  const netPLIsPositive = netPL >= 0;
 
   // Apex radial-bar options
   const winRateOptions: ApexOptions = {
@@ -98,22 +83,19 @@ export const EcommerceMetrics = () => {
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
-     
-        {/* Win Rate Card */}
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 flex flex-col items-center justify-between dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
+      {/* Win Rate Card */}
+      <div className="rounded-2xl border border-gray-200 bg-white p-5 flex flex-col items-center justify-between dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
         <h4 className="text-gray-500 mb-2">Win Rate</h4>
-        
         <ReactApexChart
           options={winRateOptions}
           series={winRateSeries}
           type="radialBar"
           height={200}
         />
-        
-        
-        {/* <div className="mt-4 ">
+        {/* Commented-out section preserved for potential future use */}
+        {/* <div className="mt-4">
           <Badge color={netPLIsPositive ? "success" : "error"}>
-          <span>Total gain</span>
+            <span>Total gain</span>
             {netPLIsPositive ? (
               <ArrowUpIcon className="text-success-500" />
             ) : (
@@ -135,7 +117,7 @@ export const EcommerceMetrics = () => {
               Total Orders
             </span>
             <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-             {totalOrders}
+              {totalOrders}
             </h4>
           </div>
           <Badge color="error">

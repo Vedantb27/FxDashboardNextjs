@@ -2,7 +2,6 @@
 import { ApexOptions } from "apexcharts";
 import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
-import axios from 'axios';
 
 // Dynamically import the ReactApexChart component
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
@@ -24,7 +23,7 @@ interface Trade {
   profit: number;
   sl_price: number | null;
   tp_price: number | null;
-  type: 'buy' | 'sell';
+  type: "buy" | "sell";
   symbol: string;
   volume: number;
   history_from_date: string;
@@ -33,36 +32,22 @@ interface Trade {
   updatedAt: string;
 }
 
-export default function MonthlySalesChart() {
+interface MonthlySalesChartProps {
+  tradeHistory: Trade[];
+}
 
-  const [tradingHistory, setTradingHistory] = useState<Trade[]>([]);
-  const [initialBalance, setInitialBalance] = useState<number>(5000);
-  const [currentMonthProfit, setCurrentMonthProfit] = useState<number>(0);
+export default function MonthlySalesChart({ tradeHistory }: MonthlySalesChartProps) {
+  const [initialBalance] = useState<number>(5000);
   const [monthlyProfits, setMonthlyProfits] = useState<number[]>(new Array(12).fill(0));
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [barColor, setBarColor] = useState<string>("#465fff"); // default blue
 
   useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const response = await axios.get<Trade[]>(
-          'https://mocki.io/v1/95248ed5-b09a-4b76-8f67-cebc4c29b4b3'
-        );
-        setTradingHistory(response.data);
-      } catch (error) {
-        console.error('Error fetching trade history:', error);
-      }
-    };
-
-    fetchHistory();
-  }, []);
-
-  useEffect(() => {
-    if (tradingHistory.length === 0) return;
+    if (tradeHistory.length === 0) return;
 
     const profitsByMonth = new Array(12).fill(0);
 
-    tradingHistory.forEach((trade) => {
+    tradeHistory.forEach((trade) => {
       const closeDate = new Date(trade.close_date);
       const year = closeDate.getFullYear();
       const month = closeDate.getMonth(); // 0 to 11
@@ -73,7 +58,7 @@ export default function MonthlySalesChart() {
     });
 
     setMonthlyProfits(profitsByMonth);
-  }, [tradingHistory, selectedYear]);
+  }, [tradeHistory, selectedYear]);
 
   // Update chart bar color based on total profit
   useEffect(() => {
@@ -85,11 +70,12 @@ export default function MonthlySalesChart() {
   const series = [
     {
       name: "Profit",
-      data: monthlyProfits?.map((p) => parseFloat(p.toFixed(2))),
+      data: monthlyProfits.map((p) => parseFloat(p.toFixed(2))),
     },
   ];
+
   const options: ApexOptions = {
-    colors: ["#465fff"],
+    colors: [barColor],
     chart: {
       fontFamily: "Outfit, sans-serif",
       type: "bar",
@@ -157,7 +143,6 @@ export default function MonthlySalesChart() {
     fill: {
       opacity: 1,
     },
-
     tooltip: {
       x: {
         show: false,
@@ -167,19 +152,6 @@ export default function MonthlySalesChart() {
       },
     },
   };
-
-  const now = new Date();
-
-
-  const [isOpen, setIsOpen] = useState(false);
-
-  function toggleDropdown() {
-    setIsOpen(!isOpen);
-  }
-
-  function closeDropdown() {
-    setIsOpen(false);
-  }
 
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-5 pt-5 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6">
@@ -205,7 +177,6 @@ export default function MonthlySalesChart() {
             →
           </button>
         </div>
-
       </div>
 
       <div className="max-w-full overflow-x-auto custom-scrollbar">

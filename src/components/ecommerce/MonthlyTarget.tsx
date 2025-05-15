@@ -1,14 +1,11 @@
 "use client";
-// import Chart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
-
 import dynamic from "next/dynamic";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { MoreDotIcon } from "../../icons";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
-import axios from "axios";
-// Dynamically import the ReactApexChart component
+
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
 });
@@ -37,76 +34,63 @@ interface Trade {
   updatedAt: string;
 }
 
-export default function MonthlyTarget() {
+interface MonthlyTargetProps {
+  tradeHistory: Trade[];
+}
 
+export default function MonthlyTarget({ tradeHistory }: MonthlyTargetProps) {
   const [profitTarget, setProfitTarget] = useState<number>(10); // 10%
   const [currentProfit, setCurrentProfit] = useState<number>(0);
   const [series, setSeries] = useState<number[]>([0]);
-  const [tradingHistory, setTradingHistory] = useState<Trade[]>([]);
   const [weeklyProfit, setWeeklyProfit] = useState<number>(0);
   const [monthlyProfit, setMonthlyProfit] = useState<number>(0);
   const [dailyProfit, setDailyProfit] = useState<number>(0);
   const [dailyPercent, setDailyPercent] = useState<number>(0);
   const [weeklyPercent, setWeeklyPercent] = useState<number>(0);
   const [monthlyPercent, setMonthlyPercent] = useState<number>(0);
-  
 
   const initialBalance = 5000;
 
   useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const response = await axios.get<Trade[]>('https://mocki.io/v1/95248ed5-b09a-4b76-8f67-cebc4c29b4b3');
-        const history = response.data;
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+    const todayDate = now.getDate();
+    const todayString = now.toISOString().split('T')[0];
 
-        const now = new Date();
-        const currentYear = now.getFullYear();
-        const currentMonth = now.getMonth();
-        const todayDate = now.getDate();
-        const todayString = now.toISOString().split('T')[0];
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(todayDate - now.getDay());
 
-        const startOfWeek = new Date(now);
-        startOfWeek.setDate(todayDate - now.getDay());
+    const dailyTrades = tradeHistory.filter(trade => trade.close_date === todayString);
 
-        const dailyTrades = history.filter(trade => trade.close_date === todayString);
+    const weeklyTrades = tradeHistory.filter(trade => {
+      const close = new Date(trade.close_date);
+      return close >= startOfWeek && close <= now;
+    });
 
-        const weeklyTrades = history.filter(trade => {
-          const close = new Date(trade.close_date);
-          return close >= startOfWeek && close <= now;
-        });
+    const monthlyTrades = tradeHistory.filter(trade => {
+      const close = new Date(trade.close_date);
+      return close.getMonth() === currentMonth && close.getFullYear() === currentYear;
+    });
 
-        const monthlyTrades = history.filter(trade => {
-          const close = new Date(trade.close_date);
-          return close.getMonth() === currentMonth && close.getFullYear() === currentYear;
-        });
+    const dailyProfit = dailyTrades.reduce((acc, trade) => acc + trade.profit, 0);
+    const weeklyProfit = weeklyTrades.reduce((acc, trade) => acc + trade.profit, 0);
+    const monthlyProfit = monthlyTrades.reduce((acc, trade) => acc + trade.profit, 0);
 
-        const dailyProfit = dailyTrades.reduce((acc, trade) => acc + trade.profit, 0);
-        const weeklyProfit = weeklyTrades.reduce((acc, trade) => acc + trade.profit, 0);
-        const monthlyProfit = monthlyTrades.reduce((acc, trade) => acc + trade.profit, 0);
+    // Set state
+    setCurrentProfit(monthlyProfit);
+    setSeries([parseFloat(((monthlyProfit / ((initialBalance * profitTarget) / 100)) * 100).toFixed(2))]);
 
-        // Set state
-        setCurrentProfit(monthlyProfit);
-        setTradingHistory(history);
+    // Set profits in USD
+    setDailyProfit(dailyProfit);
+    setWeeklyProfit(weeklyProfit);
+    setMonthlyProfit(monthlyProfit);
 
-        setSeries([parseFloat(((monthlyProfit / ((initialBalance * profitTarget) / 100)) * 100).toFixed(2))]);
-
-        // Set profits in USD
-        setDailyProfit(dailyProfit);
-        setWeeklyProfit(weeklyProfit);
-        setMonthlyProfit(monthlyProfit);
-
-        // Calculate percentages — you can display these later
-        setDailyPercent((dailyProfit / initialBalance) * 100);
-        setWeeklyPercent((weeklyProfit / initialBalance) * 100);
-        setMonthlyPercent((monthlyProfit / initialBalance) * 100);
-
-      } catch (error) {
-        console.error('Error while fetching data:', error);
-      }
-    };
-
-    fetchHistory();
-  }, [profitTarget]);
+    // Calculate percentages
+    setDailyPercent((dailyProfit / initialBalance) * 100);
+    setWeeklyPercent((weeklyProfit / initialBalance) * 100);
+    setMonthlyPercent((monthlyProfit / initialBalance) * 100);
+  }, [tradeHistory, profitTarget]);
 
   const UpArrow = () => (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -130,8 +114,6 @@ export default function MonthlyTarget() {
     </svg>
   );
 
-
-
   const options: ApexOptions = {
     colors: ["#465FFF"],
     chart: {
@@ -152,7 +134,7 @@ export default function MonthlyTarget() {
         track: {
           background: "#E4E7EC",
           strokeWidth: "100%",
-          margin: 5, // margin is in pixels
+          margin: 5,
         },
         dataLabels: {
           name: {
@@ -228,7 +210,7 @@ export default function MonthlyTarget() {
             </Dropdown>
           </div>
         </div>
-        <div className="relative ">
+        <div className="relative">
           <div className="max-h-[330px]">
             <ReactApexChart
               options={options}
@@ -237,30 +219,25 @@ export default function MonthlyTarget() {
               height={330}
             />
           </div>
-
           <span className="absolute left-1/2 top-full -translate-x-1/2 -translate-y-[95%] rounded-full bg-success-50 px-3 py-1 text-xs font-medium text-success-600 dark:bg-success-500/15 dark:text-success-500">
             +10%
           </span>
         </div>
         <p className="mx-auto mt-10 w-full max-w-[380px] text-center text-sm text-gray-500 sm:text-base">
-          You earn $3287 today, it&apos;s higher than last month. Keep up your
-          good work!
+          You earn ${monthlyProfit.toFixed(2)} this month, keep up your good work!
         </p>
       </div>
-
       <div className="flex items-center justify-center gap-5 px-6 py-3.5 sm:gap-8 sm:py-5">
         <div>
           <p className="mb-1 text-center text-gray-500 text-theme-xs dark:text-gray-400 sm:text-sm">
-            Mothly gain
+            Monthly gain
           </p>
           <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
             {monthlyProfit.toFixed(2)}$
             {monthlyProfit >= 0 ? <UpArrow /> : <DownArrow />}
           </p>
         </div>
-
         <div className="w-px bg-gray-200 h-7 dark:bg-gray-800"></div>
-
         <div>
           <p className="mb-1 text-center text-gray-500 text-theme-xs dark:text-gray-400 sm:text-sm">
             Weekly gain
@@ -270,9 +247,7 @@ export default function MonthlyTarget() {
             {weeklyProfit >= 0 ? <UpArrow /> : <DownArrow />}
           </p>
         </div>
-
         <div className="w-px bg-gray-200 h-7 dark:bg-gray-800"></div>
-
         <div>
           <p className="mb-1 text-center text-gray-500 text-theme-xs dark:text-gray-400 sm:text-sm">
             Daily gain
@@ -286,4 +261,3 @@ export default function MonthlyTarget() {
     </div>
   );
 }
-
