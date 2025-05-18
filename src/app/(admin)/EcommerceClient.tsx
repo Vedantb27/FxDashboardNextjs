@@ -136,10 +136,10 @@ export default function EcommerceClient() {
       className="appearance-none h-10 flex-grow rounded-md border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors duration-200 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M6%208L10%2012L14%208%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%222%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_0.75rem_center] bg-[length:16px_16px] disabled:opacity-50 disabled:cursor-not-allowed"
       disabled={mt5Accounts.length === 0}
     >
-      {mt5Accounts.length != 0 ? (
+      {mt5Accounts.length === 0 ? (
         <option value="">No accounts available</option>
       ) : (
-        mt5Accounts.length === 0  && mt5Accounts?.map((account) => (
+        mt5Accounts.length != 0  && mt5Accounts?.map((account) => (
           <option key={account.accountNumber} value={account.accountNumber.toString()}>
             {account.accountNumber} ({account.server})
           </option>
