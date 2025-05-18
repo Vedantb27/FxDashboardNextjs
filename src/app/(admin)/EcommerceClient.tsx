@@ -139,7 +139,7 @@ export default function EcommerceClient() {
       {mt5Accounts.length === 0 ? (
         <option value="">No accounts available</option>
       ) : (
-        mt5Accounts?.map((account) => (
+        mt5Accounts.length === 0  && mt5Accounts?.map((account) => (
           <option key={account.accountNumber} value={account.accountNumber.toString()}>
             {account.accountNumber} ({account.server})
           </option>
