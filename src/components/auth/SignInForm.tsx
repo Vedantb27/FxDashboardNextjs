@@ -68,7 +68,7 @@ export default function SignInForm() {
       sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(response.data));
       router.push("/");
     } catch (err: any) {
-      setError(err.response?.data?.error || "Something went wrong");
+      setError(`${err.response?.data?.error}. If you are new here, please sign up first.` || "Something went wrong");
     } finally {
       setLoading(false);
     }
