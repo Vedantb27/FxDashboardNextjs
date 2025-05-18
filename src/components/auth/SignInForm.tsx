@@ -17,8 +17,19 @@ import { AUTH_STORAGE_KEY, BASE_API_URL } from "../../utils/envConfig";
 
 // Validation schema
 const schema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(1, "Password is required"),
+  email: z
+    .string()
+    .min(1, "Email is required")
+    .email("Invalid email address")
+    .regex(
+      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+      "Please enter a valid email with a proper domain"
+    ),
+  password: z
+    .string()
+    .min(1, "Password is required")
+    .min(8, "Password must be at least 8 characters")
+    .regex(/^.{8,}$/, "Password must be at least 8 characters long"),
   keepLoggedIn: z.boolean(),
 });
 
@@ -35,9 +46,12 @@ export default function SignInForm() {
     register,
     handleSubmit,
     formState: { errors },
+    watch,
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
+      email: "",
+      password: "",
       keepLoggedIn: false,
     },
   });
@@ -67,7 +81,7 @@ export default function SignInForm() {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
-      const idToken = await user.getIdToken(true); 
+      const idToken = await user.getIdToken(true);
       const response = await axios.post(`${BASE_API_URL}/auth/login`, {
         email: user.email,
         googleIdToken: idToken,
@@ -81,7 +95,7 @@ export default function SignInForm() {
       } else if (err.response?.data?.error.includes("Google token verification failed")) {
         setError("Google authentication failed. Please try again or contact support.");
       } else {
-        setError(err.message || "Google login failed. Please try again.");
+        setError( "Google login failed. Please try again. If you are new here, please sign up first.");
       }
     } finally {
       setGoogleLoading(false);
@@ -184,10 +198,8 @@ export default function SignInForm() {
                 </Label>
                 <Input
                   type="email"
-                  id="email"
                   {...register("email")}
                   placeholder="info@gmail.com"
-                  className={errors.email ? "border-error-500" : ""}
                   error={!!errors.email}
                   hint={errors.email?.message}
                 />
@@ -199,10 +211,8 @@ export default function SignInForm() {
                 <div className="relative">
                   <Input
                     type={showPassword ? "text" : "password"}
-                    id="password"
                     {...register("password")}
                     placeholder="Enter your password"
-                    className={errors.password ? "border-error-500" : ""}
                     error={!!errors.password}
                     hint={errors.password?.message}
                   />

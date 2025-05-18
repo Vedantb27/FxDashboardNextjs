@@ -22,10 +22,20 @@ const Request = async ({ method, url, data = {}, params = {} }: RequestParams) =
       ])
     );
   }
-const tokenData:any=sessionStorage.getItem(`${AUTH_STORAGE_KEY}`)
-  const token = JSON.parse(tokenData);
+
+  const tokenData = sessionStorage.getItem(`${AUTH_STORAGE_KEY}`);
+  let token: { token: string } | null = null;
+  if (tokenData) {
+    try {
+      token = JSON.parse(tokenData);
+    } catch (e) {
+      console.error('Failed to parse token:', e);
+      sessionStorage.removeItem(`${AUTH_STORAGE_KEY}`);
+    }
+  }
+
   const headers = {
-    Authorization: `Bearer ${token?.token}`,
+    Authorization: token ? `Bearer ${token.token}` : '',
   };
 
   try {
@@ -34,22 +44,20 @@ const tokenData:any=sessionStorage.getItem(`${AUTH_STORAGE_KEY}`)
       url: `${BASE_API_URL}/${url}`,
       data: Array.isArray(data) ? data : filterEmptyFields(data),
       params,
-      headers: headers,
+      headers,
     });
     if (response?.data?.status === 201) {
       toast.success(response?.data?.message);
     }
     return response?.data;
-  } catch (error:any) {
+  } catch (error: any) {
     if (error?.response?.status === 401) {
       toast.error('Session expired. Please log in again.');
       sessionStorage.removeItem(`${AUTH_STORAGE_KEY}`);
-      window.location.href = '/';
     }
     if (error?.response?.data?.message) {
       toast.error(error?.response?.data?.message);
     }
-    return error;
   }
 };
 
