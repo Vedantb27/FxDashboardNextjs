@@ -52,7 +52,7 @@ export default function SignUpForm() {
         password: data.password,
       });
       localStorage.setItem("token", response.data.token);
-      router.push("/dashboard");
+      router.push("/");
     } catch (err: any) {
       setError(err.response?.data?.error || "Something went wrong");
     } finally {
@@ -74,7 +74,7 @@ export default function SignUpForm() {
         googleId: user.uid,
       });
       localStorage.setItem("token", response.data.token);
-      router.push("/dashboard");
+      router.push("/");
     } catch (err: any) {
       console.error("Google signup error:", err);
       if (err.code === "auth/configuration-not-found" || err.message.includes("CONFIGURATION_NOT_FOUND")) {
