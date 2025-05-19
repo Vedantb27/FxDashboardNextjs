@@ -23,6 +23,7 @@ export default function Profile() {
           <UserAddressCard />
         </div>
       </div>
+      
     </div>
   );
 }
