@@ -113,33 +113,33 @@ export default function EcommerceClient() {
 
   return (
     <div className="p-4">
-      {/* MT5 Account Dropdown */}
-      <div className="relative w-90 mb-6 flex items-center space-x-2">
-  <label className="text-sm font-medium text-gray-700 dark:text-gray-400 flex items-center shrink-0">
+     {/* MT5 Account Dropdown */}
+<div className="relative w-full sm:w-96 mb-4 flex flex-col sm:flex-row sm:items-center sm:space-x-2 space-y-2 sm:space-y-0">
+  <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-400 flex items-center shrink-0">
     MT5 Account
     <Image
       src={mt5}
       alt="MetaTrader 5 Logo"
-      width={26}
-      height={26}
-      className="object-contain ml-2"
+      width={20}
+      height={20}
+      className="object-contain ml-1 sm:ml-2"
     />
   </label>
   {isLoadingAccounts ? (
-    <div className="flex items-center justify-center h-10 flex-grow rounded-md border border-gray-300 bg-gray-50 dark:bg-gray-800 px-4 py-2">
-      <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-brand-500"></div>
+    <div className="flex items-center justify-center h-9 sm:h-10 flex-grow rounded-md border border-gray-300 bg-gray-50 dark:bg-gray-800 px-3 sm:px-4 py-2">
+      <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-t-2 border-b-2 border-brand-500"></div>
     </div>
   ) : (
     <select
       value={selectedMT5Account || ""}
       onChange={(e) => setSelectedMT5Account(e.target.value)}
-      className="appearance-none h-10 flex-grow rounded-md border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors duration-200 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M6%208L10%2012L14%208%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%222%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_0.75rem_center] bg-[length:16px_16px] disabled:opacity-50 disabled:cursor-not-allowed"
+      className="appearance-none h-9 sm:h-10 flex-grow rounded-md border border-gray-300 bg-white px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-900 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors duration-200 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M6%208L10%2012L14%208%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%222%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_0.5rem_center] sm:bg-[right_0.75rem_center] bg-[length:14px_14px] sm:bg-[length:16px_16px] disabled:opacity-50 disabled:cursor-not-allowed"
       disabled={mt5Accounts.length === 0}
     >
       {mt5Accounts.length === 0 ? (
         <option value="">No accounts available</option>
       ) : (
-        mt5Accounts.length != 0  && mt5Accounts?.map((account) => (
+        mt5Accounts.length != 0 && mt5Accounts?.map((account) => (
           <option key={account.accountNumber} value={account.accountNumber.toString()}>
             {account.accountNumber} ({account.server})
           </option>
@@ -148,7 +148,6 @@ export default function EcommerceClient() {
     </select>
   )}
 </div>
-
       {/* Dashboard Content */}
       {isLoadingTrades ? (
         <div className="flex items-center justify-center h-64">

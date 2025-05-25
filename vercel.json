@@ -2,7 +2,7 @@
     "rewrites": [
       {
         "source": "/__/auth/:path*",
-        "destination": "https://authdummy-819cf.firebaseapp.com/__/auth/:path*"
+        "destination": "https://tradeauth-81fcd.firebaseapp.com/__/auth/:path*"
       }
     ]
   }
