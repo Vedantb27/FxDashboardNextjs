@@ -67,7 +67,7 @@ export default function EcommerceClient() {
           }
         }
       } catch (error) {
-        toast.error("Error fetching MT5 accounts");
+        // toast.error("Error fetching MT5 accounts");
       } finally {
         setIsLoadingAccounts(false);
       }
@@ -99,7 +99,7 @@ export default function EcommerceClient() {
           }
         }
       } catch (error) {
-        toast.error("Error fetching trade history");
+        // toast.error("Error fetching trade history");
       } finally {
         setIsLoadingTrades(false);
       }

@@ -33,6 +33,9 @@ const Request = async ({ method, url, data = {}, params = {} }: RequestParams) =
       sessionStorage.removeItem(`${AUTH_STORAGE_KEY}`);
     }
   }
+  else{
+    return;
+  }
 
   const headers = {
     Authorization: token ? `Bearer ${token.token}` : '',
@@ -54,6 +57,10 @@ const Request = async ({ method, url, data = {}, params = {} }: RequestParams) =
     if (error?.response?.status === 401) {
       toast.error('Session expired. Please log in again.');
       sessionStorage.removeItem(`${AUTH_STORAGE_KEY}`);
+      if (typeof window !== 'undefined') {
+        window.location.href = '/signin';
+        return; // Exit the function to prevent further execution
+      }
     }
     if (error?.response?.data?.message) {
       toast.error(error?.response?.data?.message);
