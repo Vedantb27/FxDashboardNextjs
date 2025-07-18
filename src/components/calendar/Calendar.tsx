@@ -19,6 +19,9 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Badge from "../ui/badge/Badge";
 import { useGlobalState } from "../../context/GlobalStateContext";
+import mt5 from '../../icons/mt5.png';
+import Image from "next/image";
+import cTraderIcon from '../../icons/ctrader.png';
 
 interface CalendarEvent extends EventInput {
   id?: string;
@@ -37,10 +40,10 @@ interface TradeHistory {
   profit: number;
 }
 
-interface MT5Account {
+interface Account {
   accountNumber: number;
   server: string;
-  platform: string;
+  platform: "MT5" | "cTrader";
   createdAt: string;
 }
 
@@ -50,7 +53,7 @@ const ACCOUNT_BALANCE = 5000;
 const SkeletonLoader: React.FC = () => {
   return (
     <div className="animate-pulse">
-      {/* MT5 Account Selector Skeleton */}
+      {/* Trading Account Selector Skeleton */}
       <div className="p-4">
         <div className="w-64">
           <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
@@ -91,8 +94,8 @@ const Calendar: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [disableDatePicker, setDisableDatePicker] = useState(false);
   const [dailyProfits, setDailyProfits] = useState<{ [date: string]: number }>({});
-  const [mt5Accounts, setMT5Accounts] = useState<MT5Account[]>([]);
-  const [selectedMT5Account, setSelectedMT5Account]: any = useState(null);
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
   const calendarRef = useRef<FullCalendar>(null);
   const { isOpen, openModal, closeModal } = useModal();
@@ -106,30 +109,37 @@ const Calendar: React.FC = () => {
   };
 
   useEffect(() => {
-    const fetchMT5Accounts = async () => {
+    const fetchAccounts = async () => {
       setIsLoadingAccounts(true);
       try {
         const response = await Request({
           method: "GET",
-          url: "mt5-accounts",
+          url: "trading-accounts",
         });
         if (response) {
-          setMT5Accounts(response || []);
-          if (response.length > 0) {
-            setSelectedMT5Account(response[0]?.accountNumber);
+          // Sort accounts by platform (MT5 first, then cTrader) and account number
+          const sortedAccounts = response.sort((a: Account, b: Account) => {
+            if (a.platform === b.platform) {
+              return a.accountNumber - b.accountNumber;
+            }
+            return a.platform === "MT5" ? -1 : 1;
+          });
+          setAccounts(sortedAccounts || []);
+          if (sortedAccounts.length > 0) {
+            setSelectedAccount(sortedAccounts[0]?.accountNumber.toString());
           }
         }
       } catch (error) {
-        toast.error("Error fetching MT5 accounts");
+        toast.error("Error fetching accounts");
       } finally {
         setIsLoadingAccounts(false);
       }
     };
-    fetchMT5Accounts();
+    fetchAccounts();
   }, []);
 
   useEffect(() => {
-    if (!selectedMT5Account) return;
+    if (!selectedAccount) return;
 
     const fetchData = async () => {
       setIsLoading(true);
@@ -138,7 +148,7 @@ const Calendar: React.FC = () => {
         const notesResponse = await Request({
           method: "GET",
           url: "get-notes",
-          params: { mt5AccountNumber: selectedMT5Account },
+          params: { accountNumber: selectedAccount },
         });
         if (notesResponse?.data) {
           const fetchedEvents = notesResponse?.data?.map((item: any) => ({
@@ -151,18 +161,18 @@ const Calendar: React.FC = () => {
         }
 
         // Fetch trade history only if not already present
-        if (!state.tradeHistory[selectedMT5Account]) {
+        if (!state.tradeHistory[selectedAccount]) {
           const tradeResponse = await Request({
             method: "GET",
             url: "trade-history",
-            params: { mt5AccountNumber: selectedMT5Account },
+            params: { accountNumber: selectedAccount },
           });
           if (tradeResponse) {
             const trades: TradeHistory[] = tradeResponse;
             dispatch({
               type: "SET_TRADE_HISTORY",
               payload: {
-                mt5AccountNumber: selectedMT5Account,
+                accountNumber: selectedAccount,
                 trades,
               },
             });
@@ -179,7 +189,7 @@ const Calendar: React.FC = () => {
           }
         } else {
           // Use existing trade history for daily profits
-          const trades = state.tradeHistory[selectedMT5Account] || [];
+          const trades = state.tradeHistory[selectedAccount] || [];
           const dailyProfitMap: { [date: string]: number } = {};
           trades.forEach((trade) => {
             const date = trade.close_date;
@@ -197,7 +207,7 @@ const Calendar: React.FC = () => {
       }
     };
     fetchData();
-  }, [dispatch, state.tradeHistory, selectedMT5Account]);
+  }, [dispatch, state.tradeHistory, selectedAccount]);
 
   const handleDateSelect = (selectInfo: DateSelectArg) => {
     resetModalFields();
@@ -233,7 +243,7 @@ const Calendar: React.FC = () => {
           date: formattedDate,
           notes: eventTitle,
           color: eventLevel,
-          mt5AccountNumber: selectedMT5Account,
+          accountNumber: selectedAccount,
         },
       });
 
@@ -276,7 +286,7 @@ const Calendar: React.FC = () => {
       const response = await Request({
         method: "DELETE",
         url: "delete-notes",
-        data: { date: formatDateToYYYYMMDD(selectedEvent.start), mt5AccountNumber: selectedMT5Account },
+        data: { date: formatDateToYYYYMMDD(selectedEvent.start), accountNumber: selectedAccount },
       });
 
       if (response?.message) {
@@ -316,9 +326,8 @@ const Calendar: React.FC = () => {
           <span className={arg.isOther ? "opacity-50" : ""}>
             <span className="text-blue-600 "> {arg.date.getDate()}</span>
             <span
-              className={`text-xs ml-5 ${
-                isPositive ? "text-green-600" : "text-red-600"
-              }`}
+              className={`text-xs ml-5 ${isPositive ? "text-green-600" : "text-red-600"
+                }`}
             >
               {isPositive ? "+" : ""}{percentage}%
             </span>
@@ -346,36 +355,59 @@ const Calendar: React.FC = () => {
       ) : (
         <>
           <div className="p-4">
-            <div className="relative w-64">
-              <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                MT5 Account
+            <div className="relative w-full sm:w-96 mb-1 flex flex-col sm:flex-row sm:items-center sm:space-x-2 space-y-2 sm:space-y-0">
+              <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-400 flex items-center shrink-0">
+                Trading Account
               </label>
               {isLoadingAccounts ? (
-                <div className="flex items-center justify-center h-10 w-full rounded-md border border-gray-300 bg-gray-50 dark:bg-gray-800 px-4 py-2">
-                  <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-brand-500"></div>
+                <div
+                  className="flex items-center justify-center h-9 sm:h-10 flex-grow rounded-md border border-gray-300 bg-gray-50 dark:bg-gray-800 px-3 sm:px-4 py-2"
+                >
+                  <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-t-2 border-b-2 border-brand-500"></div>
                 </div>
               ) : (
                 <select
-                  value={selectedMT5Account !== null ? selectedMT5Account.toString() : ""}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setSelectedMT5Account(value);
-                  }}
-                  className="appearance-none h-10 w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors duration-200 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M6%208L10%2012L14%208%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%222%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_0.75rem_center] bg-[length:16px_16px] disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={mt5Accounts.length === 0}
+                  value={selectedAccount || ""}
+                  onChange={(e) => setSelectedAccount(e.target.value)}
+                  className="appearance-none h-9 sm:h-10 flex-grow rounded-md border border-gray-300 bg-white px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-900 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors duration-200 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M6%208L10%2012L14%208%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%222%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_0.5rem_center] sm:bg-[right_0.75rem_center] bg-[length:14px_14px] sm:bg-[length:16px_16px] disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={accounts.length === 0}
                 >
-                  {mt5Accounts.length === 0 ? (
+                  {accounts.length === 0 ? (
                     <option value="">No accounts available</option>
                   ) : (
-                    mt5Accounts?.map((account) => (
-                      <option key={account.accountNumber} value={account.accountNumber.toString()}>
-                        {account.accountNumber} ({account.server})
+                    accounts.map((account) => (
+                      <option
+                        key={account.accountNumber}
+                        value={account.accountNumber.toString()}
+                        data-platform={account.platform}
+                      >
+                        {account.accountNumber} ({account.platform})
                       </option>
                     ))
                   )}
                 </select>
               )}
             </div>
+            {/* Dropdown Styling for Logos and Disabled Button */}
+            <style jsx global>{`
+              select option {
+                padding-right: 2rem;
+                background-size: 16px 16px;
+                background-position: right 0.5rem center;
+                background-repeat: no-repeat;
+              }
+              select option[data-platform="MT5"] {
+                background-image: url(${mt5.src});
+              }
+              select option[data-platform="cTrader"] {
+                background-image: url(${cTraderIcon.src});
+              }
+              .fc-addEventButton-button {
+                ${!selectedAccount
+                  ? "opacity: 0.5; cursor: not-allowed; pointer-events: auto;"
+                  : ""}
+              }
+            `}</style>
           </div>
           <div className="custom-calendar">
             <FullCalendar
@@ -396,6 +428,10 @@ const Calendar: React.FC = () => {
                 addEventButton: {
                   text: "Add Event +",
                   click: () => {
+                    if (!selectedAccount) {
+                      toast.error("Please select a trading account first");
+                      return;
+                    }
                     resetModalFields();
                     setDisableDatePicker(false);
                     openModal();
@@ -463,9 +499,8 @@ const Calendar: React.FC = () => {
                           />
                           <span className="flex items-center justify-center w-5 h-5 mr-2 border border-gray-300 rounded-full box dark:border-gray-700">
                             <span
-                              className={`h-2 w-2 rounded-full bg-white ${
-                                eventLevel === key ? "block" : "hidden"
-                              }`}
+                              className={`h-2 w-2 rounded-full bg-white ${eventLevel === key ? "block" : "hidden"
+                                }`}
                             ></span>
                           </span>
                         </span>
@@ -491,9 +526,8 @@ const Calendar: React.FC = () => {
                   onChange={(date: any) => setEventStartDate(date)}
                   disabled={disableDatePicker}
                   dateFormat="yyyy-MM-dd"
-                  className={`dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 ${
-                    disableDatePicker ? "cursor-not-allowed opacity-50" : ""
-                  }`}
+                  className={`dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 ${disableDatePicker ? "cursor-not-allowed opacity-50" : ""
+                    }`}
                   placeholderText="Select date"
                 />
               </div>

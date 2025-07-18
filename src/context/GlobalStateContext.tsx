@@ -14,7 +14,7 @@ interface TradeHistory {
 // Define the shape of the state
 interface GlobalState {
   count: number;
-  tradeHistory: { [mt5AccountNumber: string]: TradeHistory[] };
+  tradeHistory: { [accountNumber: string]: TradeHistory[] };
 }
 
 // Define action types
@@ -22,7 +22,7 @@ type Action =
   | { type: 'INCREMENT' }
   | { type: 'DECREMENT' }
   | { type: 'RESET' }
-  | { type: 'SET_TRADE_HISTORY'; payload: { mt5AccountNumber: string; trades: TradeHistory[] } };
+  | { type: 'SET_TRADE_HISTORY'; payload: { accountNumber: string; trades: TradeHistory[] } };
 
 // Initial state
 const initialState: GlobalState = {
@@ -44,7 +44,7 @@ const globalReducer = (state: GlobalState, action: Action): GlobalState => {
         ...state,
         tradeHistory: {
           ...state.tradeHistory,
-          [action.payload.mt5AccountNumber]: action.payload.trades,
+          [action.payload.accountNumber]: action.payload.trades,
         },
       };
     default:

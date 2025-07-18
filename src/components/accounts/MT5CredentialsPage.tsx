@@ -10,15 +10,17 @@ import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
 import { useModal } from "../../hooks/useModal";
 import mt5 from '../../icons/mt5.png';
+import cTraderIcon from '../../icons/ctrader.png'; 
 import Image from "next/image";
 
-interface MT5Account {
+interface Account {
   id: string;
   accountNumber: string;
-  password: string;
-  server: string;
+  password?: string; 
+  server?: string; 
   platform: string;
   createdAt: string;
+  oauthToken?: string; 
 }
 
 interface FormErrors {
@@ -27,25 +29,30 @@ interface FormErrors {
   server?: string;
 }
 
-export default function MT5CredentialsPage() {
+export default function TradingAccountsPage() {
   const { isOpen, openModal, closeModal } = useModal();
-  const [accounts, setAccounts] = useState<MT5Account[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const [formLoading, setFormLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<"MT5" | "cTrader">("MT5");
   const [formData, setFormData] = useState({
     accountNumber: "",
     password: "",
     server: "",
     platform: "MT5",
+    oauthToken: "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
+
+  const clientId = "11608_DdHhy1HVw0kwE1WXrUSZ5ip6j8ro377hROhOyk4pLVmiO9aQmG";
+  const redirectUri = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
 
   const fetchAccounts = async () => {
     setLoading(true);
     try {
       const response = await Request({
         method: "GET",
-        url: "mt5-accounts",
+        url: "trading-accounts",
       });
       if (Array.isArray(response) && response.length > 0) {
         setAccounts(response);
@@ -59,15 +66,48 @@ export default function MT5CredentialsPage() {
 
   useEffect(() => {
     fetchAccounts();
-  }, []);
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    if (code && activeTab === "cTrader") {
+      handleCTraderAuth(code);
+    }
+  }, [activeTab]);
+
+  const handleCTraderAuth = async (code: string) => {
+    setFormLoading(true);
+    try {
+    
+      const response = await Request({
+        method: "POST",
+        url: "trading-accounts",
+        data: {
+          accountNumber: `cTrader-${code.slice(0, 8)}`,
+          platform: "cTrader",
+          oauthToken: code, 
+        },
+      });
+      if (response?.status === 201) {
+        toast.success("cTrader account added successfully");
+        fetchAccounts();
+        // Clear URL params
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    } catch (error) {
+      console.error("Error adding cTrader account:", error);
+      toast.error("Failed to add cTrader account. Please try again.");
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    // Clear error when user starts typing
     setErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
   const validateForm = (): boolean => {
+    if (activeTab === "cTrader") return true;
     const newErrors: FormErrors = {};
     
     if (!formData.accountNumber.trim()) {
@@ -87,8 +127,14 @@ export default function MT5CredentialsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) {
+    if (activeTab === "MT5" && !validateForm()) {
       toast.error("Please fill in all required fields");
+      return;
+    }
+
+    if (activeTab === "cTrader") {
+      const url = `https://connect.spotware.com/apps/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=accounts`;
+      window.location.href = url;
       return;
     }
 
@@ -96,8 +142,8 @@ export default function MT5CredentialsPage() {
     try {
       const response = await Request({
         method: "POST",
-        url: "mt5-accounts",
-        data: formData,
+        url: "trading-accounts",
+        data: { ...formData, platform: "MT5" },
       });
       if (response?.status === 201) {
         setFormData({
@@ -105,6 +151,7 @@ export default function MT5CredentialsPage() {
           password: "",
           server: "",
           platform: "MT5",
+          oauthToken: "",
         });
         setErrors({});
         fetchAccounts();
@@ -164,20 +211,35 @@ export default function MT5CredentialsPage() {
 
   return (
     <div>
-      <PageBreadcrumb pageTitle="MT5 Account Management" />
+      <PageBreadcrumb pageTitle="Account Management" />
       <div className="min-h-screen rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12">
         <div className="mb-6 flex items-center justify-between">
-        <h3 className="flex items-center text-lg font-semibold text-gray-800 dark:text-white/90">
-  MT5 Accounts
-  <Image
-    src={mt5}
-    alt="MetaTrader 5 Logo"
-    width={26}
-    height={26}
-    className="object-contain ml-2" 
-  />
-</h3>
-
+          <div className="flex items-center gap-4">
+            <h3 className="flex items-center text-lg font-semibold text-gray-800 dark:text-white/90">
+              {activeTab} Accounts
+              <Image
+                src={activeTab === "MT5" ? mt5 : cTraderIcon}
+                alt={`${activeTab} Logo`}
+                width={activeTab === "MT5" ?36:46}
+                height={activeTab === "MT5" ?36:46}
+                className="object-contain ml-2"
+              />
+            </h3>
+            <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-full p-1">
+              <button
+                className={`px-4 py-2 rounded-full text-sm font-medium ${activeTab === "MT5" ? "bg-white dark:bg-gray-700 text-gray-800 dark:text-white" : "text-gray-600 dark:text-gray-300"}`}
+                onClick={() => setActiveTab("MT5")}
+              >
+                MT5
+              </button>
+              <button
+                className={`px-4 py-2 rounded-full text-sm font-medium ${activeTab === "cTrader" ? "bg-white dark:bg-gray-700 text-gray-800 dark:text-white" : "text-gray-600 dark:text-gray-300"}`}
+                onClick={() => setActiveTab("cTrader")}
+              >
+                cTrader
+              </button>
+            </div>
+          </div>
           <Button
             onClick={openModal}
             size="sm"
@@ -205,10 +267,10 @@ export default function MT5CredentialsPage() {
 
         {loading ? (
           <SkeletonLoader />
-        ) : accounts.length === 0 ? (
+        ) : accounts.filter((account) => account.platform === activeTab).length === 0 ? (
           <div className="text-center py-10">
             <p className="text-gray-500 dark:text-gray-400">
-              No MT5 accounts found. Add a new account to get started.
+              No {activeTab} accounts found. Add a new account to get started.
             </p>
           </div>
         ) : (
@@ -231,25 +293,27 @@ export default function MT5CredentialsPage() {
                 </tr>
               </thead>
               <tbody>
-                {accounts?.map((account,index) => (
-                  <tr
-                    key={index}
-                    className="border-b border-gray-200 dark:border-gray-800"
-                  >
-                    <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">
-                      {account.accountNumber}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">
-                      {account.server}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">
-                      {account.platform}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">
-                      {new Date(account.createdAt).toLocaleDateString()}
-                    </td>
-                  </tr>
-                ))}
+                {accounts
+                  .filter((account) => account.platform === activeTab)
+                  .map((account, index) => (
+                    <tr
+                      key={index}
+                      className="border-b border-gray-200 dark:border-gray-800"
+                    >
+                      <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">
+                        {account.accountNumber}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">
+                        {account.server || "N/A"}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">
+                        {account.platform}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">
+                        {new Date(account.createdAt).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
@@ -260,78 +324,85 @@ export default function MT5CredentialsPage() {
         <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11">
           <div className="px-2 pr-14">
             <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90 flex items-center">
-              Add MT5 Account Credentials <Image
-                    src={mt5}
-                    alt="MetaTrader 5 Logo"
-                    width={36} // Matches Tailwind's w-24 (24 * 4px)
-                    height={36} // Matches Tailwind's h-24
-                    className="object-contain ml-2"
-                  />
+              Add {activeTab} Account Credentials
+              <Image
+                src={activeTab === "MT5" ? mt5 : cTraderIcon}
+                alt={`${activeTab} Logo`}
+               width={activeTab === "MT5" ?36:46}
+                height={activeTab === "MT5" ?36:46}
+                className="object-contain ml-2"
+              />
             </h4>
-
-    
-
             <p className="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
-              Enter your MT5 account details to add a new trading account.
+              {activeTab === "MT5"
+                ? "Enter your MT5 account details to add a new trading account."
+                : "Authenticate with cTrader to add a new trading account."}
             </p>
           </div>
           <form onSubmit={handleSubmit} className="flex flex-col">
-            <div className="custom-scrollbar h-[350px] overflow-y-auto px-2 pb-3">
-              <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
-                <div className="col-span-2 lg:col-span-1">
-                  <Label>Account Number</Label>
-                  <Input
-                    type="text"
-                    name="accountNumber"
-                    value={formData.accountNumber}
-                    onChange={handleInputChange}
-                    placeholder="Enter account number"
-                    className={errors.accountNumber ? "border-red-500" : ""}
-                  />
-                  {errors.accountNumber && (
-                    <p className="mt-1 text-sm text-red-500">{errors.accountNumber}</p>
-                  )}
+            <div className="custom-scrollbar min-h-[100px] overflow-y-auto px-2 pb-3">
+              {activeTab === "MT5" ? (
+                <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
+                  <div className="col-span-2 lg:col-span-1">
+                    <Label>Account Number</Label>
+                    <Input
+                      type="text"
+                      name="accountNumber"
+                      value={formData.accountNumber}
+                      onChange={handleInputChange}
+                      placeholder="Enter account number"
+                      className={errors.accountNumber ? "border-red-500" : ""}
+                    />
+                    {errors.accountNumber && (
+                      <p className="mt-1 text-sm text-red-500">{errors.accountNumber}</p>
+                    )}
+                  </div>
+                  <div className="col-span-2 lg:col-span-1">
+                    <Label>Password</Label>
+                    <Input
+                      type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      placeholder="Enter password"
+                      className={errors.password ? "border-red-500" : ""}
+                    />
+                    {errors.password && (
+                      <p className="mt-1 text-sm text-red-500">{errors.password}</p>
+                    )}
+                  </div>
+                  <div className="col-span-2">
+                    <Label>Server</Label>
+                    <Input
+                      type="text"
+                      name="server"
+                      value={formData.server}
+                      onChange={handleInputChange}
+                      placeholder="Enter server address"
+                      className={errors.server ? "border-red-500" : ""}
+                    />
+                    {errors.server && (
+                      <p className="mt-1 text-sm text-red-500">{errors.server}</p>
+                    )}
+                  </div>
+                  <div className="col-span-2">
+                    <Label>Platform</Label>
+                    <Input
+                      type="text"
+                      name="platform"
+                      value={formData.platform}
+                      onChange={handleInputChange}
+                      disabled
+                    />
+                  </div>
                 </div>
-                <div className="col-span-2 lg:col-span-1">
-                  <Label>Password</Label>
-                  <Input
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    placeholder="Enter password"
-                    className={errors.password ? "border-red-500" : ""}
-                  />
-                  {errors.password && (
-                    <p className="mt-1 text-sm text-red-500">{errors.password}</p>
-                  )}
+              ) : (
+                <div className="text-center">
+                  <p className="text-gray-500 dark:text-gray-400">
+                    Click below to authenticate with cTrader via OAuth.
+                  </p>
                 </div>
-                <div className="col-span-2">
-                  <Label>Server</Label>
-                  <Input
-                    type="text"
-                    name="server"
-                    value={formData.server}
-                    onChange={handleInputChange}
-                    placeholder="Enter server address"
-                    className={errors.server ? "border-red-500" : ""}
-                  />
-                  {errors.server && (
-                    <p className="mt-1 text-sm text-red-500">{errors.server}</p>
-                  )}
-                </div>
-                <div className="col-span-2">
-                <Label>Platform</Label>
-                <Input
-                    type="text"
-                    name="platform"
-                    value={formData.platform}
-                    onChange={handleInputChange}
-                    disabled
-                />
-                
-                </div>
-              </div>
+              )}
             </div>
             <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
               <Button
@@ -345,8 +416,10 @@ export default function MT5CredentialsPage() {
               <Button size="sm" type="submit" disabled={formLoading}>
                 {formLoading ? (
                   <ClipLoader color="#ffffff" size={20} />
-                ) : (
+                ) : activeTab === "MT5" ? (
                   "Add Account"
+                ) : (
+                  "Authenticate with cTrader"
                 )}
               </Button>
             </div>
