@@ -44,7 +44,7 @@ export default function TradingAccountsPage() {
   });
   const [errors, setErrors] = useState<FormErrors>({});
 
-  const clientId = "11608_DdHhy1HVw0kwE1WXrUSZ5ip6j8ro377hROhOyk4pLVmiO9aQmG";
+  const clientId = "16248_uSymbjx2jEjNV7FjXjHqMlqXb1pqjXYmlh5sEEv1Ixs8yqNgVR";
   const redirectUri = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
 
   const fetchAccounts = async () => {
