@@ -44,7 +44,7 @@ export default function TradingAccountsPage() {
   });
   const [errors, setErrors] = useState<FormErrors>({});
 
-  const clientId = "16248_uSymbjx2jEjNV7FjXjHqMlqXb1pqjXYmlh5sEEv1Ixs8yqNgVR";
+  const clientId = process.env.NEXT_PUBLIC_CLIENT_ID;
   const redirectUri = typeof window !== "undefined" ? `${window.location.origin}/accounts` : "http://localhost:3000/accounts";
   const scope = 'trading'
 
