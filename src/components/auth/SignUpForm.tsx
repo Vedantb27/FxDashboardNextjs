@@ -77,7 +77,10 @@ export default function SignUpForm() {
       router.push("/");
     } catch (err: any) {
       console.error("Google signup error:", err);
-      if (err.code === "auth/configuration-not-found" || err.message.includes("CONFIGURATION_NOT_FOUND")) {
+      if(err?.response?.data?.error=="Email already exists"){
+        setError("Account already exists with this email.");
+      }
+      else if (err.code === "auth/configuration-not-found" || err.message.includes("CONFIGURATION_NOT_FOUND")) {
         setError("Firebase configuration is invalid. Please contact support.");
       } else if (err.code === "auth/popup-closed-by-user") {
         setError("Google sign-in was canceled.");

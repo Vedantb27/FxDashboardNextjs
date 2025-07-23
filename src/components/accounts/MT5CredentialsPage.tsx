@@ -45,7 +45,8 @@ export default function TradingAccountsPage() {
   const [errors, setErrors] = useState<FormErrors>({});
 
   const clientId = "16248_uSymbjx2jEjNV7FjXjHqMlqXb1pqjXYmlh5sEEv1Ixs8yqNgVR";
-  const redirectUri = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
+  const redirectUri = typeof window !== "undefined" ? `${window.location.origin}/accounts` : "http://localhost:3000/accounts";
+  const scope = 'trading'
 
   const fetchAccounts = async () => {
     setLoading(true);
@@ -68,7 +69,7 @@ export default function TradingAccountsPage() {
     fetchAccounts();
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
-    if (code && activeTab === "cTrader") {
+    if (code ) {
       handleCTraderAuth(code);
     }
   }, [activeTab]);
@@ -83,12 +84,13 @@ export default function TradingAccountsPage() {
         data: {
           accountNumber: `cTrader-${code.slice(0, 8)}`,
           platform: "cTrader",
-          oauthToken: code, 
+          code 
         },
       });
       if (response?.status === 201) {
         toast.success("cTrader account added successfully");
         fetchAccounts();
+        setActiveTab('cTrader')
         // Clear URL params
         window.history.replaceState({}, document.title, window.location.pathname);
       }
@@ -133,7 +135,9 @@ export default function TradingAccountsPage() {
     }
 
     if (activeTab === "cTrader") {
-      const url = `https://connect.spotware.com/apps/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=accounts`;
+      // const url = `https://connect.spotware.com/apps/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=accounts`;
+
+      const url =`https://id.ctrader.com/my/settings/openapi/grantingaccess/?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&product=web`
       window.location.href = url;
       return;
     }
