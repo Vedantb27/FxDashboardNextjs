@@ -34,6 +34,7 @@ export default function TradingAccountsPage() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const [formLoading, setFormLoading] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false); // New state for cTrader auth loader
   const [activeTab, setActiveTab] = useState<"MT5" | "cTrader">("MT5");
   const [formData, setFormData] = useState({
     accountNumber: "",
@@ -69,15 +70,14 @@ export default function TradingAccountsPage() {
     fetchAccounts();
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
-    if (code ) {
+    if (code) {
       handleCTraderAuth(code);
     }
   }, [activeTab]);
 
   const handleCTraderAuth = async (code: string) => {
-    setFormLoading(true);
+    setAuthLoading(true); // Show full-screen loader
     try {
-    
       const response = await Request({
         method: "POST",
         url: "trading-accounts",
@@ -91,14 +91,13 @@ export default function TradingAccountsPage() {
         toast.success("cTrader account added successfully");
         fetchAccounts();
         setActiveTab('cTrader')
-        // Clear URL params
         window.history.replaceState({}, document.title, window.location.pathname);
       }
     } catch (error) {
       console.error("Error adding cTrader account:", error);
       toast.error("Failed to add cTrader account. Please try again.");
     } finally {
-      setFormLoading(false);
+      setAuthLoading(false); // Hide full-screen loader
     }
   };
 
@@ -135,9 +134,7 @@ export default function TradingAccountsPage() {
     }
 
     if (activeTab === "cTrader") {
-      // const url = `https://connect.spotware.com/apps/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=accounts`;
-
-      const url =`https://id.ctrader.com/my/settings/openapi/grantingaccess/?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&product=web`
+      const url = `https://id.ctrader.com/my/settings/openapi/grantingaccess/?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&product=web`
       window.location.href = url;
       return;
     }
@@ -214,7 +211,17 @@ export default function TradingAccountsPage() {
   );
 
   return (
-    <div>
+    <div className="relative">
+      {authLoading && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-900 rounded-lg p-8 flex flex-col items-center gap-4">
+            <ClipLoader color="#3b82f6" size={40} />
+            <p className="text-gray-800 dark:text-white/90 font-medium">
+              Authenticating with cTrader...
+            </p>
+          </div>
+        </div>
+      )}
       <PageBreadcrumb pageTitle="Account Management" />
       <div className="min-h-screen rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12">
         <div className="mb-6 flex items-center justify-between">
@@ -233,12 +240,14 @@ export default function TradingAccountsPage() {
               <button
                 className={`px-4 py-2 rounded-full text-sm font-medium ${activeTab === "MT5" ? "bg-white dark:bg-gray-700 text-gray-800 dark:text-white" : "text-gray-600 dark:text-gray-300"}`}
                 onClick={() => setActiveTab("MT5")}
+                disabled={authLoading}
               >
                 MT5
               </button>
               <button
                 className={`px-4 py-2 rounded-full text-sm font-medium ${activeTab === "cTrader" ? "bg-white dark:bg-gray-700 text-gray-800 dark:text-white" : "text-gray-600 dark:text-gray-300"}`}
                 onClick={() => setActiveTab("cTrader")}
+                disabled={authLoading}
               >
                 cTrader
               </button>
@@ -248,6 +257,7 @@ export default function TradingAccountsPage() {
             onClick={openModal}
             size="sm"
             className="flex items-center gap-2"
+            disabled={authLoading}
           >
             <svg
               className="fill-current"
@@ -285,9 +295,9 @@ export default function TradingAccountsPage() {
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-gray-300">
                     Account Number
                   </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-gray-300">
+                { activeTab=="MT5" && <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-gray-300">
                     Server
-                  </th>
+                  </th>}
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-gray-300">
                     Platform
                   </th>
@@ -307,9 +317,9 @@ export default function TradingAccountsPage() {
                       <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">
                         {account.accountNumber}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">
+                      { activeTab=="MT5" && <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">
                         {account.server || "N/A"}
-                      </td>
+                      </td>}
                       <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">
                         {account.platform}
                       </td>
@@ -332,7 +342,7 @@ export default function TradingAccountsPage() {
               <Image
                 src={activeTab === "MT5" ? mt5 : cTraderIcon}
                 alt={`${activeTab} Logo`}
-               width={activeTab === "MT5" ?36:46}
+                width={activeTab === "MT5" ?36:46}
                 height={activeTab === "MT5" ?36:46}
                 className="object-contain ml-2"
               />
@@ -356,6 +366,7 @@ export default function TradingAccountsPage() {
                       onChange={handleInputChange}
                       placeholder="Enter account number"
                       className={errors.accountNumber ? "border-red-500" : ""}
+                      disabled={authLoading}
                     />
                     {errors.accountNumber && (
                       <p className="mt-1 text-sm text-red-500">{errors.accountNumber}</p>
@@ -370,6 +381,7 @@ export default function TradingAccountsPage() {
                       onChange={handleInputChange}
                       placeholder="Enter password"
                       className={errors.password ? "border-red-500" : ""}
+                      disabled={authLoading}
                     />
                     {errors.password && (
                       <p className="mt-1 text-sm text-red-500">{errors.password}</p>
@@ -384,6 +396,7 @@ export default function TradingAccountsPage() {
                       onChange={handleInputChange}
                       placeholder="Enter server address"
                       className={errors.server ? "border-red-500" : ""}
+                      disabled={authLoading}
                     />
                     {errors.server && (
                       <p className="mt-1 text-sm text-red-500">{errors.server}</p>
@@ -413,11 +426,15 @@ export default function TradingAccountsPage() {
                 size="sm"
                 variant="outline"
                 onClick={closeModal}
-                disabled={formLoading}
+                disabled={formLoading || authLoading}
               >
                 Cancel
               </Button>
-              <Button size="sm" type="submit" disabled={formLoading}>
+              <Button 
+                size="sm" 
+                type="submit" 
+                disabled={formLoading || authLoading}
+              >
                 {formLoading ? (
                   <ClipLoader color="#ffffff" size={20} />
                 ) : activeTab === "MT5" ? (
