@@ -385,7 +385,7 @@ const Calendar: React.FC = () => {
                     className="h-9 sm:h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-left text-xs sm:text-sm text-gray-900 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
                     onClick={() => setShowDropdown(!showDropdown)}
                   >
-                    <div className="flex items-center space-x-2">
+                  {accounts?.length>0 &&  <div className="flex items-center space-x-2">
                       <Image
                         src={
                           accounts.find((acc) => acc.accountNumber.toString() === selectedAccount)?.platform === 'MT5'
@@ -400,7 +400,7 @@ const Calendar: React.FC = () => {
                         {selectedAccount} (
                         {accounts.find((acc) => acc.accountNumber.toString() === selectedAccount)?.platform})
                       </span>
-                    </div>
+                    </div>}
                   </button>
                   {showDropdown && (
                     <ul className="absolute z-10 mt-1 w-full rounded-md border border-gray-300 bg-white shadow-lg dark:bg-gray-800 dark:border-gray-600">
