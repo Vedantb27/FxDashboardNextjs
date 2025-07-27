@@ -49,18 +49,18 @@ const navItems: NavItem[] = [
     name: "Accounts",
     path: "/accounts",
   },
-  //  {
-  //   icon: <BoxCubeIcon />,
-  //   name: "Tools",
-  //   subItems: [
-  //     { name: "Pips Calculator",icon: <IconCalculator stroke={2} />, path: "/pips-calculator", pro: false },
-  //     { name: "Avatar", path: "/avatars", pro: false },
-  //     { name: "Badge", path: "/badge", pro: false },
-  //     { name: "Buttons", path: "/buttons", pro: false },
-  //     { name: "Images", path: "/images", pro: false },
-  //     { name: "Videos", path: "/videos", pro: false },
-  //   ],
-  // },
+   {
+    icon: <BoxCubeIcon />,
+    name: "Tools",
+    subItems: [
+      { name: "Lot Size Calculator",icon: <IconCalculator stroke={2} />, path: "/position-size-calculator", pro: false },
+      // { name: "Avatar", path: "/avatars", pro: false },
+      // { name: "Badge", path: "/badge", pro: false },
+      // { name: "Buttons", path: "/buttons", pro: false },
+      // { name: "Images", path: "/images", pro: false },
+      // { name: "Videos", path: "/videos", pro: false },
+    ],
+  },
   // {
   //   name: "Forms",
   //   icon: <ListIcon />,

@@ -91,13 +91,13 @@ export default function TradingAccountsPage() {
         toast.success("cTrader account added successfully");
         fetchAccounts();
         setActiveTab('cTrader')
-        window.history.replaceState({}, document.title, window.location.pathname);
       }
     } catch (error) {
       console.error("Error adding cTrader account:", error);
       toast.error("Failed to add cTrader account. Please try again.");
     } finally {
-      setAuthLoading(false); // Hide full-screen loader
+      window.history.replaceState({}, document.title, window.location.pathname);
+      setAuthLoading(false); 
     }
   };
 
