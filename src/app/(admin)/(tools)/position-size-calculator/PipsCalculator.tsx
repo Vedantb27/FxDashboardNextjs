@@ -6,7 +6,7 @@ import Request from "../../../../utils/request";
 import { FiLoader, FiAlertCircle, FiCheckCircle, FiInfo } from "react-icons/fi";
 
 const FOREX_SYMBOLS = [
-       "EURUSD",
+      "EURUSD",
       "USDJPY",
       "GBPUSD",
       "AUDUSD",
@@ -49,7 +49,6 @@ const FOREX_SYMBOLS = [
       "USDDKK",
       "EURDKK",
       "AUDGBP",
-      "AUDNZD",
       "CADSGD",
       "CHFSGD",
       "EURSGD",
@@ -152,7 +151,7 @@ export default function PositionSizeCalculator() {
           method: "GET",
           url: `position-size/exchange-rate?from=${accountCurrency}&to=${quoteCurrency}`,
         });
-        rate = exchangeResponse.rate || 1.0;
+        rate = exchangeResponse?.rate || 1.0;
       }
 
       const moneyToRisk = accountBalance * (riskPercentage / 100);
@@ -189,12 +188,12 @@ export default function PositionSizeCalculator() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100">
+    <div className="min-h-screen dark:bg-gray-900 text-gray-100">
       <div className="container mx-auto px-4 py-8">
         <PageBreadcrumb pageTitle="Position Size Calculator" />
         
         <div className="mt-6 flex justify-center">
-          <div className="w-full max-w-2xl rounded-xl p-6 bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 shadow-2xl shadow-gray-950">
+          <div className="w-full max-w-2xl rounded-xl p-6 dark:bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 shadow-2xl shadow-gray-950">
             <div className="flex items-center gap-3 mb-6">
               <div className="h-10 w-1 bg-indigo-500 rounded-full"></div>
               <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">
