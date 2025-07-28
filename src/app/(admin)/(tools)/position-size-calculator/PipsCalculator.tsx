@@ -6,9 +6,87 @@ import Request from "../../../../utils/request";
 import { FiLoader, FiAlertCircle, FiCheckCircle, FiInfo } from "react-icons/fi";
 
 const FOREX_SYMBOLS = [
-  "EURUSD", "GBPUSD", "USDJPY", "USDCHF", "AUDUSD", 
-  "USDCAD", "NZDUSD", "EURGBP", "EURJPY", "GBPJPY",
-  "EURCHF", "AUDJPY", "AUDNZD", "AUDCAD", "CADJPY"
+       "EURUSD",
+      "USDJPY",
+      "GBPUSD",
+      "AUDUSD",
+      "USDCAD",
+      "USDCHF",
+      "NZDUSD",
+
+      // Minor/Cross Pairs
+      "EURJPY",
+      "GBPJPY",
+      "EURGBP",
+      "EURCHF",
+      "AUDJPY",
+      "CADJPY",
+      "CHFJPY",
+      "AUDNZD",
+      "EURAUD",
+      "GBPAUD",
+      "GBPCAD",
+      "GBPCHF",
+      "NZDJPY",
+      "AUDCAD",
+      "AUDCHF",
+      "CADCHF",
+      "EURNZD",
+      "GBPNZD",
+      "NZDCAD",
+      "NZDCHF",
+
+      // Additional Minor/Cross Pairs
+      "EURCAD",
+      "EURSEK",
+      "EURNOK",
+      "USDSEK",
+      "USDNOK",
+      "USDHKD",
+      "USDSGD",
+      "EURPLN",
+      "USDPLN",
+      "USDDKK",
+      "EURDKK",
+      "AUDGBP",
+      "AUDNZD",
+      "CADSGD",
+      "CHFSGD",
+      "EURSGD",
+      "GBPSGD",
+      "NZDSGD",
+
+      // Exotic Pairs
+      "USDTRY",
+      "USDMXN",
+      "USDZAR",
+      "USDRUB",
+      "USDINR",
+      "USDBRL",
+      "USDCZK",
+      "USDHUF",
+      "EURTRY",
+      "EURMXN",
+      "EURZAR",
+      "EURRUB",
+      "EURHUF",
+      "GBPRUB",
+      "GBPZAR",
+      "GBPTRY",
+      "AUDMXN",
+      "AUDZAR",
+      "CADMXN",
+      "CADZAR",
+      "NZDMXN",
+      "NZDZAR",
+
+      // Precious Metal Pairs (often included in MT5 forex brokers)
+      "XAUUSD", // Gold vs. USD
+      "XAGUSD", // Silver vs. USD
+      "XAUEUR", // Gold vs. EUR
+      "XAGEUR", // Silver vs. EUR
+      "XTIUSD",
+      "BTCUSD",
 ];
 
 export default function PositionSizeCalculator() {
