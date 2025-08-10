@@ -19,7 +19,7 @@ import {
   AccountBalanceWalletOutline
 } from "../icons/index";
 import SidebarWidget from "./SidebarWidget";
-import { IconCalculator } from "@tabler/icons-react";
+import { IconCalculator, IconChartArrowsVertical } from "@tabler/icons-react";
 
 type NavItem = {
   name: string;
@@ -54,6 +54,7 @@ const navItems: NavItem[] = [
     name: "Tools",
     subItems: [
       { name: "Lot Size Calculator",icon: <IconCalculator stroke={2} />, path: "/position-size-calculator", pro: false },
+      { name: "Profit Calculator",icon: <IconChartArrowsVertical stroke={2} />, path: "/profit-calculator", pro: false },
       // { name: "Avatar", path: "/avatars", pro: false },
       // { name: "Badge", path: "/badge", pro: false },
       // { name: "Buttons", path: "/buttons", pro: false },
