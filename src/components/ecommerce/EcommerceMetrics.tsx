@@ -120,10 +120,10 @@ export const EcommerceMetrics = ({ tradeHistory }: EcommerceMetricsProps) => {
               {totalOrders}
             </h4>
           </div>
-          <Badge color="error">
+          {/* <Badge color="error">
             <ArrowDownIcon className="text-error-500" />
             9.05%
-          </Badge>
+          </Badge> */}
         </div>
       </div>
     </div>

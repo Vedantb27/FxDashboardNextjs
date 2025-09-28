@@ -20,6 +20,7 @@ import CHF from "../../icons/currencyPairs/CHF.png";
 import USOIL from "../../icons/currencyPairs/USOIL.png";
 import XAUUSD from "../../icons/currencyPairs/XAUUSD.png";
 import JPY from "../../icons/currencyPairs/JPY.png";
+import BTC from "../../icons/currencyPairs/BTC.png";
 import type { StaticImageData } from "next/image";
 
 interface Trade {
@@ -60,6 +61,7 @@ const ICONS = {
   EUR,
   CHF,
   JPY,
+  BTC
 } as const;
 
 interface PairIconProps {
@@ -68,8 +70,8 @@ interface PairIconProps {
   size?: number; // in px
 }
 
-const BASES = ["AUD", "CAD", "GBP", "NZD", "USD", "EUR", "CHF", "JPY"] as const;
-const QUOTES = ["AUD", "CAD", "GBP", "NZD", "USD", "EUR", "CHF", "JPY"] as const;
+const BASES = ["AUD", "CAD", "GBP", "NZD", "USD", "EUR", "CHF", "JPY","BTC"] as const;
+const QUOTES = ["AUD", "CAD", "GBP", "NZD", "USD", "EUR", "CHF", "JPY","BTC"] as const;
 
 type Base = typeof BASES[number];
 type Quote = typeof QUOTES[number];
@@ -304,7 +306,7 @@ export default function RecentOrders({ tradeHistory }: RecentOrdersProps) {
                   if (key === "profit") {
                     const profitNumber = typeof value === "number" ? value : 0;
                     const formattedValue =
-                      typeof value === "number" ? profitNumber.toFixed(4) : value ?? "—";
+                      typeof value === "number" ? profitNumber.toFixed(3) : value ?? "—";
 
                     // Determine badge color: success for positive, error for negative, warning/neutral for zero
                     const badgeColor:any =

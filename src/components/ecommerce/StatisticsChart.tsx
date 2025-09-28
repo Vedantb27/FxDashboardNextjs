@@ -34,10 +34,10 @@ interface Trade {
 
 interface StatisticsChartProps {
   tradeHistory: Trade[];
+  balance:number
 }
 
-export default function StatisticsChart({ tradeHistory }: StatisticsChartProps) {
-  const currentBalance = 4850;
+export default function StatisticsChart({ tradeHistory,balance }: StatisticsChartProps) {
 
   const sorted = [...tradeHistory].sort((a, b) => {
     const tA = new Date(`${a.close_date}T${a.close_time}`).getTime();
@@ -46,7 +46,7 @@ export default function StatisticsChart({ tradeHistory }: StatisticsChartProps) 
   });
 
   const totalProfit = sorted.reduce((sum, t) => sum + t.profit, 0);
-  const initialBalance = currentBalance - totalProfit;
+  const initialBalance = balance - totalProfit;
 
   let running = initialBalance;
   const equityData = sorted.map((t) => {
@@ -142,7 +142,7 @@ export default function StatisticsChart({ tradeHistory }: StatisticsChartProps) 
             Statistics
           </h3>
           <p className="mt-1 text-gray-500 text-theme-sm dark:text-gray-400">
-            Target you’ve set for each month
+            Detailed Statistics
           </p>
         </div>
         <div className="flex items-start w-full gap-3 sm:justify-end">

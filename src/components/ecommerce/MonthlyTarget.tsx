@@ -36,9 +36,10 @@ interface Trade {
 
 interface MonthlyTargetProps {
   tradeHistory: Trade[];
+  balance:number;
 }
 
-export default function MonthlyTarget({ tradeHistory }: MonthlyTargetProps) {
+export default function MonthlyTarget({ tradeHistory,balance }: MonthlyTargetProps) {
   const [profitTarget, setProfitTarget] = useState<number>(10); // 10%
   const [currentProfit, setCurrentProfit] = useState<number>(0);
   const [series, setSeries] = useState<number[]>([0]);
@@ -49,48 +50,52 @@ export default function MonthlyTarget({ tradeHistory }: MonthlyTargetProps) {
   const [weeklyPercent, setWeeklyPercent] = useState<number>(0);
   const [monthlyPercent, setMonthlyPercent] = useState<number>(0);
 
-  const initialBalance = 5000;
 
-  useEffect(() => {
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth();
-    const todayDate = now.getDate();
-    const todayString = now.toISOString().split('T')[0];
+useEffect(() => {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+  const todayDate = now.getDate();
+  const todayString = now.toISOString().split('T')[0];
 
-    const startOfWeek = new Date(now);
-    startOfWeek.setDate(todayDate - now.getDay());
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(todayDate - now.getDay());
 
-    const dailyTrades = tradeHistory.filter(trade => trade.close_date === todayString);
+  const dailyTrades = tradeHistory.filter(trade => trade.close_date === todayString);
 
-    const weeklyTrades = tradeHistory.filter(trade => {
-      const close = new Date(trade.close_date);
-      return close >= startOfWeek && close <= now;
-    });
+  const weeklyTrades = tradeHistory.filter(trade => {
+    const close = new Date(trade.close_date);
+    return close >= startOfWeek && close <= now;
+  });
 
-    const monthlyTrades = tradeHistory.filter(trade => {
-      const close = new Date(trade.close_date);
-      return close.getMonth() === currentMonth && close.getFullYear() === currentYear;
-    });
+  const monthlyTrades = tradeHistory.filter(trade => {
+    const close = new Date(trade.close_date);
+    return close.getMonth() === currentMonth && close.getFullYear() === currentYear;
+  });
 
-    const dailyProfit = dailyTrades.reduce((acc, trade) => acc + trade.profit, 0);
-    const weeklyProfit = weeklyTrades.reduce((acc, trade) => acc + trade.profit, 0);
-    const monthlyProfit = monthlyTrades.reduce((acc, trade) => acc + trade.profit, 0);
+  const dailyProfit = dailyTrades.reduce((acc, trade) => acc + trade.profit, 0);
+  const weeklyProfit = weeklyTrades.reduce((acc, trade) => acc + trade.profit, 0);
+  const monthlyProfit = monthlyTrades.reduce((acc, trade) => acc + trade.profit, 0);
 
-    // Set state
-    setCurrentProfit(monthlyProfit);
-    setSeries([parseFloat(((monthlyProfit / ((initialBalance * profitTarget) / 100)) * 100).toFixed(2))]);
+  // Calculate target and progress safely
+  const target = (balance * profitTarget) / 100;
+  const progress = target !== 0 ? (monthlyProfit / target) * 100 : 0;
 
-    // Set profits in USD
-    setDailyProfit(dailyProfit);
-    setWeeklyProfit(weeklyProfit);
-    setMonthlyProfit(monthlyProfit);
+  // Set state
+  setCurrentProfit(monthlyProfit);
+  setSeries([parseFloat(progress.toFixed(2))]);
 
-    // Calculate percentages
-    setDailyPercent((dailyProfit / initialBalance) * 100);
-    setWeeklyPercent((weeklyProfit / initialBalance) * 100);
-    setMonthlyPercent((monthlyProfit / initialBalance) * 100);
-  }, [tradeHistory, profitTarget]);
+  // Set profits in USD
+  setDailyProfit(dailyProfit);
+  setWeeklyProfit(weeklyProfit);
+  setMonthlyProfit(monthlyProfit);
+
+  // Calculate percentages safely (avoid NaN if balance=0)
+  const safePercent = (profit: number) => (balance !== 0 ? (profit / balance) * 100 : 0);
+  setDailyPercent(safePercent(dailyProfit));
+  setWeeklyPercent(safePercent(weeklyProfit));
+  setMonthlyPercent(safePercent(monthlyProfit));
+}, [tradeHistory, profitTarget, balance]);  // Add balance to deps if it can change
 
   const UpArrow = () => (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -181,13 +186,13 @@ export default function MonthlyTarget({ tradeHistory }: MonthlyTargetProps) {
               Monthly Target
             </h3>
             <p className="mt-1 font-normal text-gray-500 text-theme-sm dark:text-gray-400">
-              Target you’ve set for each month
+              Target you’ve achieved this month
             </p>
           </div>
           <div className="relative inline-block">
-            <button onClick={toggleDropdown} className="dropdown-toggle">
+            {/* <button onClick={toggleDropdown} className="dropdown-toggle">
               <MoreDotIcon className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" />
-            </button>
+            </button> */}
             <Dropdown
               isOpen={isOpen}
               onClose={closeDropdown}
@@ -219,9 +224,9 @@ export default function MonthlyTarget({ tradeHistory }: MonthlyTargetProps) {
               height={330}
             />
           </div>
-          <span className="absolute left-1/2 top-full -translate-x-1/2 -translate-y-[95%] rounded-full bg-success-50 px-3 py-1 text-xs font-medium text-success-600 dark:bg-success-500/15 dark:text-success-500">
+          {/* <span className="absolute left-1/2 top-full -translate-x-1/2 -translate-y-[95%] rounded-full bg-success-50 px-3 py-1 text-xs font-medium text-success-600 dark:bg-success-500/15 dark:text-success-500">
             +10%
-          </span>
+          </span> */}
         </div>
         <p className="mx-auto mt-10 w-full max-w-[380px] text-center text-sm text-gray-500 sm:text-base">
           You earn ${monthlyProfit.toFixed(2)} this month, keep up your good work!

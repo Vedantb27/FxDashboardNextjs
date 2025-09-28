@@ -10,17 +10,17 @@ import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
 import { useModal } from "../../hooks/useModal";
 import mt5 from '../../icons/mt5.png';
-import cTraderIcon from '../../icons/ctrader.png'; 
+import cTraderIcon from '../../icons/ctrader.png';
 import Image from "next/image";
 
 interface Account {
   id: string;
   accountNumber: string;
-  password?: string; 
-  server?: string; 
+  password?: string;
+  server?: string;
   platform: string;
   createdAt: string;
-  oauthToken?: string; 
+  oauthToken?: string;
 }
 
 interface FormErrors {
@@ -44,6 +44,10 @@ export default function TradingAccountsPage() {
     oauthToken: "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
+  const [serverList, setServerList] = useState<string[]>([]);
+  const [filteredServers, setFilteredServers] = useState<string[]>([]);
+  const [showServerDropdown, setShowServerDropdown] = useState(false);
+  const [serverLoading, setServerLoading] = useState(true);
 
   const clientId = process.env.NEXT_PUBLIC_CLIENT_ID;
   const redirectUri = typeof window !== "undefined" ? `${window.location.origin}/accounts` : "http://localhost:3000/accounts";
@@ -66,6 +70,25 @@ export default function TradingAccountsPage() {
     }
   };
 
+  const fetchServerList = async () => {
+    setServerLoading(true);
+    try {
+      const response = await Request({
+        method: "GET",
+        url: "server-list",
+      });
+      if (response?.data) {
+        const servers = response.data.map((s: { serverName: string }) => s.serverName);
+        setServerList(servers);
+        setFilteredServers(servers);
+      }
+    } catch (error) {
+      console.error("Error fetching server list:", error);
+    } finally {
+      setServerLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchAccounts();
     const params = new URLSearchParams(window.location.search);
@@ -74,6 +97,10 @@ export default function TradingAccountsPage() {
       handleCTraderAuth(code);
     }
   }, [activeTab]);
+
+  useEffect(() => {
+    fetchServerList();
+  }, []);
 
   const handleCTraderAuth = async (code: string) => {
     setAuthLoading(true); // Show full-screen loader
@@ -84,7 +111,7 @@ export default function TradingAccountsPage() {
         data: {
           accountNumber: `cTrader-${code.slice(0, 8)}`,
           platform: "cTrader",
-          code 
+          code
         },
       });
       if (response?.status === 201) {
@@ -97,7 +124,7 @@ export default function TradingAccountsPage() {
       toast.error("Failed to add cTrader account. Please try again.");
     } finally {
       window.history.replaceState({}, document.title, window.location.pathname);
-      setAuthLoading(false); 
+      setAuthLoading(false);
     }
   };
 
@@ -105,12 +132,15 @@ export default function TradingAccountsPage() {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: undefined }));
+    if (name === "server") {
+      setFilteredServers(serverList.filter(s => s.toLowerCase().includes(value.toLowerCase())));
+    }
   };
 
   const validateForm = (): boolean => {
     if (activeTab === "cTrader") return true;
     const newErrors: FormErrors = {};
-    
+
     if (!formData.accountNumber.trim()) {
       newErrors.accountNumber = "Account number is required";
     }
@@ -127,9 +157,9 @@ export default function TradingAccountsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (activeTab === "MT5" && !validateForm()) {
-      toast.error("Please fill in all required fields");
+      // toast.error("Please fill in all required fields");
       return;
     }
 
@@ -139,30 +169,53 @@ export default function TradingAccountsPage() {
       return;
     }
 
-    setFormLoading(true);
-    try {
-      const response = await Request({
-        method: "POST",
-        url: "trading-accounts",
-        data: { ...formData, platform: "MT5" },
-      });
-      if (response?.status === 201) {
-        setFormData({
-          accountNumber: "",
-          password: "",
-          server: "",
-          platform: "MT5",
-          oauthToken: "",
+    if (activeTab === "MT5" && formData.server && !serverList.includes(formData.server)) {
+      setFormLoading(true);
+      try {
+          const response =  await Request({
+          method: "POST",
+          url: "request-server",
+          data: { serverName: formData.server },
         });
-        setErrors({});
-        fetchAccounts();
-        closeModal();
+
+         if (response?.status === 201) {
+             closeModal();
+             setErrors({});
+         }
+      } catch (error) {
+        console.error("Error requesting new server:", error);
+
       }
-    } catch (error) {
-      console.error("Error adding account:", error);
-      toast.error("Failed to add account. Please try again.");
-    } finally {
-      setFormLoading(false);
+      finally {
+        setFormLoading(false);
+      }
+    }
+    else {
+      setFormLoading(true);
+      try {
+        const response = await Request({
+          method: "POST",
+          url: "trading-accounts",
+          data: { ...formData, platform: "MT5" },
+        });
+        if (response?.status === 201) {
+          setFormData({
+            accountNumber: "",
+            password: "",
+            server: "",
+            platform: "MT5",
+            oauthToken: "",
+          });
+          setErrors({});
+          fetchAccounts();
+          closeModal();
+        }
+      } catch (error) {
+        console.error("Error adding account:", error);
+        toast.error("Failed to add account. Please try again.");
+      } finally {
+        setFormLoading(false);
+      }
     }
   };
 
@@ -231,8 +284,8 @@ export default function TradingAccountsPage() {
               <Image
                 src={activeTab === "MT5" ? mt5 : cTraderIcon}
                 alt={`${activeTab} Logo`}
-                width={activeTab === "MT5" ?36:46}
-                height={activeTab === "MT5" ?36:46}
+                width={activeTab === "MT5" ? 36 : 46}
+                height={activeTab === "MT5" ? 36 : 46}
                 className="object-contain ml-2"
               />
             </h3>
@@ -295,7 +348,7 @@ export default function TradingAccountsPage() {
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-gray-300">
                     Account Number
                   </th>
-                { activeTab=="MT5" && <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-gray-300">
+                  {activeTab == "MT5" && <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-gray-300">
                     Server
                   </th>}
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-gray-300">
@@ -317,7 +370,7 @@ export default function TradingAccountsPage() {
                       <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">
                         {account.accountNumber}
                       </td>
-                      { activeTab=="MT5" && <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">
+                      {activeTab == "MT5" && <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">
                         {account.server || "N/A"}
                       </td>}
                       <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">
@@ -342,8 +395,8 @@ export default function TradingAccountsPage() {
               <Image
                 src={activeTab === "MT5" ? mt5 : cTraderIcon}
                 alt={`${activeTab} Logo`}
-                width={activeTab === "MT5" ?36:46}
-                height={activeTab === "MT5" ?36:46}
+                width={activeTab === "MT5" ? 36 : 46}
+                height={activeTab === "MT5" ? 36 : 46}
                 className="object-contain ml-2"
               />
             </h4>
@@ -389,18 +442,50 @@ export default function TradingAccountsPage() {
                   </div>
                   <div className="col-span-2">
                     <Label>Server</Label>
-                    <Input
-                      type="text"
-                      name="server"
-                      value={formData.server}
-                      onChange={handleInputChange}
-                      placeholder="Enter server address"
-                      className={errors.server ? "border-red-500" : ""}
-                      disabled={authLoading}
-                    />
+                    <div className="relative">
+                      <Input
+                        type="text"
+                        name="server"
+                        value={formData.server}
+                        onChange={handleInputChange}
+                        placeholder="Enter server address"
+                        className={errors.server ? "border-red-500" : ""}
+                        disabled={authLoading}
+                        onFocus={() => setShowServerDropdown(true)}
+                        onBlur={() => setTimeout(() => setShowServerDropdown(false), 150)}
+                      />
+                      {showServerDropdown && (
+                        <div className="absolute z-10 w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-md shadow-lg max-h-60 overflow-y-auto mt-1 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 dark:scrollbar-thumb-gray-500 dark:scrollbar-track-gray-700">
+                          {serverLoading ? (
+                            <div className="px-4 py-2 text-gray-500 dark:text-gray-400 flex items-center justify-center">
+                              <ClipLoader color="#3b82f6" size={20} />
+                              <span className="ml-2">Loading servers...</span>
+                            </div>
+                          ) : filteredServers.length === 0 ? (
+                            <div className="px-4 py-2 text-gray-500 dark:text-gray-400">No servers found</div>
+                          ) : (
+                            filteredServers.map((server) => (
+                              <div
+                                key={server}
+                                className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer text-gray-900 dark:text-gray-100"
+                                onClick={() => {
+                                  setFormData((prev) => ({ ...prev, server }));
+                                  setShowServerDropdown(false);
+                                }}
+                              >
+                                {server}
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      )}
+                    </div>
                     {errors.server && (
                       <p className="mt-1 text-sm text-red-500">{errors.server}</p>
                     )}
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                      If your server is not in the list, enter it manually. Your specified server will be added within 24 hours. Try adding your account once the list is updated.
+                    </p>
                   </div>
                   <div className="col-span-2">
                     <Label>Platform</Label>
@@ -430,9 +515,9 @@ export default function TradingAccountsPage() {
               >
                 Cancel
               </Button>
-              <Button 
-                size="sm" 
-                type="submit" 
+              <Button
+                size="sm"
+                type="submit"
                 disabled={formLoading || authLoading}
               >
                 {formLoading ? (

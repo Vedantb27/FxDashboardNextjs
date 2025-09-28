@@ -40,6 +40,7 @@ interface Trade {
 interface Account {
   accountNumber: number;
   server: string;
+  balance: number;
   platform: "MT5" | "cTrader";
   createdAt: string;
 }
@@ -47,6 +48,7 @@ interface Account {
 export default function EcommerceClient() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
+  const [balance, setBalance] = useState(0);
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
   const [isLoadingTrades, setIsLoadingTrades] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -72,6 +74,7 @@ export default function EcommerceClient() {
           setAccounts(sortedAccounts || []);
           if (sortedAccounts.length > 0) {
             setSelectedAccount(sortedAccounts[0]?.accountNumber.toString());
+            setBalance(sortedAccounts[0]?.balance);
           }
         }
       } catch (error) {
@@ -173,6 +176,7 @@ export default function EcommerceClient() {
                     key={account.accountNumber}
                     onClick={() => {
                       setSelectedAccount(account.accountNumber.toString());
+                      setBalance(account?.balance);
                       setShowDropdown(false);
                     }}
                     className="cursor-pointer px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 text-sm text-gray-900 dark:text-white"
@@ -203,10 +207,10 @@ export default function EcommerceClient() {
             <MonthlySalesChart tradeHistory={tradeHistory} />
           </div>
           <div className="col-span-12 xl:col-span-5">
-            <MonthlyTarget tradeHistory={tradeHistory} />
+            <MonthlyTarget tradeHistory={tradeHistory} balance={balance}/>
           </div>
           <div className="col-span-12">
-            <StatisticsChart tradeHistory={tradeHistory} />
+            <StatisticsChart tradeHistory={tradeHistory} balance={balance}/>
           </div>
           <div className="col-span-12 xl:col-span-5">
             {/* <DemographicCard /> */}
