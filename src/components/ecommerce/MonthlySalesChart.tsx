@@ -34,9 +34,10 @@ interface Trade {
 
 interface MonthlySalesChartProps {
   tradeHistory: Trade[];
+  isLoadingTrades: Boolean
 }
 
-export default function MonthlySalesChart({ tradeHistory }: MonthlySalesChartProps) {
+export default function MonthlySalesChart({ tradeHistory, isLoadingTrades }: MonthlySalesChartProps) {
   const [initialBalance] = useState<number>(5000);
   const [monthlyProfits, setMonthlyProfits] = useState<number[]>(new Array(12).fill(0));
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -155,38 +156,54 @@ export default function MonthlySalesChart({ tradeHistory }: MonthlySalesChartPro
 
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-5 pt-5 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-          Monthly P&L
-        </h3>
+     <div className="flex items-center justify-between mb-3">
 
-        <div className="flex gap-2 items-center">
-          <button
-            onClick={() => setSelectedYear((prev) => prev - 1)}
-            className="text-sm px-3 py-1 bg-white dark:bg-white/5 rounded-lg hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-white"
-          >
-            ←
-          </button>
-          <span className="text-gray-700 dark:text-white text-sm font-medium">
-            {selectedYear}
-          </span>
-          <button
-            onClick={() => setSelectedYear((prev) => prev + 1)}
-            className="text-sm px-3 py-1 bg-gray-100 dark:bg-white/5 rounded-lg hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-white"
-          >
-            →
-          </button>
-        </div>
+        {isLoadingTrades ? (
+          <div className="h-5 w-32 bg-gray-200 rounded animate-pulse"></div>
+        ) : (
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
+            Monthly P&L
+          </h3>
+        )}
+        {isLoadingTrades ? (
+          <div className="flex gap-2 items-center">
+            <div className="h-8 w-10 bg-gray-200 rounded-lg animate-pulse"></div>
+            <div className="h-5 w-16 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-8 w-10 bg-gray-200 rounded-lg animate-pulse"></div>
+          </div>
+        ) : (
+          <div className="flex gap-2 items-center">
+            <button
+              onClick={() => setSelectedYear((prev) => prev - 1)}
+              className="text-sm px-3 py-1 bg-white dark:bg-white/5 rounded-lg hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-white"
+            >
+              ←
+            </button>
+            <span className="text-gray-700 dark:text-white text-sm font-medium">
+              {selectedYear}
+            </span>
+            <button
+              onClick={() => setSelectedYear((prev) => prev + 1)}
+              className="text-sm px-3 py-1 bg-gray-100 dark:bg-white/5 rounded-lg hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-white"
+            >
+              →
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="max-w-full overflow-x-auto custom-scrollbar">
         <div className="-ml-5 min-w-[650px] xl:min-w-full pl-2">
-          <ReactApexChart
-            options={options}
-            series={series}
-            type="bar"
-            height={180}
-          />
+          {isLoadingTrades ? (
+            <div className="h-[110px] w-full bg-gray-200 rounded animate-pulse mt-4"></div>
+          ) : (
+            <ReactApexChart
+              options={options}
+              series={series}
+              type="bar"
+              height={180}
+            />
+          )}
         </div>
       </div>
     </div>

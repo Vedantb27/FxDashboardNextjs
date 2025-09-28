@@ -34,68 +34,71 @@ interface Trade {
   updatedAt: string;
 }
 
-interface MonthlyTargetProps {
+interface OverallTargetProps {
   tradeHistory: Trade[];
-  balance:number;
+  balance: number;
+  isLoadingTrades: Boolean
 }
 
-export default function MonthlyTarget({ tradeHistory,balance }: MonthlyTargetProps) {
-  const [profitTarget, setProfitTarget] = useState<number>(10); // 10%
-  const [currentProfit, setCurrentProfit] = useState<number>(0);
+export default function OverallTarget({ tradeHistory, balance, isLoadingTrades }: OverallTargetProps) {
   const [series, setSeries] = useState<number[]>([0]);
   const [weeklyProfit, setWeeklyProfit] = useState<number>(0);
+  const [totalProfit, setTotalProfit] = useState<number>(0);
   const [monthlyProfit, setMonthlyProfit] = useState<number>(0);
   const [dailyProfit, setDailyProfit] = useState<number>(0);
   const [dailyPercent, setDailyPercent] = useState<number>(0);
   const [weeklyPercent, setWeeklyPercent] = useState<number>(0);
+  const [totalPercent, setTotalPercent] = useState<number>(0);
   const [monthlyPercent, setMonthlyPercent] = useState<number>(0);
 
+  useEffect(() => {
+    if (isLoadingTrades) return;
 
-useEffect(() => {
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth();
-  const todayDate = now.getDate();
-  const todayString = now.toISOString().split('T')[0];
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+    const todayDate = now.getDate();
+    const todayString = now.toISOString().split('T')[0];
 
-  const startOfWeek = new Date(now);
-  startOfWeek.setDate(todayDate - now.getDay());
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(todayDate - now.getDay());
 
-  const dailyTrades = tradeHistory.filter(trade => trade.close_date === todayString);
+    const dailyTrades = tradeHistory.filter(trade => trade.close_date === todayString);
 
-  const weeklyTrades = tradeHistory.filter(trade => {
-    const close = new Date(trade.close_date);
-    return close >= startOfWeek && close <= now;
-  });
+    const weeklyTrades = tradeHistory.filter(trade => {
+      const close = new Date(trade.close_date);
+      return close >= startOfWeek && close <= now;
+    });
 
-  const monthlyTrades = tradeHistory.filter(trade => {
-    const close = new Date(trade.close_date);
-    return close.getMonth() === currentMonth && close.getFullYear() === currentYear;
-  });
+    const monthlyTrades = tradeHistory.filter(trade => {
+      const close = new Date(trade.close_date);
+      return close.getMonth() === currentMonth && close.getFullYear() === currentYear;
+    });
 
-  const dailyProfit = dailyTrades.reduce((acc, trade) => acc + trade.profit, 0);
-  const weeklyProfit = weeklyTrades.reduce((acc, trade) => acc + trade.profit, 0);
-  const monthlyProfit = monthlyTrades.reduce((acc, trade) => acc + trade.profit, 0);
+    const totalTrades = tradeHistory;
 
-  // Calculate target and progress safely
-  const target = (balance * profitTarget) / 100;
-  const progress = target !== 0 ? (monthlyProfit / target) * 100 : 0;
+    const dailyProfit = dailyTrades.reduce((acc, trade) => acc + trade.profit, 0);
+    const weeklyProfit = weeklyTrades.reduce((acc, trade) => acc + trade.profit, 0);
+    const monthlyProfit = monthlyTrades.reduce((acc, trade) => acc + trade.profit, 0);
+    const totalProfit = totalTrades.reduce((acc, trade) => acc + trade.profit, 0);
 
-  // Set state
-  setCurrentProfit(monthlyProfit);
-  setSeries([parseFloat(progress.toFixed(2))]);
+    // Calculate percentages safely (avoid NaN if balance=0)
+    const safePercent = (profit: number) => (balance !== 0 ? (profit / balance) * 100 : 0);
 
-  // Set profits in USD
-  setDailyProfit(dailyProfit);
-  setWeeklyProfit(weeklyProfit);
-  setMonthlyProfit(monthlyProfit);
+    // Set state
+    setSeries([parseFloat(safePercent(totalProfit).toFixed(2))]);
 
-  // Calculate percentages safely (avoid NaN if balance=0)
-  const safePercent = (profit: number) => (balance !== 0 ? (profit / balance) * 100 : 0);
-  setDailyPercent(safePercent(dailyProfit));
-  setWeeklyPercent(safePercent(weeklyProfit));
-  setMonthlyPercent(safePercent(monthlyProfit));
-}, [tradeHistory, profitTarget, balance]);  // Add balance to deps if it can change
+    // Set profits in USD
+    setDailyProfit(dailyProfit);
+    setWeeklyProfit(weeklyProfit);
+    setMonthlyProfit(monthlyProfit);
+    setTotalProfit(totalProfit);
+
+    setDailyPercent(safePercent(dailyProfit));
+    setWeeklyPercent(safePercent(weeklyProfit));
+    setMonthlyPercent(safePercent(monthlyProfit));
+    setTotalPercent(safePercent(totalProfit));
+  }, [tradeHistory, balance, isLoadingTrades]);
 
   const UpArrow = () => (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -124,7 +127,7 @@ useEffect(() => {
     chart: {
       fontFamily: "Outfit, sans-serif",
       type: "radialBar",
-      height: 330,
+      height: 300, // Increased height for loaded content
       sparkline: {
         enabled: true,
       },
@@ -146,9 +149,9 @@ useEffect(() => {
             show: false,
           },
           value: {
-            fontSize: "36px",
+            fontSize: "32px",
             fontWeight: "600",
-            offsetY: -40,
+            offsetY: -35,
             color: "#0000FF",
             formatter: function (val) {
               return val + "%";
@@ -179,89 +182,138 @@ useEffect(() => {
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-gray-100 dark:border-gray-800 dark:bg-white/[0.03]">
-      <div className="px-5 pt-5 bg-white shadow-default rounded-2xl pb-11 dark:bg-gray-900 sm:px-6 sm:pt-6">
+      <div className="px-5 pt-5 bg-white shadow-default rounded-2xl pb-8 dark:bg-gray-900 sm:px-6 sm:pt-6">
         <div className="flex justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-              Monthly Target
-            </h3>
-            <p className="mt-1 font-normal text-gray-500 text-theme-sm dark:text-gray-400">
-              Target you’ve achieved this month
-            </p>
-          </div>
-          <div className="relative inline-block">
-            {/* <button onClick={toggleDropdown} className="dropdown-toggle">
-              <MoreDotIcon className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" />
-            </button> */}
-            <Dropdown
-              isOpen={isOpen}
-              onClose={closeDropdown}
-              className="w-40 p-2"
-            >
-              <DropdownItem
-                tag="a"
-                onItemClick={closeDropdown}
-                className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
-              >
-                SetTarget
-              </DropdownItem>
-              <DropdownItem
-                tag="a"
-                onItemClick={closeDropdown}
-                className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
-              >
-                Set Default Target
-              </DropdownItem>
-            </Dropdown>
-          </div>
+          {isLoadingTrades ? (
+            <>
+              <div>
+                <div className="h-5 w-40 bg-gray-200 rounded animate-pulse"></div>
+                <div className="mt-1 h-4 w-60 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+              <div className="h-6 w-6 bg-gray-200 rounded-full animate-pulse"></div>
+            </>
+          ) : (
+            <>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
+                  Performance Matrix
+                </h3>
+                <p className="mt-1 font-normal text-gray-500 text-theme-sm dark:text-gray-400">
+                  Percentage you’ve achieved till now
+                </p>
+              </div>
+              <div className="relative inline-block">
+                <button onClick={toggleDropdown} className="dropdown-toggle">
+                  <MoreDotIcon className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" />
+                </button>
+                <Dropdown
+                  isOpen={isOpen}
+                  onClose={closeDropdown}
+                  className="w-40 p-2"
+                >
+                  <DropdownItem
+                    tag="a"
+                    onItemClick={closeDropdown}
+                    className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                  >
+                    SetTarget
+                  </DropdownItem>
+                  <DropdownItem
+                    tag="a"
+                    onItemClick={closeDropdown}
+                    className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                  >
+                    Set Default Target
+                  </DropdownItem>
+                </Dropdown>
+              </div>
+            </>
+          )}
         </div>
         <div className="relative">
-          <div className="max-h-[330px]">
-            <ReactApexChart
-              options={options}
-              series={series}
-              type="radialBar"
-              height={330}
-            />
-          </div>
-          {/* <span className="absolute left-1/2 top-full -translate-x-1/2 -translate-y-[95%] rounded-full bg-success-50 px-3 py-1 text-xs font-medium text-success-600 dark:bg-success-500/15 dark:text-success-500">
-            +10%
-          </span> */}
+          {isLoadingTrades ? (
+            <div className="h-[250px] w-full flex items-center justify-center"> {/* Reduced height for skeleton */}
+              <div className="h-28 w-28 bg-gray-200 rounded-full animate-pulse"></div> {/* Smaller skeleton size */}
+            </div>
+          ) : (
+            <div className="max-h-[460px]"> 
+              <ReactApexChart
+                options={options}
+                series={series}
+                type="radialBar"
+                height={470} // Increased height for loaded content
+              />
+            </div>
+          )}
         </div>
-        <p className="mx-auto mt-10 w-full max-w-[380px] text-center text-sm text-gray-500 sm:text-base">
-          You earn ${monthlyProfit.toFixed(2)} this month, keep up your good work!
-        </p>
+        {isLoadingTrades ? (
+          <div className="mx-auto mt-8 w-full max-w-[380px] h-4 bg-gray-200 rounded animate-pulse"></div>
+        ) : (
+          <p className="mx-auto mt-8 w-full max-w-[380px] text-center text-sm text-gray-500 sm:text-base">
+            You earn ${totalProfit.toFixed(2)} till now, keep up your good work!
+          </p>
+        )}
       </div>
       <div className="flex items-center justify-center gap-5 px-6 py-3.5 sm:gap-8 sm:py-5">
-        <div>
-          <p className="mb-1 text-center text-gray-500 text-theme-xs dark:text-gray-400 sm:text-sm">
-            Monthly gain
-          </p>
-          <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-            {monthlyProfit.toFixed(2)}$
-            {monthlyProfit >= 0 ? <UpArrow /> : <DownArrow />}
-          </p>
-        </div>
-        <div className="w-px bg-gray-200 h-7 dark:bg-gray-800"></div>
-        <div>
-          <p className="mb-1 text-center text-gray-500 text-theme-xs dark:text-gray-400 sm:text-sm">
-            Weekly gain
-          </p>
-          <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-            {weeklyProfit.toFixed(2)}$
-            {weeklyProfit >= 0 ? <UpArrow /> : <DownArrow />}
-          </p>
-        </div>
-        <div className="w-px bg-gray-200 h-7 dark:bg-gray-800"></div>
-        <div>
-          <p className="mb-1 text-center text-gray-500 text-theme-xs dark:text-gray-400 sm:text-sm">
-            Daily gain
-          </p>
-          <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-            {dailyProfit.toFixed(2)}$
-            {dailyProfit >= 0 ? <UpArrow /> : <DownArrow />}
-          </p>
-        </div>
+        {isLoadingTrades ? (
+          <>
+            <div>
+              <div className="mb-1 h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
+              <div className="flex items-center justify-center gap-1">
+                <div className="h-5 w-16 bg-gray-200 rounded animate-pulse"></div>
+                <div className="h-4 w-4 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+            </div>
+            <div className="w-px bg-gray-200 h-7 animate-pulse"></div>
+            <div>
+              <div className="mb-1 h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
+              <div className="flex items-center justify-center gap-1">
+                <div className="h-5 w-16 bg-gray-200 rounded animate-pulse"></div>
+                <div className="h-4 w-4 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+            </div>
+            <div className="w-px bg-gray-200 h-7 animate-pulse"></div>
+            <div>
+              <div className="mb-1 h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
+              <div className="flex items-center justify-center gap-1">
+                <div className="h-5 w-16 bg-gray-200 rounded animate-pulse"></div>
+                <div className="h-4 w-4 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div>
+              <p className="mb-1 text-center text-gray-500 text-theme-xs dark:text-gray-400 sm:text-sm">
+                Monthly gain
+              </p>
+              <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
+                {monthlyProfit.toFixed(2)}$
+                {monthlyProfit >= 0 ? <UpArrow /> : <DownArrow />}
+              </p>
+            </div>
+            <div className="w-px bg-gray-200 h-7 dark:bg-gray-800"></div>
+            <div>
+              <p className="mb-1 text-center text-gray-500 text-theme-xs dark:text-gray-400 sm:text-sm">
+                Weekly gain
+              </p>
+              <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
+                {weeklyProfit.toFixed(2)}$
+                {weeklyProfit >= 0 ? <UpArrow /> : <DownArrow />}
+              </p>
+            </div>
+            <div className="w-px bg-gray-200 h-7 dark:bg-gray-800"></div>
+            <div>
+              <p className="mb-1 text-center text-gray-500 text-theme-xs dark:text-gray-400 sm:text-sm">
+                Daily gain
+              </p>
+              <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
+                {dailyProfit.toFixed(2)}$
+                {dailyProfit >= 0 ? <UpArrow /> : <DownArrow />}
+              </p>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

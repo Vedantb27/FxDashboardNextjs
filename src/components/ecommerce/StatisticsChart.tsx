@@ -34,11 +34,11 @@ interface Trade {
 
 interface StatisticsChartProps {
   tradeHistory: Trade[];
-  balance:number
+  balance: number;
+  isLoadingTrades:Boolean
 }
 
-export default function StatisticsChart({ tradeHistory,balance }: StatisticsChartProps) {
-
+export default function StatisticsChart({ tradeHistory, balance,isLoadingTrades }: StatisticsChartProps) {
   const sorted = [...tradeHistory].sort((a, b) => {
     const tA = new Date(`${a.close_date}T${a.close_time}`).getTime();
     const tB = new Date(`${b.close_date}T${b.close_time}`).getTime();
@@ -46,16 +46,33 @@ export default function StatisticsChart({ tradeHistory,balance }: StatisticsChar
   });
 
   const totalProfit = sorted.reduce((sum, t) => sum + t.profit, 0);
-  const initialBalance = balance - totalProfit;
+  const initialBalance = balance ;
 
-  let running = initialBalance;
-  const equityData = sorted.map((t) => {
-    running += t.profit;
-    return {
-      x: new Date(`${t.close_date}T${t.close_time}`).getTime(),
-      y: Number(running.toFixed(2)),
-    };
-  });
+  let equityData: { x: number; y: number }[] = [];
+
+  if (sorted.length > 0) {
+    // Use the earliest open date as the starting point
+    const firstTrade = sorted.reduce((earliest, trade) => {
+      const tradeOpenTime = new Date(`${trade.open_date}T${trade.open_time}`).getTime();
+      const earliestOpenTime = new Date(`${earliest.open_date}T${earliest.open_time}`).getTime();
+      return tradeOpenTime < earliestOpenTime ? trade : earliest;
+    }, sorted[0]);
+
+    const startTime = new Date(`${firstTrade.open_date}T${firstTrade.open_time}`).getTime();
+    // Start with initial balance at the first trade's open time
+    equityData.push({ x: startTime, y: Number(initialBalance.toFixed(2)) });
+
+    let running = initialBalance;
+    // Add data points for each trade's close time
+    for (const t of sorted) {
+      running += t.profit;
+      const closeTime = new Date(`${t.close_date}T${t.close_time}`).getTime();
+      equityData.push({ x: closeTime, y: Number(running.toFixed(2)) });
+    }
+  } else {
+    // If no trades, show current balance at current time
+    equityData = [{ x: Date.now(), y: Number(balance.toFixed(2)) }];
+  }
 
   const options: ApexOptions = {
     chart: {
@@ -146,7 +163,7 @@ export default function StatisticsChart({ tradeHistory,balance }: StatisticsChar
           </p>
         </div>
         <div className="flex items-start w-full gap-3 sm:justify-end">
-          <ChartTab />
+          {/* <ChartTab /> */}
         </div>
       </div>
       <div className="max-w-full overflow-x-auto custom-scrollbar">

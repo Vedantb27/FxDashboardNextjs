@@ -36,9 +36,10 @@ interface Trade {
 
 interface EcommerceMetricsProps {
   tradeHistory: Trade[];
+  isLoadingTrades: Boolean
 }
 
-export const EcommerceMetrics = ({ tradeHistory }: EcommerceMetricsProps) => {
+export const EcommerceMetrics = ({ tradeHistory,isLoadingTrades }: EcommerceMetricsProps) => {
   // Compute win-rate
   const wins = tradeHistory.filter((t) => t.profit > 0).length;
   const totalClosed = tradeHistory.filter((t) => t.profit !== 0).length;
@@ -85,13 +86,23 @@ export const EcommerceMetrics = ({ tradeHistory }: EcommerceMetricsProps) => {
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
       {/* Win Rate Card */}
       <div className="rounded-2xl border border-gray-200 bg-white p-5 flex flex-col items-center justify-between dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
-        <h4 className="text-gray-500 mb-2">Win Rate</h4>
-        <ReactApexChart
-          options={winRateOptions}
-          series={winRateSeries}
-          type="radialBar"
-          height={200}
-        />
+        {isLoadingTrades ? (
+          <div className="h-4 w-20 bg-gray-200 rounded animate-pulse mb-2"></div>
+        ) : (
+          <h4 className="text-gray-500 mb-2">Win Rate</h4>
+        )}
+        {isLoadingTrades ? (
+          <div className="h-[200px] w-full flex items-center justify-center">
+            <div className="h-32 w-32 bg-gray-200 rounded-full animate-pulse"></div>
+          </div>
+        ) : (
+          <ReactApexChart
+            options={winRateOptions}
+            series={winRateSeries}
+            type="radialBar"
+            height={200}
+          />
+        )}
         {/* Commented-out section preserved for potential future use */}
         {/* <div className="mt-4">
           <Badge color={netPLIsPositive ? "success" : "error"}>
@@ -108,23 +119,36 @@ export const EcommerceMetrics = ({ tradeHistory }: EcommerceMetricsProps) => {
 
       {/* Orders */}
       <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
-        <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800">
-          <BoxIconLine className="text-gray-800 dark:text-white/90" />
-        </div>
-        <div className="flex items-end justify-between mt-5">
-          <div>
-            <span className="text-sm text-gray-500 dark:text-gray-400">
-              Total Orders
-            </span>
-            <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-              {totalOrders}
-            </h4>
+        {isLoadingTrades ? (
+          <div className="flex items-center justify-center w-12 h-12 bg-gray-200 rounded-xl animate-pulse"></div>
+        ) : (
+          <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800">
+            <BoxIconLine className="text-gray-800 dark:text-white/90" />
           </div>
-          {/* <Badge color="error">
-            <ArrowDownIcon className="text-error-500" />
-            9.05%
-          </Badge> */}
-        </div>
+        )}
+        {isLoadingTrades ? (
+          <div className="flex items-end justify-between mt-5">
+            <div>
+              <div className="h-3 w-24 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-5 w-16 bg-gray-200 rounded animate-pulse mt-2"></div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-end justify-between mt-5">
+            <div>
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                Total Orders
+              </span>
+              <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
+                {totalOrders}
+              </h4>
+            </div>
+            {/* <Badge color="error">
+              <ArrowDownIcon className="text-error-500" />
+              9.05%
+            </Badge> */}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -196,30 +196,26 @@ export default function EcommerceClient() {
         )}
       </div>
      
-      {isLoadingTrades ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-brand-500"></div>
-        </div>
-      ) : (
+     
         <div className="grid grid-cols-12 gap-4 md:gap-6">
           <div className="col-span-12 space-y-6 xl:col-span-7">
-            <EcommerceMetrics tradeHistory={tradeHistory} />
-            <MonthlySalesChart tradeHistory={tradeHistory} />
+            <EcommerceMetrics tradeHistory={tradeHistory} isLoadingTrades={isLoadingTrades} />
+            <MonthlySalesChart tradeHistory={tradeHistory} isLoadingTrades={isLoadingTrades} />
           </div>
           <div className="col-span-12 xl:col-span-5">
-            <MonthlyTarget tradeHistory={tradeHistory} balance={balance}/>
+            <MonthlyTarget tradeHistory={tradeHistory} balance={balance}isLoadingTrades={isLoadingTrades} />
           </div>
           <div className="col-span-12">
-            <StatisticsChart tradeHistory={tradeHistory} balance={balance}/>
+            <StatisticsChart tradeHistory={tradeHistory} balance={balance} isLoadingTrades={isLoadingTrades} />
           </div>
           <div className="col-span-12 xl:col-span-5">
-            {/* <DemographicCard /> */}
+            {/* <DemographicCard isLoadingTrades={isLoadingTrades} /> */}
           </div>
           <div className="col-span-12">
-            <RecentOrders tradeHistory={tradeHistory} />
+            <RecentOrders tradeHistory={tradeHistory} isLoadingTrades={isLoadingTrades} />
           </div>
         </div>
-      )}
+      
     </div>
   );
 }
