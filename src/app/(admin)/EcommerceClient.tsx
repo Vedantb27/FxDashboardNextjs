@@ -38,6 +38,7 @@ interface Trade {
 }
 
 interface Account {
+  depositCurrency: string;
   accountNumber: number;
   server: string;
   balance: number;
@@ -49,6 +50,7 @@ export default function EcommerceClient() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
   const [balance, setBalance] = useState(0);
+  const [currency, setCurrency] = useState("");
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
   const [isLoadingTrades, setIsLoadingTrades] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -75,6 +77,7 @@ export default function EcommerceClient() {
           if (sortedAccounts.length > 0) {
             setSelectedAccount(sortedAccounts[0]?.accountNumber.toString());
             setBalance(sortedAccounts[0]?.balance);
+            setCurrency(sortedAccounts[0]?.depositCurrency);
           }
         }
       } catch (error) {
@@ -177,6 +180,7 @@ export default function EcommerceClient() {
                     onClick={() => {
                       setSelectedAccount(account.accountNumber.toString());
                       setBalance(account?.balance);
+                      setCurrency(account?.depositCurrency);
                       setShowDropdown(false);
                     }}
                     className="cursor-pointer px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 text-sm text-gray-900 dark:text-white"
@@ -199,20 +203,20 @@ export default function EcommerceClient() {
      
         <div className="grid grid-cols-12 gap-4 md:gap-6">
           <div className="col-span-12 space-y-6 xl:col-span-7">
-            <EcommerceMetrics tradeHistory={tradeHistory} isLoadingTrades={isLoadingTrades} />
+            <EcommerceMetrics tradeHistory={tradeHistory} isLoadingTrades={isLoadingTrades} currency={currency}/>
             <MonthlySalesChart tradeHistory={tradeHistory} isLoadingTrades={isLoadingTrades} />
           </div>
           <div className="col-span-12 xl:col-span-5">
-            <MonthlyTarget tradeHistory={tradeHistory} balance={balance}isLoadingTrades={isLoadingTrades} />
+            <MonthlyTarget tradeHistory={tradeHistory} balance={balance}isLoadingTrades={isLoadingTrades} currency={currency}/>
           </div>
           <div className="col-span-12">
-            <StatisticsChart tradeHistory={tradeHistory} balance={balance} isLoadingTrades={isLoadingTrades} />
+            <StatisticsChart tradeHistory={tradeHistory} balance={balance} isLoadingTrades={isLoadingTrades} currency={currency}/>
           </div>
           <div className="col-span-12 xl:col-span-5">
             {/* <DemographicCard isLoadingTrades={isLoadingTrades} /> */}
           </div>
           <div className="col-span-12">
-            <RecentOrders tradeHistory={tradeHistory} isLoadingTrades={isLoadingTrades} />
+            <RecentOrders tradeHistory={tradeHistory} isLoadingTrades={isLoadingTrades} currency={currency}/>
           </div>
         </div>
       

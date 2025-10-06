@@ -4,6 +4,7 @@ import Badge from "../ui/badge/Badge";
 import dynamic from "next/dynamic";
 import { ApexOptions } from "apexcharts";
 import { ArrowDownIcon, BoxIconLine } from "../../icons";
+import { getCurrencySymbol } from "../../utils/common";
 
 // Dynamically import to avoid SSR issues
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
@@ -36,10 +37,11 @@ interface Trade {
 
 interface EcommerceMetricsProps {
   tradeHistory: Trade[];
-  isLoadingTrades: Boolean
+  isLoadingTrades: Boolean;
+  currency:string
 }
 
-export const EcommerceMetrics = ({ tradeHistory,isLoadingTrades }: EcommerceMetricsProps) => {
+export const EcommerceMetrics = ({ tradeHistory,isLoadingTrades,currency }: EcommerceMetricsProps) => {
   // Compute win-rate
   const wins = tradeHistory.filter((t) => t.profit > 0).length;
   const totalClosed = tradeHistory.filter((t) => t.profit !== 0).length;
@@ -50,7 +52,7 @@ export const EcommerceMetrics = ({ tradeHistory,isLoadingTrades }: EcommerceMetr
 
   // Compute net P&L
   const netPL = tradeHistory.reduce((sum, t) => sum + t.profit, 0);
-  const netPLFormatted = `${netPL >= 0 ? "+" : ""}${netPL.toFixed(2)}$`;
+  const netPLFormatted = `${netPL >= 0 ? "+" : ""}${netPL.toFixed(2)}${getCurrencySymbol(currency)}`;
   const netPLIsPositive = netPL >= 0;
 
   // Apex radial-bar options

@@ -49,7 +49,8 @@ interface Trade {
 
 interface RecentOrdersProps {
   tradeHistory: Trade[];
-  isLoadingTrades: Boolean
+  isLoadingTrades: Boolean;
+  currency:string
 }
 
 // Icon mappings
@@ -94,7 +95,7 @@ export function getIconForSymbol(symbol: string): StaticImageData | undefined {
   return pairIconMap[symbol.toUpperCase()];
 }
 
-export default function RecentOrders({ tradeHistory, isLoadingTrades }: RecentOrdersProps) {
+export default function RecentOrders({ tradeHistory, isLoadingTrades,currency }: RecentOrdersProps) {
   const [headersConfig, setHeadersConfig] = useState<{
     [key in keyof Trade]?: {
       label: string;

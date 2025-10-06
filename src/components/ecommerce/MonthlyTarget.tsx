@@ -5,6 +5,8 @@ import { Dropdown } from "../ui/dropdown/Dropdown";
 import { MoreDotIcon } from "../../icons";
 import { useEffect, useState } from "react";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
+import { getCurrencySymbol } from "../../utils/common";
+
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
@@ -37,10 +39,11 @@ interface Trade {
 interface OverallTargetProps {
   tradeHistory: Trade[];
   balance: number;
-  isLoadingTrades: Boolean
+  isLoadingTrades: Boolean;
+  currency:string
 }
 
-export default function OverallTarget({ tradeHistory, balance, isLoadingTrades }: OverallTargetProps) {
+export default function OverallTarget({ tradeHistory, balance, isLoadingTrades,currency }: OverallTargetProps) {
   const [series, setSeries] = useState<number[]>([0]);
   const [weeklyProfit, setWeeklyProfit] = useState<number>(0);
   const [totalProfit, setTotalProfit] = useState<number>(0);
@@ -250,7 +253,7 @@ export default function OverallTarget({ tradeHistory, balance, isLoadingTrades }
           <div className="mx-auto mt-8 w-full max-w-[380px] h-4 bg-gray-200 rounded animate-pulse"></div>
         ) : (
           <p className="mx-auto mt-8 w-full max-w-[380px] text-center text-sm text-gray-500 sm:text-base">
-            You earn ${totalProfit.toFixed(2)} till now, keep up your good work!
+            You earn {getCurrencySymbol(currency)}{totalProfit.toFixed(2)} till now, keep up your good work!
           </p>
         )}
       </div>
@@ -288,7 +291,7 @@ export default function OverallTarget({ tradeHistory, balance, isLoadingTrades }
                 Monthly gain
               </p>
               <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-                {monthlyProfit.toFixed(2)}$
+                {monthlyProfit.toFixed(2)}{getCurrencySymbol(currency)}
                 {monthlyProfit >= 0 ? <UpArrow /> : <DownArrow />}
               </p>
             </div>
@@ -298,7 +301,7 @@ export default function OverallTarget({ tradeHistory, balance, isLoadingTrades }
                 Weekly gain
               </p>
               <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-                {weeklyProfit.toFixed(2)}$
+                {weeklyProfit.toFixed(2)}{getCurrencySymbol(currency)}
                 {weeklyProfit >= 0 ? <UpArrow /> : <DownArrow />}
               </p>
             </div>
@@ -308,7 +311,7 @@ export default function OverallTarget({ tradeHistory, balance, isLoadingTrades }
                 Daily gain
               </p>
               <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-                {dailyProfit.toFixed(2)}$
+                {dailyProfit.toFixed(2)}{getCurrencySymbol(currency)}
                 {dailyProfit >= 0 ? <UpArrow /> : <DownArrow />}
               </p>
             </div>

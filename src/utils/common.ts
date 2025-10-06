@@ -5,3 +5,18 @@ export const formatDateToYYYYMMDD = (date: string | Date): string => {
     const day = String(d.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
+
+ export const getCurrencySymbol = (code: string) => {
+  if (!code) return ""; 
+  try {
+    return (0).toLocaleString("en", {
+      style: "currency",
+      currency: code,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).replace(/\d/g, "").trim();
+  } catch (e) {
+    console.warn(`Invalid currency code: ${code}`);
+    return code; 
+  }
+};

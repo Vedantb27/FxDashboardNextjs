@@ -3,6 +3,7 @@ import React from "react";
 import { ApexOptions } from "apexcharts";
 import ChartTab from "../common/ChartTab";
 import dynamic from "next/dynamic";
+import { getCurrencySymbol } from "../../utils/common";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
@@ -35,10 +36,11 @@ interface Trade {
 interface StatisticsChartProps {
   tradeHistory: Trade[];
   balance: number;
-  isLoadingTrades:Boolean
+  isLoadingTrades: boolean;
+  currency: string;
 }
 
-export default function StatisticsChart({ tradeHistory, balance,isLoadingTrades }: StatisticsChartProps) {
+export default function StatisticsChart({ tradeHistory, balance, isLoadingTrades, currency }: StatisticsChartProps) {
   const sorted = [...tradeHistory].sort((a, b) => {
     const tA = new Date(`${a.close_date}T${a.close_time}`).getTime();
     const tB = new Date(`${b.close_date}T${b.close_time}`).getTime();
@@ -46,7 +48,7 @@ export default function StatisticsChart({ tradeHistory, balance,isLoadingTrades 
   });
 
   const totalProfit = sorted.reduce((sum, t) => sum + t.profit, 0);
-  const initialBalance = balance ;
+  const initialBalance = balance;
 
   let equityData: { x: number; y: number }[] = [];
 
@@ -127,7 +129,7 @@ export default function StatisticsChart({ tradeHistory, balance,isLoadingTrades 
       enabled: true,
       x: { format: "dd MMM yyyy HH:mm" },
       y: {
-        formatter: (val) => `$${val.toFixed(2)}`,
+        formatter: (val) => `${getCurrencySymbol(currency)}${val.toFixed(2)}`,
       },
     },
     xaxis: {
@@ -168,12 +170,32 @@ export default function StatisticsChart({ tradeHistory, balance,isLoadingTrades 
       </div>
       <div className="max-w-full overflow-x-auto custom-scrollbar">
         <div className="min-w-[1000px] xl:min-w-full">
-          <ReactApexChart
-            options={options}
-            series={series}
-            type="area"
-            height={310}
-          />
+          {isLoadingTrades ? (
+            <div className="h-[310px] relative bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse overflow-hidden">
+              {/* Mimic y-axis lines */}
+              <div className="absolute inset-y-0 left-4 w-px bg-gray-300 dark:bg-gray-600"></div>
+              {/* Mimic grid lines */}
+              {[...Array(4)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute left-4 right-4 h-px bg-gray-300 dark:bg-gray-600"
+                  style={{ bottom: `${20 + i * 60}px` }}
+                />
+              ))}
+              {/* Mimic chart area fill and line */}
+              <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-blue-400/20 to-transparent rounded-b-lg"></div>
+              <div className="absolute bottom-4 left-8 w-3/4 h-2 bg-gradient-to-r from-transparent via-blue-400/60 to-transparent rounded-full"></div>
+              {/* Mimic x-axis */}
+              <div className="absolute bottom-0 left-4 right-4 h-px bg-gray-300 dark:bg-gray-600"></div>
+            </div>
+          ) : (
+            <ReactApexChart
+              options={options}
+              series={series}
+              type="area"
+              height={310}
+            />
+          )}
         </div>
       </div>
     </div>
