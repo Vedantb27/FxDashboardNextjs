@@ -47,7 +47,6 @@ interface Account {
   createdAt: string;
 }
 
-const ACCOUNT_BALANCE = 5000;
 
 // Skeleton Loader Component
 const SkeletonLoader: React.FC = () => {
@@ -96,6 +95,7 @@ const Calendar: React.FC = () => {
   const [dailyProfits, setDailyProfits] = useState<{ [date: string]: number }>({});
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
+  const [balance, setBalance]:any = useState(0);
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const calendarRef = useRef<FullCalendar>(null);
@@ -129,6 +129,7 @@ const Calendar: React.FC = () => {
           setAccounts(sortedAccounts || []);
           if (sortedAccounts.length > 0) {
             setSelectedAccount(sortedAccounts[0]?.accountNumber.toString());
+            setBalance(sortedAccounts[0]?.balance.toString());
           }
         }
       } catch (error) {
@@ -333,7 +334,7 @@ const Calendar: React.FC = () => {
     const dateStr = formatDateToYYYYMMDD(arg.date.toISOString());
     const profit = dailyProfits[dateStr];
     if (profit !== undefined) {
-      const percentage = ((profit / ACCOUNT_BALANCE) * 100).toFixed(2);
+      const percentage = ((profit / balance) * 100).toFixed(2);
       const isPositive = profit >= 0;
       return (
         <div className="flex flex-col items-center max-h-[150px]">
@@ -404,11 +405,12 @@ const Calendar: React.FC = () => {
                   </button>
                   {showDropdown && (
                     <ul className="absolute z-10 mt-1 w-full rounded-md border border-gray-300 bg-white shadow-lg dark:bg-gray-800 dark:border-gray-600">
-                      {accounts.map((account) => (
+                      {accounts.map((account:any) => (
                         <li
                           key={account.accountNumber}
                           onClick={() => {
                             setSelectedAccount(account.accountNumber.toString());
+                            setBalance(account?.balance.toString());
                             setShowDropdown(false);
                           }}
                           className="cursor-pointer px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 text-sm text-gray-900 dark:text-white"

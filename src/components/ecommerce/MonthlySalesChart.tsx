@@ -38,7 +38,6 @@ interface MonthlySalesChartProps {
 }
 
 export default function MonthlySalesChart({ tradeHistory, isLoadingTrades }: MonthlySalesChartProps) {
-  const [initialBalance] = useState<number>(5000);
   const [monthlyProfits, setMonthlyProfits] = useState<number[]>(new Array(12).fill(0));
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [barColor, setBarColor] = useState<string>("#465fff"); // default blue
