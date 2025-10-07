@@ -206,9 +206,9 @@ export default function OverallTarget({ tradeHistory, balance, isLoadingTrades,c
                 </p>
               </div>
               <div className="relative inline-block">
-                <button onClick={toggleDropdown} className="dropdown-toggle">
+                {/* <button onClick={toggleDropdown} className="dropdown-toggle">
                   <MoreDotIcon className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" />
-                </button>
+                </button> */}
                 <Dropdown
                   isOpen={isOpen}
                   onClose={closeDropdown}
@@ -291,7 +291,7 @@ export default function OverallTarget({ tradeHistory, balance, isLoadingTrades,c
                 Monthly gain
               </p>
               <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-                {monthlyProfit.toFixed(2)}{getCurrencySymbol(currency)}
+                {monthlyProfit.toFixed(2)} {getCurrencySymbol(currency)}
                 {monthlyProfit >= 0 ? <UpArrow /> : <DownArrow />}
               </p>
             </div>
@@ -301,7 +301,7 @@ export default function OverallTarget({ tradeHistory, balance, isLoadingTrades,c
                 Weekly gain
               </p>
               <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-                {weeklyProfit.toFixed(2)}{getCurrencySymbol(currency)}
+                {weeklyProfit.toFixed(2)} {getCurrencySymbol(currency)}
                 {weeklyProfit >= 0 ? <UpArrow /> : <DownArrow />}
               </p>
             </div>
@@ -311,7 +311,7 @@ export default function OverallTarget({ tradeHistory, balance, isLoadingTrades,c
                 Daily gain
               </p>
               <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-                {dailyProfit.toFixed(2)}{getCurrencySymbol(currency)}
+                {dailyProfit.toFixed(2)} {getCurrencySymbol(currency)}
                 {dailyProfit >= 0 ? <UpArrow /> : <DownArrow />}
               </p>
             </div>

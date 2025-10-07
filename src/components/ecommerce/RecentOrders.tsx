@@ -22,6 +22,7 @@ import XAUUSD from "../../icons/currencyPairs/XAUUSD.png";
 import JPY from "../../icons/currencyPairs/JPY.png";
 import BTC from "../../icons/currencyPairs/BTC.png";
 import type { StaticImageData } from "next/image";
+import { getCurrencySymbol } from "../../utils/common";
 
 interface Trade {
   sr_no: number;
@@ -378,7 +379,7 @@ export default function RecentOrders({ tradeHistory, isLoadingTrades,currency }:
                           className="py-3 text-gray-500 text-theme-sm dark:text-gray-400"
                         >
                           <Badge size="sm" color={badgeColor}>
-                            {formattedValue}
+                            {formattedValue} {getCurrencySymbol(currency)}
                           </Badge>
                         </TableCell>
                       );
