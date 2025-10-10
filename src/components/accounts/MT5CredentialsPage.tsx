@@ -420,6 +420,7 @@ export default function TradingAccountsPage() {
                       placeholder="Enter account number"
                       className={errors.accountNumber ? "border-red-500" : ""}
                       disabled={authLoading}
+                      autoComplete="off"
                     />
                     {errors.accountNumber && (
                       <p className="mt-1 text-sm text-red-500">{errors.accountNumber}</p>
@@ -435,6 +436,7 @@ export default function TradingAccountsPage() {
                       placeholder="Enter password"
                       className={errors.password ? "border-red-500" : ""}
                       disabled={authLoading}
+                      autoComplete="off"
                     />
                     {errors.password && (
                       <p className="mt-1 text-sm text-red-500">{errors.password}</p>
@@ -446,6 +448,7 @@ export default function TradingAccountsPage() {
                       <Input
                         type="text"
                         name="server"
+                        autoComplete="off"
                         value={formData.server}
                         onChange={handleInputChange}
                         placeholder="Enter server address"
