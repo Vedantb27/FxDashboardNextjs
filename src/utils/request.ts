@@ -59,7 +59,7 @@ const Request = async ({ method, url, data = {}, params = {} }: RequestParams) =
       sessionStorage.removeItem(`${AUTH_STORAGE_KEY}`);
       if (typeof window !== 'undefined') {
         window.location.href = '/signin';
-        return; // Exit the function to prevent further execution
+        return;
       }
     }
     if (error?.response?.data?.message) {
