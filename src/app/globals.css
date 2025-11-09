@@ -741,3 +741,20 @@ span.flatpickr-weekday,
 input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(0.5); /* Adjust icon color */
 }
+/* Custom thin scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(128, 128, 128, 0.4);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(128, 128, 128, 0.6);
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
