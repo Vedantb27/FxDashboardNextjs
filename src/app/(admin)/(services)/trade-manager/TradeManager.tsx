@@ -1154,7 +1154,7 @@ export default function TradeManager() {
                         onClick={() =>
                           handleAccountChange(account.accountNumber.toString())
                         }
-                        className="w-full flex items-center gap-3 p-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm"
+                        className="w-full flex items-center gap-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm dark:text-white  text-gray-800 "
                       >
                         <Image
                           src={
