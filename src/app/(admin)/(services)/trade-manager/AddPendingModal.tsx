@@ -344,14 +344,14 @@ const AddPendingModal: React.FC<AddPendingModalProps> = ({ isOpen, onClose, onSu
                 {/* Column 1 */}
                 <div className="space-y-4">
                     {/* Symbol with Searchable Dropdown */}
-                     <SymbolSelect
-                label="Symbol *"
-                value={formData.symbol || ""}
-                onChange={(selected:any) => handleChange("symbol", selected)}
-                symbols={symbols}
-                marketData={marketData} // ✅ passing from parent
-                error={errors.symbol}
-              />
+                    <SymbolSelect
+                        label="Symbol *"
+                        value={formData.symbol || ""}
+                        onChange={(selected: any) => handleChange("symbol", selected)}
+                        symbols={symbols}
+                        marketData={marketData} // ✅ passing from parent
+                        error={errors.symbol}
+                    />
                     <FloatingLabelInput
                         type="number"
                         label="Entry Price *"
@@ -374,12 +374,7 @@ const AddPendingModal: React.FC<AddPendingModalProps> = ({ isOpen, onClose, onSu
                         step="0.00001"
                         min="0"
                     />
-                    <FloatingLabelInput
-                        type="datetime-local"
-                        label="Start Time (optional)"
-                        value={formData.start_time || ""}
-                        onChange={(e: any) => handleChange("start_time", e.target.value)}
-                    />
+
                 </div>
                 {/* Column 2 */}
                 <div className="space-y-4">

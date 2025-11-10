@@ -132,7 +132,7 @@ const ModalWrapper: React.FC<{
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 25 }}
-          onClick={(e:any) => e.stopPropagation()}
+          onClick={(e: any) => e.stopPropagation()}
         >
           {children}
         </motion.div>
@@ -148,8 +148,8 @@ const FloatingLabelInput = (
       {...props}
       placeholder={props.label}
       className={`peer w-full p-3 pt-6 rounded-lg border transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm bg-transparent appearance-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${props.error
-          ? "border-red-500 focus:border-red-500 focus:ring-red-200"
-          : "border-gray-300 dark:border-gray-600 focus:border-blue-400"
+        ? "border-red-500 focus:border-red-500 focus:ring-red-200"
+        : "border-gray-300 dark:border-gray-600 focus:border-blue-400"
         } ${props.className || ""}`}
     />
     {props.label && (
@@ -174,8 +174,8 @@ const FieldSelect = (
     <select
       {...props}
       className={`w-full p-3 rounded-lg border transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm appearance-none ${props.error
-          ? "border-red-500 focus:border-red-500 focus:ring-red-200 bg-red-50/50 dark:bg-red-900/20"
-          : "border-gray-300 dark:border-gray-600 bg-white/80 dark:bg-gray-800/50 focus:border-blue-400"
+        ? "border-red-500 focus:border-red-500 focus:ring-red-200 bg-red-50/50 dark:bg-red-900/20"
+        : "border-gray-300 dark:border-gray-600 bg-white/80 dark:bg-gray-800/50 focus:border-blue-400"
         } ${props.className || ""}`}
     />
     {props.error && (
@@ -345,7 +345,7 @@ export default function TradeManager() {
       try {
         const parsedToken = JSON.parse(tokenData);
         setToken(parsedToken.token);
-      } catch (e:any) {
+      } catch (e: any) {
         console.error("Failed to parse token data:", e);
         sessionStorage.removeItem(AUTH_STORAGE_KEY);
       }
@@ -491,7 +491,7 @@ export default function TradeManager() {
     try {
       await Request({
         method: "POST",
-        url: "redis/add-pending",
+        url: "trade-manager/add-pending",
         data: {
           accountNumber: selectedAccount,
           id: Date.now().toString(),
@@ -528,7 +528,7 @@ export default function TradeManager() {
     try {
       await Request({
         method: "PUT",
-        url: `/redis/update-pending/${currentAction.id}`,
+        url: `trade-manager/update-pending/${currentAction.id}`,
         data: { accountNumber: selectedAccount, ...data },
       });
       toast.success("Pending order updated");
@@ -571,7 +571,7 @@ export default function TradeManager() {
     try {
       await Request({
         method: "POST",
-        url: `/redis/pending/${currentAction.parentId}/add-spot`,
+        url: `trade-manager/pending/${currentAction.parentId}/add-spot`,
         data: { accountNumber: selectedAccount, ...spotData },
       });
       toast.success("Spot added to pending");
@@ -623,7 +623,7 @@ export default function TradeManager() {
     try {
       await Request({
         method: "PUT",
-        url: `/redis/pending/${currentAction.parentId}/spot/${currentAction.index}`,
+        url: `trade-manager/pending/${currentAction.parentId}/spot/${currentAction.index}`,
         data: { accountNumber: selectedAccount, ...spotData },
       });
       toast.success("Spot updated in pending");
@@ -666,7 +666,7 @@ export default function TradeManager() {
     try {
       await Request({
         method: "POST",
-        url: `/redis/running/${currentAction.parentId}/add-spot`,
+        url: `trade-manager/running/${currentAction.parentId}/add-spot`,
         data: { accountNumber: selectedAccount, ...spotData },
       });
       toast.success("Spot added to running");
@@ -718,7 +718,7 @@ export default function TradeManager() {
     try {
       await Request({
         method: "PUT",
-        url: `/redis/running/${currentAction.parentId}/spot/${currentAction.index}`,
+        url: `trade-manager/running/${currentAction.parentId}/spot/${currentAction.index}`,
         data: { accountNumber: selectedAccount, ...spotData },
       });
       toast.success("Spot updated in running");
@@ -750,7 +750,7 @@ export default function TradeManager() {
     try {
       await Request({
         method: "PUT",
-        url: `/redis/running/${currentAction.id}/update-sl-tp-breakeven`,
+        url: `trade-manager/running/${currentAction.id}/update-sl-tp-breakeven`,
         data: { accountNumber: selectedAccount, ...data },
       });
       toast.success("SL/TP/Breakeven updated");
@@ -776,7 +776,7 @@ export default function TradeManager() {
     try {
       await Request({
         method: "PUT",
-        url: `/redis/running/${currentAction.id}/update-partial-close`,
+        url: `trade-manager/running/${currentAction.id}/update-partial-close`,
         data: { accountNumber: selectedAccount, ...data },
       });
       toast.success("Partial close updated");
@@ -801,7 +801,7 @@ export default function TradeManager() {
     try {
       await Request({
         method: "PUT",
-        url: `/redis/running/${currentAction.id}/set-volume-close`,
+        url: `trade-manager/running/${currentAction.id}/set-volume-close`,
         data: { accountNumber: selectedAccount, volumeToClose },
       });
       toast.success("Volume to close set");
@@ -822,7 +822,7 @@ export default function TradeManager() {
     try {
       await Request({
         method: "POST",
-        url: "redis/queue-delete",
+        url: "trade-manager/queue-delete",
         data: { accountNumber: selectedAccount, orderTicket: currentAction.orderTicket },
       });
       toast.success("Order queued for deletion");
@@ -892,11 +892,11 @@ export default function TradeManager() {
                     Price
                   </th>
                   {showCurrentColumn && (
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider w-35">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider w-40">
                       Current
                     </th>
                   )}
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider w-24">
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider w-34">
                     Profit
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
@@ -912,15 +912,24 @@ export default function TradeManager() {
                   const displayCurrent = currentPrice
                     ? (item.trade_setup === "buy"
                       ? currentPrice.ask?.toFixed(5)
-                      : currentPrice.bid?.toFixed(5)) ?? "N/A"
-                    : "N/A";
+                      : currentPrice.bid?.toFixed(5)) ?? "--"
+                    : "--";
                   return (
                     <tr
                       key={item.id}
                       className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors"
                     >
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                        {item.id}
+
+                        {item?.id ? (
+                          item.id
+                        ) : (
+                          <span className="inline-flex items-center">
+                            Adding.. &nbsp; <div className="animate-ping rounded-full h-3 w-3 bg-blue-500"></div>
+                          </span>
+                        )}
+
+
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-mono">
                         {item.symbol}
@@ -928,8 +937,8 @@ export default function TradeManager() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${item.trade_setup === "buy"
-                              ? "bg-green-100 text-green-800 dark:bg-green-900/80 dark:text-green-100"
-                              : "bg-red-100 text-red-800 dark:bg-red-900/80 dark:text-red-100"
+                            ? "bg-green-100 text-green-800 dark:bg-green-900/80 dark:text-green-100"
+                            : "bg-red-100 text-red-800 dark:bg-red-900/80 dark:text-red-100"
                             }`}
                         >
                           {item.trade_setup?.toUpperCase()}
@@ -942,21 +951,21 @@ export default function TradeManager() {
                         {item.price?.toFixed(5)}
                       </td>
                       {showCurrentColumn && (
-                        <td className="px-6 py-4 whitespace-nowrap w-35 text-sm font-mono text-gray-600 dark:text-gray-300">
+                        <td className="px-6 py-4 whitespace-nowrap w-40 text-sm font-mono text-gray-600 dark:text-gray-300">
                           {displayCurrent}
                         </td>
                       )}
                       <td
-                        className={`px-6 py-4 whitespace-nowrap text-sm font-medium w-24 ${item.profit !== undefined && item.profit >= 0
-                            ? "text-green-600"
-                            : "text-red-600"
+                        className={`px-6 py-4 whitespace-nowrap text-sm font-medium w-34 ${item.profit !== undefined && item.profit >= 0
+                          ? "text-green-600"
+                          : "text-red-600"
                           }`}
                       >
                         {item.profit !== undefined
                           ? item.profit >= 0
                             ? `+${item.profit.toFixed(2)}`
                             : item.profit.toFixed(2)
-                          : "N/A"}
+                          : "--"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex flex-wrap gap-2">
@@ -1300,14 +1309,14 @@ const UpdatePendingModal: React.FC<{
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const initial:any = pending.find((p) => p.id === currentAction.id) || {};
+    const initial: any = pending.find((p) => p.id === currentAction.id) || {};
     setFormData(initial);
     setSearch(initial.symbol || '');
     setErrors({});
     setShowOptions(false);
   }, [isOpen, currentAction.id]);
   useEffect(() => {
-    const handleClickOutside:any = (e: MouseEvent) => {
+    const handleClickOutside: any = (e: MouseEvent) => {
       if (
         dropdownRef.current &&
         !dropdownRef.current.contains(e.target as Node)
@@ -1368,7 +1377,7 @@ const UpdatePendingModal: React.FC<{
   useEffect(() => {
     if (formData.symbol && formData.trade_setup && formData.order_type && formData.price !== undefined) {
       const err = validatePendingPrice(formData);
-      setErrors((prev:any) => ({
+      setErrors((prev: any) => ({
         ...prev,
         price: err || (formData?.price <= 0 ? 'Valid entry price is required' : undefined),
       }));
@@ -1430,7 +1439,7 @@ const UpdatePendingModal: React.FC<{
                 className={`w-full p-3 pl-10 rounded-lg border transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm ${errors.symbol
                   ? "border-red-500 focus:border-red-500 focus:ring-red-200 bg-red-50/50 dark:bg-red-900/20"
                   : "border-gray-300 dark:border-gray-600 bg-white/80 dark:bg-gray-800/50 focus:border-blue-400"
-                }`}
+                  }`}
               />
               <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -1477,7 +1486,7 @@ const UpdatePendingModal: React.FC<{
             type="number"
             label="Entry Price *"
             value={formData.price || ""}
-            onChange={(e:any) =>
+            onChange={(e: any) =>
               handleChange("price", parseFloat(e.target.value) || 0)
             }
             error={errors.price}
@@ -1488,7 +1497,7 @@ const UpdatePendingModal: React.FC<{
             type="number"
             label="Stop Loss *"
             value={formData.stopLoss || ""}
-            onChange={(e:any) =>
+            onChange={(e: any) =>
               handleChange("stopLoss", parseFloat(e.target.value) || 0)
             }
             error={errors.stopLoss}
@@ -1499,7 +1508,7 @@ const UpdatePendingModal: React.FC<{
             type="datetime-local"
             label="Start Time (optional)"
             value={formData.start_time || ""}
-            onChange={(e:any) => handleChange("start_time", e.target.value)}
+            onChange={(e: any) => handleChange("start_time", e.target.value)}
           />
         </div>
         {/* Column 2 */}
@@ -1507,7 +1516,7 @@ const UpdatePendingModal: React.FC<{
           <FieldSelect
             label="Trade Setup *"
             value={formData.trade_setup || ""}
-            onChange={(e:any) => handleChange("trade_setup", e.target.value)}
+            onChange={(e: any) => handleChange("trade_setup", e.target.value)}
             error={errors.trade_setup}
           >
             <option value="">Select Setup</option>
@@ -1518,7 +1527,7 @@ const UpdatePendingModal: React.FC<{
             type="number"
             label="Take Profit (optional)"
             value={formData.takeProfit || ""}
-            onChange={(e:any) =>
+            onChange={(e: any) =>
               handleChange("takeProfit", parseFloat(e.target.value) || 0)
             }
             step="0.00001"
@@ -1528,7 +1537,7 @@ const UpdatePendingModal: React.FC<{
             type="number"
             label="Risk % *"
             value={formData.risk_percentage || ""}
-            onChange={(e:any) =>
+            onChange={(e: any) =>
               handleChange("risk_percentage", parseFloat(e.target.value) || 0)
             }
             error={errors.risk_percentage}
@@ -1539,7 +1548,7 @@ const UpdatePendingModal: React.FC<{
           <FieldSelect
             label="Order Type *"
             value={formData.order_type || ""}
-            onChange={(e:any) => handleChange("order_type", e.target.value)}
+            onChange={(e: any) => handleChange("order_type", e.target.value)}
             error={errors.order_type}
           >
             <option value="">Select Type</option>
@@ -1550,7 +1559,7 @@ const UpdatePendingModal: React.FC<{
             type="number"
             label="Removal Price (optional)"
             value={formData.removalPrice || ""}
-            onChange={(e:any) =>
+            onChange={(e: any) =>
               handleChange("removalPrice", parseFloat(e.target.value) || 0)
             }
             step="0.00001"
@@ -1652,7 +1661,7 @@ const AddSpotModal: React.FC<{
             type="number"
             placeholder="Entry Price *"
             value={formData.entry_price}
-            onChange={(e:any) =>
+            onChange={(e: any) =>
               handleChange("entry_price", parseFloat(e.target.value) || 0)
             }
             error={errors.entry_price}
@@ -1664,7 +1673,7 @@ const AddSpotModal: React.FC<{
             type="number"
             placeholder="Stop Loss *"
             value={formData.stoploss}
-            onChange={(e:any) =>
+            onChange={(e: any) =>
               handleChange("stoploss", parseFloat(e.target.value) || 0)
             }
             error={errors.stoploss}
@@ -1676,7 +1685,7 @@ const AddSpotModal: React.FC<{
             type="number"
             placeholder="Take Profit (optional)"
             value={formData.take_profit}
-            onChange={(e:any) =>
+            onChange={(e: any) =>
               handleChange("take_profit", parseFloat(e.target.value) || 0)
             }
             step="0.00001"
@@ -1687,7 +1696,7 @@ const AddSpotModal: React.FC<{
             type="number"
             placeholder="Risk % *"
             value={formData.risk_percentage}
-            onChange={(e:any) =>
+            onChange={(e: any) =>
               handleChange("risk_percentage", parseFloat(e.target.value) || 0)
             }
             error={errors.risk_percentage}
@@ -1796,7 +1805,7 @@ const UpdateSpotModal: React.FC<{
             type="number"
             placeholder="Entry Price *"
             value={formData.entry_price}
-            onChange={(e:any) =>
+            onChange={(e: any) =>
               handleChange("entry_price", parseFloat(e.target.value) || 0)
             }
             error={errors.entry_price}
@@ -1808,7 +1817,7 @@ const UpdateSpotModal: React.FC<{
             type="number"
             placeholder="Stop Loss *"
             value={formData.stoploss}
-            onChange={(e:any) =>
+            onChange={(e: any) =>
               handleChange("stoploss", parseFloat(e.target.value) || 0)
             }
             error={errors.stoploss}
@@ -1820,7 +1829,7 @@ const UpdateSpotModal: React.FC<{
             type="number"
             placeholder="Take Profit"
             value={formData.take_profit || ""}
-            onChange={(e:any) =>
+            onChange={(e: any) =>
               handleChange("take_profit", parseFloat(e.target.value) || 0)
             }
             step="0.00001"
@@ -1831,7 +1840,7 @@ const UpdateSpotModal: React.FC<{
             type="number"
             placeholder="Risk % *"
             value={formData.risk_percentage}
-            onChange={(e:any) =>
+            onChange={(e: any) =>
               handleChange("risk_percentage", parseFloat(e.target.value) || 0)
             }
             error={errors.risk_percentage}
@@ -1913,7 +1922,7 @@ const UpdateSlTpBeModal: React.FC<{
           type="number"
           label="New SL (0 to skip)"
           value={formData.slToUpdate}
-          onChange={(e:any) => handleChange("slToUpdate", e.target.value)}
+          onChange={(e: any) => handleChange("slToUpdate", e.target.value)}
           error={errors.slToUpdate}
           step="0.00001"
           min="0"
@@ -1922,7 +1931,7 @@ const UpdateSlTpBeModal: React.FC<{
           type="number"
           label="New TP (0 to skip)"
           value={formData.tpToUpdate}
-          onChange={(e:any) => handleChange("tpToUpdate", e.target.value)}
+          onChange={(e: any) => handleChange("tpToUpdate", e.target.value)}
           error={errors.tpToUpdate}
           step="0.00001"
           min="0"
@@ -1931,7 +1940,7 @@ const UpdateSlTpBeModal: React.FC<{
           type="number"
           label="Breakeven Price (0 to skip)"
           value={formData.breakevenPrice}
-          onChange={(e:any) => handleChange("breakevenPrice", e.target.value)}
+          onChange={(e: any) => handleChange("breakevenPrice", e.target.value)}
           error={errors.breakevenPrice}
           step="0.00001"
           min="0"
@@ -2019,7 +2028,7 @@ const UpdatePartialCloseModal: React.FC<{
           type="number"
           label="Partial-close price (0 = clear)"
           value={formData.partialClosePrice}
-          onChange={(e:any) => handleChange("partialClosePrice", e.target.value)}
+          onChange={(e: any) => handleChange("partialClosePrice", e.target.value)}
           error={errors.partialClosePrice}
           step="0.00001"
           min="0"
@@ -2028,7 +2037,7 @@ const UpdatePartialCloseModal: React.FC<{
           type="number"
           label="Lots to close (0 = clear)"
           value={formData.lotToClose}
-          onChange={(e:any) => handleChange("lotToClose", e.target.value)}
+          onChange={(e: any) => handleChange("lotToClose", e.target.value)}
           error={errors.lotToClose}
           step="0.01"
           min="0"
