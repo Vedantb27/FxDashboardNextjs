@@ -120,7 +120,7 @@ const ModalWrapper: React.FC<{
   <AnimatePresence>
     {isOpen && (
       <motion.div
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 flex items-center justify-center p-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -162,27 +162,7 @@ const FloatingLabelInput = (
     )}
   </div>
 );
-const FieldSelect = (
-  props: any & { label?: string; error?: string }
-) => (
-  <div className="mb-3">
-    {props.label && (
-      <label className={`block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 ${props.error ? 'text-red-600 dark:text-red-400' : ''}`}>
-        {props.label}
-      </label>
-    )}
-    <select
-      {...props}
-      className={`w-full p-3 rounded-lg border transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm appearance-none ${props.error
-        ? "border-red-500 focus:border-red-500 focus:ring-red-200 bg-red-50/50 dark:bg-red-900/20"
-        : "border-gray-300 dark:border-gray-600 bg-white/80 dark:bg-gray-800/50 focus:border-blue-400"
-        } ${props.className || ""}`}
-    />
-    {props.error && (
-      <p className="mt-1 text-xs text-red-600 dark:text-red-400">{props.error}</p>
-    )}
-  </div>
-);
+
 const PrimaryBtn: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({
   className,
   children,
@@ -498,7 +478,7 @@ export default function TradeManager() {
           ...data,
         },
       });
-      toast.success("Pending order added");
+      // toast.success("Pending order added");
       setModals((prev) => ({ ...prev, addPending: false }));
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed to add pending order");
@@ -905,7 +885,7 @@ export default function TradeManager() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200/30 dark:divide-gray-700/30 dark:bg-gray-900/20">
-                {data.map((item) => {
+                {data?.map((item,index) => {
                   const currentPrice = showCurrentColumn
                     ? getCurrentPrice(item.symbol, item.trade_setup)
                     : null;
@@ -916,7 +896,7 @@ export default function TradeManager() {
                     : "--";
                   return (
                     <tr
-                      key={item.id}
+                      key={index}
                       className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors"
                     >
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
@@ -1215,13 +1195,15 @@ export default function TradeManager() {
           symbols={availableSymbols}
           marketData={marketState}
         />
-        <UpdatePendingModal
+        <AddPendingModal
           isOpen={modals.updatePending}
           onClose={() => setModals((p) => ({ ...p, updatePending: false }))}
           onSubmit={handleUpdatePending}
           loading={loading.updatePending}
-          currentAction={currentAction}
           symbols={availableSymbols}
+          marketData={marketState}
+          initialData={pending.find((p) => p.id === currentAction.id) || {}}
+          mode="update"
         />
         <AddSpotModal
           isOpen={modals.addSpotPending}
@@ -1291,302 +1273,7 @@ export default function TradeManager() {
     </div>
   );
 }
-/* ============================================================================
-   Other Modal Components (kept inline for now)
-=========================================================================== */
-const UpdatePendingModal: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (data: Partial<TradeData>) => void;
-  loading: boolean;
-  currentAction: { id: string; tradeSetup: string };
-  symbols: string[];
-}> = ({ isOpen, onClose, onSubmit, loading, currentAction, symbols }) => {
-  const [formData, setFormData] = useState<Partial<TradeData>>({});
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [search, setSearch] = useState('');
-  const [showOptions, setShowOptions] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const initial: any = pending.find((p) => p.id === currentAction.id) || {};
-    setFormData(initial);
-    setSearch(initial.symbol || '');
-    setErrors({});
-    setShowOptions(false);
-  }, [isOpen, currentAction.id]);
-  useEffect(() => {
-    const handleClickOutside: any = (e: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
-      ) {
-        setShowOptions(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-  const filteredSymbols = symbols.filter((s) =>
-    s.toLowerCase().includes(search.toLowerCase())
-  );
-  const handleSymbolSelect = (selected: string) => {
-    setFormData((prev) => ({ ...prev, symbol: selected }));
-    setSearch(selected);
-    setShowOptions(false);
-  };
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toUpperCase();
-    setSearch(value);
-    if (!showOptions) setShowOptions(true);
-    if (value && !symbols.includes(value)) {
-      setFormData((prev) => ({ ...prev, symbol: value }));
-    }
-  };
-  const handleSearchFocus = () => {
-    if (search || filteredSymbols.length > 0) setShowOptions(true);
-  };
-  const validateField = useCallback((field: string, value: any) => {
-    const newErrors = { ...errors };
-    delete newErrors[field];
-    if (field === 'risk_percentage' && (value < 0 || value > 100)) {
-      newErrors[field] = 'Must be between 0 and 100';
-    }
-    if (field === 'symbol' && !value) {
-      newErrors[field] = 'Symbol is required';
-    }
-    if (field === 'trade_setup' && !value) {
-      newErrors[field] = 'Trade setup is required';
-    }
-    if (field === 'price' && (value === undefined || value <= 0)) {
-      newErrors[field] = 'Valid entry price is required';
-    }
-    if (field === 'stopLoss' && (value === undefined || value <= 0)) {
-      newErrors[field] = 'Valid stop loss is required';
-    }
-    if (field === 'order_type' && !value) {
-      newErrors[field] = 'Order type is required';
-    }
-    setErrors(newErrors);
-  }, [errors]);
-  const handleChange = (key: string, value: any) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
-    validateField(key, value);
-  };
-  // Live price validation
-  useEffect(() => {
-    if (formData.symbol && formData.trade_setup && formData.order_type && formData.price !== undefined) {
-      const err = validatePendingPrice(formData);
-      setErrors((prev: any) => ({
-        ...prev,
-        price: err || (formData?.price <= 0 ? 'Valid entry price is required' : undefined),
-      }));
-    }
-  }, [formData.symbol, formData.trade_setup, formData.order_type, formData.price]);
-  const currentPrice = getCurrentPrice(formData.symbol || '', formData.trade_setup || '');
-  const validateForm = () => {
-    const newErrors: { [key: string]: string } = {};
-    if (!formData.symbol) newErrors.symbol = 'Symbol is required';
-    if (!formData.trade_setup) newErrors.trade_setup = 'Trade setup is required';
-    if (!formData.price || formData.price <= 0) newErrors.price = 'Valid entry price is required';
-    if (!formData.stopLoss || formData.stopLoss <= 0) newErrors.stopLoss = 'Valid stop loss is required';
-    if (!formData.risk_percentage || formData.risk_percentage < 0 || formData.risk_percentage > 100) newErrors.risk_percentage = 'Valid risk percentage (0-100) is required';
-    if (!formData.order_type) newErrors.order_type = 'Order type is required';
-    const priceError = validatePendingPrice(formData);
-    if (priceError) newErrors.price = priceError;
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm()) {
-      return;
-    }
-    onSubmit(formData);
-  };
-  return (
-    <ModalWrapper isOpen={isOpen} onClose={onClose} wide={true}>
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-          Update Pending Order
-        </h3>
-        <button
-          onClick={onClose}
-          className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-          disabled={loading}
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6">
-        {/* Column 1 */}
-        <div className="space-y-4">
-          {/* Symbol with Searchable Dropdown */}
-          <div className="relative" ref={dropdownRef}>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Symbol *
-            </label>
-            <div className="relative">
-              <input
-                ref={inputRef}
-                type="text"
-                placeholder="Search symbol (e.g., EURUSD)"
-                value={search}
-                onChange={handleSearchChange}
-                onFocus={handleSearchFocus}
-                className={`w-full p-3 pl-10 rounded-lg border transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm ${errors.symbol
-                  ? "border-red-500 focus:border-red-500 focus:ring-red-200 bg-red-50/50 dark:bg-red-900/20"
-                  : "border-gray-300 dark:border-gray-600 bg-white/80 dark:bg-gray-800/50 focus:border-blue-400"
-                  }`}
-              />
-              <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <AnimatePresence>
-                {showOptions && (
-                  <motion.ul
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="absolute z-20 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-48 overflow-y-auto"
-                  >
-                    {filteredSymbols.length > 0 ? (
-                      filteredSymbols.map((sym) => (
-                        <li key={sym}>
-                          <button
-                            type="button"
-                            onClick={() => handleSymbolSelect(sym)}
-                            className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm transition-colors"
-                          >
-                            {sym}
-                          </button>
-                        </li>
-                      ))
-                    ) : (
-                      <li className="px-3 py-2 text-sm text-gray-500">No symbols found</li>
-                    )}
-                  </motion.ul>
-                )}
-              </AnimatePresence>
-            </div>
-            {formData.symbol && currentPrice && (
-              <div className="mt-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-xs">
-                <p className="text-gray-600 dark:text-gray-300">Live Prices:</p>
-                <p>Bid: <span className="font-mono text-green-600">{currentPrice.bid?.toFixed(5)}</span></p>
-                <p>Ask: <span className="font-mono text-red-600">{currentPrice.ask?.toFixed(5)}</span></p>
-              </div>
-            )}
-            {errors.symbol && (
-              <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.symbol}</p>
-            )}
-          </div>
-          <FloatingLabelInput
-            type="number"
-            label="Entry Price *"
-            value={formData.price || ""}
-            onChange={(e: any) =>
-              handleChange("price", parseFloat(e.target.value) || 0)
-            }
-            error={errors.price}
-            step="0.00001"
-            min="0"
-          />
-          <FloatingLabelInput
-            type="number"
-            label="Stop Loss *"
-            value={formData.stopLoss || ""}
-            onChange={(e: any) =>
-              handleChange("stopLoss", parseFloat(e.target.value) || 0)
-            }
-            error={errors.stopLoss}
-            step="0.00001"
-            min="0"
-          />
-          <FloatingLabelInput
-            type="datetime-local"
-            label="Start Time (optional)"
-            value={formData.start_time || ""}
-            onChange={(e: any) => handleChange("start_time", e.target.value)}
-          />
-        </div>
-        {/* Column 2 */}
-        <div className="space-y-4">
-          <FieldSelect
-            label="Trade Setup *"
-            value={formData.trade_setup || ""}
-            onChange={(e: any) => handleChange("trade_setup", e.target.value)}
-            error={errors.trade_setup}
-          >
-            <option value="">Select Setup</option>
-            <option value="buy">Buy ↑</option>
-            <option value="sell">Sell ↓</option>
-          </FieldSelect>
-          <FloatingLabelInput
-            type="number"
-            label="Take Profit (optional)"
-            value={formData.takeProfit || ""}
-            onChange={(e: any) =>
-              handleChange("takeProfit", parseFloat(e.target.value) || 0)
-            }
-            step="0.00001"
-            min="0"
-          />
-          <FloatingLabelInput
-            type="number"
-            label="Risk % *"
-            value={formData.risk_percentage || ""}
-            onChange={(e: any) =>
-              handleChange("risk_percentage", parseFloat(e.target.value) || 0)
-            }
-            error={errors.risk_percentage}
-            min="0"
-            max="100"
-            step="0.1"
-          />
-          <FieldSelect
-            label="Order Type *"
-            value={formData.order_type || ""}
-            onChange={(e: any) => handleChange("order_type", e.target.value)}
-            error={errors.order_type}
-          >
-            <option value="">Select Type</option>
-            <option value="limit">Limit</option>
-            <option value="stop">Stop</option>
-          </FieldSelect>
-          <FloatingLabelInput
-            type="number"
-            label="Removal Price (optional)"
-            value={formData.removalPrice || ""}
-            onChange={(e: any) =>
-              handleChange("removalPrice", parseFloat(e.target.value) || 0)
-            }
-            step="0.00001"
-            min="0"
-          />
-        </div>
-        <div className="col-span-2 flex gap-3 pt-6">
-          <MutedBtn
-            type="button"
-            onClick={onClose}
-            disabled={loading}
-            className="flex-1"
-          >
-            Cancel
-          </MutedBtn>
-          <PrimaryBtn
-            type="submit"
-            disabled={loading || Object.keys(errors).length > 0}
-            className="flex-1"
-          >
-            {loading ? "Updating..." : "Update Order"}
-          </PrimaryBtn>
-        </div>
-      </form>
-    </ModalWrapper>
-  );
-};
+
 /* --------------------------------------------------------------------- */
 const AddSpotModal: React.FC<{
   isOpen: boolean;

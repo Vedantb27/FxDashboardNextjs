@@ -3,12 +3,14 @@ import React, { useState, useRef, useEffect } from "react";
 
 const FieldSelect = ({
   label,
+  disabled = false,
   value,
   onChange,
   error,
   children,
 }: {
   label?: string;
+  disabled?: any;
   value?: string;
   onChange: (e: React.ChangeEvent<HTMLSelectElement> | { target: { value: string } }) => void;
   error?: string;
@@ -41,9 +43,8 @@ const FieldSelect = ({
     <div className="mb-4 relative" ref={wrapperRef}>
       {label && (
         <label
-          className={`block text-sm font-semibold mb-2 ${
-            error ? "text-red-600 dark:text-red-400" : "text-gray-700 dark:text-gray-300"
-          }`}
+          className={`block text-sm font-semibold mb-2 ${error ? "text-red-600 dark:text-red-400" : "text-gray-700 dark:text-gray-300"
+            }`}
         >
           {label}
         </label>
@@ -51,19 +52,22 @@ const FieldSelect = ({
 
       {/* Select Box */}
       <button
+        disabled={disabled}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={`w-full p-3 flex items-center justify-between rounded-lg text-sm
-          transition-all duration-200
-          border focus:outline-none 
-          ${error
-            ? "border-red-500 bg-red-50/50 dark:bg-red-900/20"
-            : "border-gray-300 dark:border-gray-700 bg-white/90 dark:bg-gray-800/70"
+    transition-all duration-200 border focus:outline-none
+    text-gray-900 dark:text-white
+    ${disabled
+            ? "bg-gray-100 dark:bg-gray-700 text-gray-400 border-gray-300 cursor-not-allowed"
+            : error
+              ? "border-red-500 bg-red-50/50 dark:bg-red-900/20"
+              : "border-gray-300 dark:border-gray-700 bg-white/90 dark:bg-gray-800/70"
           }
-          ${isOpen ? "ring-2 ring-blue-400 border-blue-400" : "hover:border-blue-400"}
-          text-gray-900 dark:text-white
-        `}
+    ${!disabled && (isOpen ? "ring-2 ring-blue-400 border-blue-400" : "hover:border-blue-400")}
+  `}
       >
+
         <span className={`${!value ? "text-gray-400 dark:text-gray-500" : ""}`}>
           {selectedText}
         </span>
@@ -102,10 +106,9 @@ const FieldSelect = ({
                   }}
                   whileHover={{ backgroundColor: "rgba(59,130,246,0.1)" }} // blue hover
                   className={`px-4 py-2 cursor-pointer transition-colors 
-                    ${
-                      isSelected
-                        ? "bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 font-medium"
-                        : "text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400"
+                    ${isSelected
+                      ? "bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 font-medium"
+                      : "text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400"
                     }`}
                 >
                   {child.props.children}

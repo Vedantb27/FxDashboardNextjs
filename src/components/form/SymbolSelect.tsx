@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 interface SymbolSelectProps {
   label?: string;
   value?: string;
+  disabled?: any;
   onChange: (value: string) => void;
   symbols: string[];
   marketData: any; // Live market data prop
@@ -13,7 +14,7 @@ interface SymbolSelectProps {
 }
 
 const SymbolSelect: React.FC<SymbolSelectProps> = React.memo(
-  ({ label, value, onChange, symbols, marketData, error }) => {
+  ({ label, value,disabled=false, onChange, symbols, marketData, error }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [search, setSearch] = useState(value || "");
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -87,21 +88,25 @@ const SymbolSelect: React.FC<SymbolSelectProps> = React.memo(
         {/* Input */}
         <div className="relative">
           <input
-            type="text"
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value.toUpperCase());
-              if (!isOpen) setIsOpen(true);
-            }}
-            onFocus={() => setIsOpen(true)}
-            placeholder="Search symbol (e.g., EURUSD)"
-            className={`w-full p-3 pl-10 rounded-lg border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-400
-              text-gray-900 dark:text-white
-              ${error
-                ? "border-red-500 focus:border-red-500 focus:ring-red-200 bg-red-50/50 dark:bg-red-900/20"
-                : "border-gray-300 dark:border-gray-700 bg-white/90 dark:bg-gray-800/70 focus:border-blue-400"
-              }`}
-          />
+  type="text"
+  disabled={disabled}
+  value={search}
+  onChange={(e) => {
+    setSearch(e.target.value.toUpperCase());
+    if (!isOpen) setIsOpen(true);
+  }}
+  onFocus={() => setIsOpen(true)}
+  placeholder="Search symbol (e.g., EURUSD)"
+  className={`w-full p-3 pl-10 rounded-lg border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-400
+    text-gray-900 dark:text-white
+    ${disabled
+      ? "bg-gray-100 dark:bg-gray-700 text-gray-400 border-gray-300 cursor-not-allowed"
+      : error
+      ? "border-red-500 focus:border-red-500 focus:ring-red-200 bg-red-50/50 dark:bg-red-900/20"
+      : "border-gray-300 dark:border-gray-700 bg-white/90 dark:bg-gray-800/70 focus:border-blue-400"
+    }`}
+/>
+
           <svg
             className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"
             fill="none"

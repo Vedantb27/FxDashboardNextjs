@@ -11,6 +11,7 @@ import { toast } from "react-toastify";
 import { TradeData, MarketData } from "./TradeManager"; // Import types from main file (adjust path if needed)
 import FieldSelect from "../../../../components/form/FieldSelect";
 import SymbolSelect from "../../../../components/form/SymbolSelect";
+import { FloatingLabelInput } from "../../../../components/form/FloatingLabelInput";
 /* ============================================================================
    Local Helpers for Modal (duplicated for independence)
 =========================================================================== */
@@ -25,8 +26,12 @@ const getCurrentPriceLocal = (
 };
 const validatePendingPriceLocal = (
     data: Partial<TradeData>,
-    marketData: MarketData[]
+    marketData: MarketData[],
+    mode: string
 ): string | null => {
+    if (mode != 'add') {
+        return null;
+    }
     if (!data.symbol || !data.trade_setup || !data.order_type || data.price === undefined)
         return "Missing required fields";
     const curr: any = getCurrentPriceLocal(data.symbol, data.trade_setup, marketData);
@@ -34,6 +39,7 @@ const validatePendingPriceLocal = (
     const isBuy = data.trade_setup === "buy";
     const isLimit = data.order_type === "limit";
     const price = data.price;
+
     if (isBuy) {
         if (isLimit && price >= curr.ask) return "Buy limit price must be below current ask";
         if (!isLimit && price <= curr.ask) return "Buy stop price must be above current ask";
@@ -41,6 +47,7 @@ const validatePendingPriceLocal = (
         if (isLimit && price <= curr.bid) return "Sell limit price must be above current bid";
         if (!isLimit && price >= curr.bid) return "Sell stop price must be below current bid";
     }
+
     return null;
 };
 /* ============================================================================
@@ -78,47 +85,6 @@ const ModalWrapper: React.FC<{
 
 
 
-const FloatingLabelInput = (
-    props: any & { label?: string; error?: string }
-) => (
-    <div className="relative mb-4">
-        <input
-            {...props}
-            placeholder=" "
-            className={`peer w-full p-3 pt-5 pb-2 rounded-md border text-sm bg-transparent 
-transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 appearance-none
-text-gray-900 dark:text-white
-placeholder-transparent
-[&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
-${props.error
-                    ? "border-red-500 focus:border-red-500 focus:ring-red-200 bg-red-50/50 dark:bg-red-900/20"
-                    : "border-gray-300 dark:border-gray-600 bg-white/80 dark:bg-gray-800/50 focus:border-blue-400"
-                } ${props.className || ""}`}
-
-        />
-        {props.label && (
-            <label
-                className={`absolute left-3 bg-white dark:bg-gray-900 px-2 py-0.1 
-    text-gray-500 dark:text-gray-400 text-sm transition-all duration-200 ease-in-out pointer-events-none
-    peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-sm
-    peer-focus:-top-2 peer-focus:text-xs peer-focus:text-blue-500
-    ${props.error ? "text-red-500 peer-focus:text-red-500" : ""}
-    rounded-md shadow-sm
-  `}
-                style={{
-                    top: "-0.6rem",
-                }}
-            >
-                {props.label}
-            </label>
-        )}
-        {props.error && (
-            <p className="mt-1 text-xs text-red-600 dark:text-red-400">{props.error}</p>
-        )}
-    </div>
-);
-
-
 const PrimaryBtn: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({
     className,
     children,
@@ -152,8 +118,10 @@ interface AddPendingModalProps {
     loading: boolean;
     symbols: string[];
     marketData: MarketData[];
+    initialData?: Partial<TradeData>;
+    mode?: 'add' | 'update';
 }
-const AddPendingModal: React.FC<AddPendingModalProps> = ({ isOpen, onClose, onSubmit, loading, symbols, marketData }) => {
+const AddPendingModal: React.FC<AddPendingModalProps> = ({ isOpen, onClose, onSubmit, loading, symbols, marketData, initialData, mode = 'add' }) => {
     const [formData, setFormData] = useState<Partial<TradeData>>({
         risk_percentage: 1,
     });
@@ -162,14 +130,26 @@ const AddPendingModal: React.FC<AddPendingModalProps> = ({ isOpen, onClose, onSu
     const [showOptions, setShowOptions] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const prevOpenRef = useRef(false);
     useEffect(() => {
-        if (isOpen) {
-            setFormData({ risk_percentage: 1 });
-            setSearch('');
+        if (!isOpen) {
+            prevOpenRef.current = false;
+            return;
+        }
+        if (!prevOpenRef.current) {
+            // Modal just opened - initialize form data only once
+            if (mode === 'update' && initialData) {
+                setFormData(initialData);
+                setSearch(initialData.symbol || '');
+            } else {
+                setFormData({ risk_percentage: 1 });
+                setSearch('');
+            }
             setErrors({});
             setShowOptions(false);
+            prevOpenRef.current = true;
         }
-    }, [isOpen]);
+    }, [isOpen, mode, initialData]);
     useEffect(() => {
         const handleClickOutside: any = (e: MouseEvent) => {
             if (
@@ -239,6 +219,11 @@ const AddPendingModal: React.FC<AddPendingModalProps> = ({ isOpen, onClose, onSu
                         newErrors[field] = 'Valid stop loss is required';
                     break;
 
+                case 'takeProfit':
+                    if (value !== undefined && value <= 0)
+                        newErrors[field] = 'Take Profit must be positive if provided';
+                    break;
+
                 case 'order_type':
                     if (!value) newErrors[field] = 'Order type is required';
                     break;
@@ -252,6 +237,7 @@ const AddPendingModal: React.FC<AddPendingModalProps> = ({ isOpen, onClose, onSu
     }, []);
 
     const validateStopLossLocal = (data: Partial<TradeData>): string | null => {
+
         if (!data.trade_setup || !data.price || !data.stopLoss) return null;
 
         const isBuy = data.trade_setup === "buy";
@@ -266,6 +252,23 @@ const AddPendingModal: React.FC<AddPendingModalProps> = ({ isOpen, onClose, onSu
         return null;
     };
 
+    const validateTakeProfitLocal = (data: Partial<TradeData>): string | null => {
+        if (!data?.takeProfit) {
+            return null;
+        }
+        if (!data.trade_setup || !data.price || data.takeProfit === undefined || data.takeProfit <= 0) return null;
+
+        const isBuy = data.trade_setup === "buy";
+        const entry = data.price;
+        const tp = data.takeProfit;
+
+        if (isBuy && tp <= entry)
+            return "For Buy setups, Take Profit must be above entry price.";
+        if (!isBuy && tp >= entry)
+            return "For Sell setups, Take Profit must be below entry price.";
+
+        return null;
+    };
 
     const handleChange = (key: string, value: any) => {
         setFormData((prev) => ({ ...prev, [key]: value }));
@@ -279,8 +282,9 @@ const AddPendingModal: React.FC<AddPendingModalProps> = ({ isOpen, onClose, onSu
             formData.order_type &&
             formData.price !== undefined
         ) {
-            const entryErr = validatePendingPriceLocal(formData, marketData);
+            const entryErr = validatePendingPriceLocal(formData, marketData, mode);
             const slErr = validateStopLossLocal(formData);
+            const tpErr = validateTakeProfitLocal(formData);
 
             setErrors((prev: any) => {
                 const newErrors = { ...prev };
@@ -291,6 +295,9 @@ const AddPendingModal: React.FC<AddPendingModalProps> = ({ isOpen, onClose, onSu
                 if (slErr) newErrors.stopLoss = slErr;
                 else delete newErrors.stopLoss;
 
+                if (tpErr) newErrors.takeProfit = tpErr;
+                else delete newErrors.takeProfit;
+
                 return newErrors;
             });
         }
@@ -300,6 +307,7 @@ const AddPendingModal: React.FC<AddPendingModalProps> = ({ isOpen, onClose, onSu
         formData.order_type,
         formData.price,
         formData.stopLoss,
+        formData.takeProfit,
         marketData?.length,
     ]);
 
@@ -309,11 +317,20 @@ const AddPendingModal: React.FC<AddPendingModalProps> = ({ isOpen, onClose, onSu
         if (!formData.symbol) newErrors.symbol = 'Symbol is required';
         if (!formData.trade_setup) newErrors.trade_setup = 'Trade setup is required';
         if (!formData.price || formData.price <= 0) newErrors.price = 'Valid entry price is required';
+
         if (!formData.stopLoss || formData.stopLoss <= 0) newErrors.stopLoss = 'Valid stop loss is required';
-        if (!formData.risk_percentage || formData.risk_percentage < 0 || formData.risk_percentage > 100) newErrors.risk_percentage = 'Valid risk percentage (0-100) is required';
+
+        if (mode == 'add') {
+            if (!formData.risk_percentage || formData.risk_percentage < 0 || formData.risk_percentage > 100) newErrors.risk_percentage = 'Valid risk percentage (0-100) is required';
+        }
         if (!formData.order_type) newErrors.order_type = 'Order type is required';
-        const priceError = validatePendingPriceLocal(formData, marketData);
+        const priceError = validatePendingPriceLocal(formData, marketData, mode);
         if (priceError) newErrors.price = priceError;
+        if (formData?.takeProfit) {
+            if (formData.takeProfit !== undefined && formData.takeProfit <= 0) newErrors.takeProfit = ' Valid take profit is required';
+        }
+        const tpError = validateTakeProfitLocal(formData);
+        if (tpError) newErrors.takeProfit = tpError;
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -328,7 +345,7 @@ const AddPendingModal: React.FC<AddPendingModalProps> = ({ isOpen, onClose, onSu
         <ModalWrapper isOpen={isOpen} onClose={onClose} wide={true}>
             <div className="flex items-center justify-between">
                 <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                    Add Pending Order
+                    {mode === 'update' ? 'UPDATE' : 'ADD'} PENDING ORDER
                 </h3>
                 <button
                     onClick={onClose}
@@ -346,14 +363,16 @@ const AddPendingModal: React.FC<AddPendingModalProps> = ({ isOpen, onClose, onSu
                     {/* Symbol with Searchable Dropdown */}
                     <SymbolSelect
                         label="Symbol *"
+                        disabled={mode == 'update'}
                         value={formData.symbol || ""}
                         onChange={(selected: any) => handleChange("symbol", selected)}
                         symbols={symbols}
-                        marketData={marketData} // ✅ passing from parent
+                        marketData={marketData}
                         error={errors.symbol}
                     />
                     <FloatingLabelInput
                         type="number"
+                        disabled={mode == 'update'}
                         label="Entry Price *"
                         value={formData.price || ""}
                         onChange={(e: any) =>
@@ -380,6 +399,7 @@ const AddPendingModal: React.FC<AddPendingModalProps> = ({ isOpen, onClose, onSu
                 <div className="space-y-4">
                     <FieldSelect
                         label="Trade Setup *"
+                        disabled={mode == 'update'}
                         value={formData.trade_setup || ""}
                         onChange={(e: any) => handleChange("trade_setup", e.target.value)}
                         error={errors.trade_setup}
@@ -393,13 +413,15 @@ const AddPendingModal: React.FC<AddPendingModalProps> = ({ isOpen, onClose, onSu
                         label="Take Profit (optional)"
                         value={formData.takeProfit || ""}
                         onChange={(e: any) =>
-                            handleChange("takeProfit", parseFloat(e.target.value) || 0)
+                            handleChange("takeProfit", parseFloat(e.target.value) || undefined)
                         }
+                        error={errors.takeProfit}
                         step="0.00001"
                         min="0"
                     />
                     <FloatingLabelInput
                         type="number"
+                        disabled={mode == 'update'}
                         label="Risk % *"
                         value={formData.risk_percentage || ""}
                         onChange={(e: any) =>
@@ -412,6 +434,7 @@ const AddPendingModal: React.FC<AddPendingModalProps> = ({ isOpen, onClose, onSu
                     />
                     <FieldSelect
                         label="Order Type *"
+                        disabled={mode == 'update'}
                         value={formData.order_type || ""}
                         onChange={(e: any) => handleChange("order_type", e.target.value)}
                         error={errors.order_type}
@@ -442,10 +465,17 @@ const AddPendingModal: React.FC<AddPendingModalProps> = ({ isOpen, onClose, onSu
                     </MutedBtn>
                     <PrimaryBtn
                         type="submit"
-                        disabled={loading || Object.keys(errors).length > 0}
+                        disabled={
+                            loading ||
+                            Object.keys(errors).length > 0 ||
+                            (
+                                initialData?.takeProfit === formData?.takeProfit &&
+                                initialData?.stopLoss === formData?.stopLoss && mode === 'update'
+                            )
+                        }
                         className="flex-1"
                     >
-                        {loading ? "Adding..." : "Add Order"}
+                        {loading ? (mode === 'update' ? "Updating..." : "Adding...") : (mode === 'update' ? "Update Order" : "Add Order")}
                     </PrimaryBtn>
                 </div>
             </form>
