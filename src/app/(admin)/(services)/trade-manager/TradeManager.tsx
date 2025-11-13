@@ -15,6 +15,8 @@ import mt5 from "../../../../icons/mt5.png";
 import cTraderIcon from "../../../../icons/ctrader.png";
 import { motion, AnimatePresence } from "framer-motion";
 import AddPendingModal from "./AddPendingModal";
+import SpotRunningModal from "./SpotRunningModal";
+import SpotPendingModal from "./SpotPendingModal";
 
 /* ============================================================================
    Types
@@ -97,17 +99,7 @@ export const validatePendingPrice = (
   }
   return null;
 };
-export const validateSpotEntry = (
-  setup: string,
-  symbol: string,
-  entry: number
-): string | null => {
-  const curr: any = getCurrentPrice(symbol, setup);
-  if (!curr) return "No market data available";
-  if (setup === "buy" && entry >= curr.ask) return "Buy spot entry must be below current ask";
-  if (setup === "sell" && entry <= curr.bid) return "Sell spot entry must be above current bid";
-  return null;
-};
+
 /* ============================================================================
    Reusable UI Components
 =========================================================================== */
@@ -478,7 +470,6 @@ export default function TradeManager() {
           ...data,
         },
       });
-      // toast.success("Pending order added");
       setModals((prev) => ({ ...prev, addPending: false }));
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed to add pending order");
@@ -511,7 +502,6 @@ export default function TradeManager() {
         url: `trade-manager/update-pending/${currentAction.id}`,
         data: { accountNumber: selectedAccount, ...data },
       });
-      toast.success("Pending order updated");
       setModals((prev) => ({ ...prev, updatePending: false }));
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed to update pending order");
@@ -533,12 +523,7 @@ export default function TradeManager() {
       return;
     const parent = pendingState.find((p) => p.id === currentAction.parentId);
     if (!parent) return toast.error("Parent order not found");
-    const entryError = validateSpotEntry(
-      currentAction.tradeSetup,
-      parent.symbol,
-      spotData.entry_price
-    );
-    if (entryError) return toast.error(entryError);
+   
     if (
       spotData.risk_percentage < 0 ||
       spotData.risk_percentage > 100 ||
@@ -554,7 +539,6 @@ export default function TradeManager() {
         url: `trade-manager/pending/${currentAction.parentId}/add-spot`,
         data: { accountNumber: selectedAccount, ...spotData },
       });
-      toast.success("Spot added to pending");
       setModals((prev) => ({ ...prev, addSpotPending: false }));
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed to add spot");
@@ -585,12 +569,6 @@ export default function TradeManager() {
       return;
     const parent = pendingState.find((p) => p.id === currentAction.parentId);
     if (!parent) return toast.error("Parent order not found");
-    const entryError = validateSpotEntry(
-      currentAction.tradeSetup,
-      parent.symbol,
-      spotData.entry_price
-    );
-    if (entryError) return toast.error(entryError);
     if (
       spotData.risk_percentage < 0 ||
       spotData.risk_percentage > 100 ||
@@ -606,7 +584,6 @@ export default function TradeManager() {
         url: `trade-manager/pending/${currentAction.parentId}/spot/${currentAction.index}`,
         data: { accountNumber: selectedAccount, ...spotData },
       });
-      toast.success("Spot updated in pending");
       setModals((prev) => ({ ...prev, updateSpotPending: false }));
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed to update spot");
@@ -628,12 +605,7 @@ export default function TradeManager() {
       return;
     const parent = runningState.find((p) => p.id === currentAction.parentId);
     if (!parent) return toast.error("Parent trade not found");
-    const entryError = validateSpotEntry(
-      currentAction.tradeSetup,
-      parent.symbol,
-      spotData.entry_price
-    );
-    if (entryError) return toast.error(entryError);
+    
     if (
       spotData.risk_percentage < 0 ||
       spotData.risk_percentage > 100 ||
@@ -649,7 +621,6 @@ export default function TradeManager() {
         url: `trade-manager/running/${currentAction.parentId}/add-spot`,
         data: { accountNumber: selectedAccount, ...spotData },
       });
-      toast.success("Spot added to running");
       setModals((prev) => ({ ...prev, addSpotRunning: false }));
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed to add spot");
@@ -680,12 +651,7 @@ export default function TradeManager() {
       return;
     const parent = runningState.find((p) => p.id === currentAction.parentId);
     if (!parent) return toast.error("Parent trade not found");
-    const entryError = validateSpotEntry(
-      currentAction.tradeSetup,
-      parent.symbol,
-      spotData.entry_price
-    );
-    if (entryError) return toast.error(entryError);
+   
     if (
       spotData.risk_percentage < 0 ||
       spotData.risk_percentage > 100 ||
@@ -701,7 +667,6 @@ export default function TradeManager() {
         url: `trade-manager/running/${currentAction.parentId}/spot/${currentAction.index}`,
         data: { accountNumber: selectedAccount, ...spotData },
       });
-      toast.success("Spot updated in running");
       setModals((prev) => ({ ...prev, updateSpotRunning: false }));
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed to update spot");
@@ -733,7 +698,6 @@ export default function TradeManager() {
         url: `trade-manager/running/${currentAction.id}/update-sl-tp-breakeven`,
         data: { accountNumber: selectedAccount, ...data },
       });
-      toast.success("SL/TP/Breakeven updated");
       setModals((prev) => ({ ...prev, updateSlTpBe: false }));
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed to update");
@@ -759,7 +723,6 @@ export default function TradeManager() {
         url: `trade-manager/running/${currentAction.id}/update-partial-close`,
         data: { accountNumber: selectedAccount, ...data },
       });
-      toast.success("Partial close updated");
       setModals((prev) => ({ ...prev, updatePartialClose: false }));
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed to update");
@@ -784,7 +747,6 @@ export default function TradeManager() {
         url: `trade-manager/running/${currentAction.id}/set-volume-close`,
         data: { accountNumber: selectedAccount, volumeToClose },
       });
-      toast.success("Volume to close set");
       setModals((prev) => ({ ...prev, setVolumeToClose: false }));
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed to set");
@@ -805,7 +767,6 @@ export default function TradeManager() {
         url: "trade-manager/queue-delete",
         data: { accountNumber: selectedAccount, orderTicket: currentAction.orderTicket },
       });
-      toast.success("Order queued for deletion");
       setModals((prev) => ({ ...prev, queueDelete: false }));
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed to queue delete");
@@ -885,7 +846,7 @@ export default function TradeManager() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200/30 dark:divide-gray-700/30 dark:bg-gray-900/20">
-                {data?.map((item,index) => {
+                {data?.map((item, index) => {
                   const currentPrice = showCurrentColumn
                     ? getCurrentPrice(item.symbol, item.trade_setup)
                     : null;
@@ -1205,38 +1166,51 @@ export default function TradeManager() {
           initialData={pending.find((p) => p.id === currentAction.id) || {}}
           mode="update"
         />
-        <AddSpotModal
-          isOpen={modals.addSpotPending}
-          onClose={() => setModals((p) => ({ ...p, addSpotPending: false }))}
-          onSubmit={handleAddSpotPending}
-          loading={loading.addSpot}
-          isPending={true}
-          currentAction={currentAction}
-        />
-        <UpdateSpotModal
-          isOpen={modals.updateSpotPending}
-          onClose={() => setModals((p) => ({ ...p, updateSpotPending: false }))}
-          onSubmit={handleUpdateSpotPending}
-          loading={loading.updateSpot}
-          isPending={true}
-          currentAction={currentAction}
-        />
-        <AddSpotModal
-          isOpen={modals.addSpotRunning}
-          onClose={() => setModals((p) => ({ ...p, addSpotRunning: false }))}
-          onSubmit={handleAddSpotRunning}
-          loading={loading.addSpot}
-          isPending={false}
-          currentAction={currentAction}
-        />
-        <UpdateSpotModal
-          isOpen={modals.updateSpotRunning}
-          onClose={() => setModals((p) => ({ ...p, updateSpotRunning: false }))}
-          onSubmit={handleUpdateSpotRunning}
-          loading={loading.updateSpot}
-          isPending={false}
-          currentAction={currentAction}
-        />
+{/* ---- MODAL SECTION ---- */}
+<SpotPendingModal
+  isOpen={modals.addSpotPending}
+  onClose={() => setModals(p => ({ ...p, addSpotPending: false }))}
+  onSubmit={handleAddSpotPending}
+  loading={loading.addSpot}
+  currentAction={currentAction}
+  pending={pendingState}
+  marketData={marketState}
+  mode="add"
+/>
+
+<SpotPendingModal
+  isOpen={modals.updateSpotPending}
+  onClose={() => setModals(p => ({ ...p, updateSpotPending: false }))}
+  onSubmit={handleUpdateSpotPending}
+  loading={loading.updateSpot}
+  currentAction={currentAction}
+  pending={pendingState}
+  marketData={marketState}
+  mode="update"
+/>
+
+<SpotRunningModal
+  isOpen={modals.addSpotRunning}
+  onClose={() => setModals(p => ({ ...p, addSpotRunning: false }))}
+  onSubmit={handleAddSpotRunning}
+  loading={loading.addSpot}
+  currentAction={currentAction}
+  running={runningState}
+  marketData={marketState}
+  mode="add"
+/>
+
+<SpotRunningModal
+  isOpen={modals.updateSpotRunning}
+  onClose={() => setModals(p => ({ ...p, updateSpotRunning: false }))}
+  onSubmit={handleUpdateSpotRunning}
+  loading={loading.updateSpot}
+  currentAction={currentAction}
+  running={runningState}
+  marketData={marketState}
+  mode="update"
+/>
+
         <UpdateSlTpBeModal
           isOpen={modals.updateSlTpBe}
           onClose={() => setModals((p) => ({ ...p, updateSlTpBe: false }))}
@@ -1314,10 +1288,7 @@ const AddSpotModal: React.FC<{
       if (field === "entry_price" && currentAction.parentId && currentAction.tradeSetup) {
         const source = isPending ? pending : running;
         const parent = source.find((p) => p.id === currentAction.parentId);
-        if (parent) {
-          const err = validateSpotEntry(currentAction.tradeSetup, parent.symbol, value);
-          if (err) newErrors[field] = err;
-        }
+       
       }
       setErrors(newErrors);
     };
@@ -1451,18 +1422,7 @@ const UpdateSpotModal: React.FC<{
       delete newErrors[field];
       if (field === "risk_percentage" && (value < 0 || value > 100))
         newErrors[field] = "Must be between 0 and 100";
-      if (field === "entry_price" && currentAction.parentId && currentAction.tradeSetup) {
-        const source = isPending ? pending : running;
-        const parent = source.find((p) => p.id === currentAction.parentId);
-        if (parent) {
-          const err = validateSpotEntry(
-            currentAction.tradeSetup,
-            parent.symbol,
-            value
-          );
-          if (err) newErrors[field] = err;
-        }
-      }
+     
       setErrors(newErrors);
     };
     const handleChange = (key: string, value: any) => {
