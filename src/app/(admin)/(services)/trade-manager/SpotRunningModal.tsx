@@ -27,7 +27,7 @@ interface SpotRunningModalProps {
   onClose: () => void;
   onSubmit: (data: SpotAdd) => void;
   loading: boolean;
-  currentAction: { parentId: string; tradeSetup: string; index?: number };
+  currentAction: { parentId: string; tradeSetup: string; index?: number, orderTicket:any,order_id:any };
   running: TradeData[];
   marketData: MarketData[];
   mode: "add" | "update";
@@ -95,6 +95,7 @@ export default function SpotRunningModal({
     risk_percentage: 1,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [spotData,setSpotData]:any=useState({})
 
   useEffect(() => {
     if (!isOpen) return;
@@ -112,6 +113,8 @@ export default function SpotRunningModal({
         onClose();
         return;
       }
+      setSpotData(spot)
+
       setForm({
         entry_price: spot.entry_price,
         stoploss: spot.stoploss,
@@ -207,13 +210,12 @@ export default function SpotRunningModal({
     if (!validate()) return;
     onSubmit(form);
   };
-
   return (
     <ModalWrapper isOpen={isOpen} onClose={onClose}>
       <h3 className="text-xl font-bold mb-4 bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
         {mode === "update"
-          ? `Update Spot ${currentAction.index! + 1}`
-          : "Add Spot (Running)"}
+          ? `UPDATE SPOT ${currentAction.index! + 1}`
+          : `ADD SPOT FOR  (Running #${currentAction?.order_id})`}
       </h3>
 
       {(() => {
@@ -235,12 +237,15 @@ export default function SpotRunningModal({
                 <span className="text-red-500">{ask}</span>
               </div>
             </div>
+            
             <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-gray-500 dark:text-gray-500">
               <div>Entry: <span className="font-mono">{parent?.price?.toFixed(5) ?? "-"}</span></div>
               {parent?.stopLoss && <div>SL: <span className="font-mono">{parent?.stopLoss?.toFixed(5) ?? "-"}</span></div>}
               {parent?.takeProfit && <div>TP: <span className="font-mono">{parent?.takeProfit?.toFixed(5) ?? "-"}</span></div>}
               {parent?.risk && <div>Risk: <span className="font-mono">{parent?.risk ?? "-"}%</span></div>}
             </div>
+
+           {spotData?.order_id && <div className=" text-xs text-amber-600 mt-2">This spot order is already executed with order Id {spotData?.order_id}.</div>}
           </div>
         );
       })()}
@@ -254,6 +259,7 @@ export default function SpotRunningModal({
           error={errors.entry_price}
           step="0.00001"
           min="0"
+          disabled={loading || spotData?.order_id}
         />
         <FloatingLabelInput
           type="number"
@@ -263,6 +269,7 @@ export default function SpotRunningModal({
           error={errors.stoploss}
           step="0.00001"
           min="0"
+          disabled={loading || spotData?.order_id}
         />
         <FloatingLabelInput
           type="number"
@@ -272,6 +279,7 @@ export default function SpotRunningModal({
           error={errors.take_profit}
           step="0.00001"
           min="0"
+          disabled={loading || spotData?.order_id}
         />
         <FloatingLabelInput
           type="number"
@@ -282,13 +290,14 @@ export default function SpotRunningModal({
           min="0"
           max="100"
           step="0.1"
+          disabled={loading || spotData?.order_id}
         />
 
         <div className="flex gap-3 pt-4">
           <MutedBtn type="button" onClick={onClose} disabled={loading} className="flex-1">
             Cancel
           </MutedBtn>
-          <PrimaryBtn type="submit" disabled={loading} className="flex-1">
+          <PrimaryBtn type="submit" disabled={loading || spotData?.order_id} className="flex-1">
             {loading
               ? mode === "update"
                 ? "Updating…"

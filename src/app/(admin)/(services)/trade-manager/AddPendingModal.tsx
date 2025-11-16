@@ -345,7 +345,7 @@ const AddPendingModal: React.FC<AddPendingModalProps> = ({ isOpen, onClose, onSu
         <ModalWrapper isOpen={isOpen} onClose={onClose} wide={true}>
             <div className="flex items-center justify-between">
                 <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                    {mode === 'update' ? 'UPDATE' : 'ADD'} PENDING ORDER
+                    {mode === 'update' ? 'UPDATE' : 'ADD'} PENDING ORDER {initialData?.order_id && `(#${initialData?.order_id})`}
                 </h3>
                 <button
                     onClick={onClose}

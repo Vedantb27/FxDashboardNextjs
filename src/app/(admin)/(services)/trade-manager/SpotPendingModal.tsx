@@ -27,7 +27,7 @@ interface SpotPendingModalProps {
   onClose: () => void;
   onSubmit: (data: SpotAdd) => void;
   loading: boolean;
-  currentAction: { parentId: string; tradeSetup: string; index?: number };
+  currentAction: { parentId: string; tradeSetup: string; index?: number,order_id:any };
   pending: TradeData[];
   marketData: MarketData[];
   mode: "add" | "update";
@@ -214,8 +214,8 @@ export default function SpotPendingModal({
     <ModalWrapper isOpen={isOpen} onClose={onClose}>
       <h3 className="text-xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
         {mode === "update"
-          ? `Update Spot ${currentAction.index! + 1}`
-          : "Add Spot (Pending)"}
+          ? `UPDATE SPOT ${currentAction.index! + 1}`
+          : `ADD SPOT FOR (Pending #${currentAction.order_id})`}
       </h3>
       {(() => {
         const parent: any = pending.find((p) => p.id === currentAction.parentId);

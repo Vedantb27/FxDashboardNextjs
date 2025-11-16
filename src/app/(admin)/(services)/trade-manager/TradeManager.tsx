@@ -17,6 +17,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import AddPendingModal from "./AddPendingModal";
 import SpotRunningModal from "./SpotRunningModal";
 import SpotPendingModal from "./SpotPendingModal";
+import UpdateSlTpBeModal from "./UpdateSlTpBeModal";
+import UpdatePartialCloseModal from "./UpdatePartialCloseModal";
+import SetVolumeToCloseModal from "./SetVolumeToCloseModal";
 
 /* ============================================================================
    Types
@@ -285,6 +288,10 @@ export default function TradeManager() {
     index: -1,
     orderTicket: "",
     tradeSetup: "",
+    order_id: "",
+    breakevenPrice: "",
+    takeProfit: 0,
+    stopLoss: 0
   });
   // Loading states
   const [loading, setLoading] = useState({
@@ -399,11 +406,11 @@ export default function TradeManager() {
           const parsed = JSON.parse(event.data);
           const { type, data } = parsed;
           if (type === "update") {
-            setPending(data.pending || []);
-            setRunning(data.running || []);
-            setExecuted(data.executed || []);
-            setRemoved(data.removed || []);
-            setMarket(data.market || []);
+            setPending(data?.pending || []);
+            setRunning(data?.running || []);
+            setExecuted(data?.executed || []);
+            setRemoved(data?.removed || []);
+            setMarket(data?.market || []);
           } else if (type === "error") {
             toast.error(data?.message || "Unknown error");
           }
@@ -509,8 +516,8 @@ export default function TradeManager() {
       setLoading((prev) => ({ ...prev, updatePending: false }));
     }
   };
-  const openAddSpotPending = (parentId: string, tradeSetup: string) => {
-    setCurrentAction((prev) => ({ ...prev, parentId, tradeSetup }));
+  const openAddSpotPending = (parentId: string, tradeSetup: string, order_id: any) => {
+    setCurrentAction((prev) => ({ ...prev, parentId, tradeSetup, order_id }));
     setModals((prev) => ({ ...prev, addSpotPending: true }));
   };
   const handleAddSpotPending = async (spotData: {
@@ -523,7 +530,7 @@ export default function TradeManager() {
       return;
     const parent = pendingState.find((p) => p.id === currentAction.parentId);
     if (!parent) return toast.error("Parent order not found");
-   
+
     if (
       spotData.risk_percentage < 0 ||
       spotData.risk_percentage > 100 ||
@@ -591,8 +598,8 @@ export default function TradeManager() {
       setLoading((prev) => ({ ...prev, updateSpot: false }));
     }
   };
-  const openAddSpotRunning = (parentId: string, tradeSetup: string) => {
-    setCurrentAction((prev) => ({ ...prev, parentId, tradeSetup }));
+  const openAddSpotRunning = (parentId: string, tradeSetup: string, order_id: any) => {
+    setCurrentAction((prev) => ({ ...prev, parentId, tradeSetup, order_id }));
     setModals((prev) => ({ ...prev, addSpotRunning: true }));
   };
   const handleAddSpotRunning = async (spotData: {
@@ -605,7 +612,7 @@ export default function TradeManager() {
       return;
     const parent = runningState.find((p) => p.id === currentAction.parentId);
     if (!parent) return toast.error("Parent trade not found");
-    
+
     if (
       spotData.risk_percentage < 0 ||
       spotData.risk_percentage > 100 ||
@@ -651,7 +658,7 @@ export default function TradeManager() {
       return;
     const parent = runningState.find((p) => p.id === currentAction.parentId);
     if (!parent) return toast.error("Parent trade not found");
-   
+
     if (
       spotData.risk_percentage < 0 ||
       spotData.risk_percentage > 100 ||
@@ -674,8 +681,8 @@ export default function TradeManager() {
       setLoading((prev) => ({ ...prev, updateSpot: false }));
     }
   };
-  const openUpdateSlTpBe = (id: string) => {
-    setCurrentAction((prev) => ({ ...prev, id }));
+  const openUpdateSlTpBe = (id: string, breakevenPrice: any, stopLoss: any, takeProfit: any) => {
+    setCurrentAction((prev) => ({ ...prev, id, breakevenPrice, stopLoss, takeProfit }));
     setModals((prev) => ({ ...prev, updateSlTpBe: true }));
   };
   const handleUpdateSlTpBe = async (data: {
@@ -923,7 +930,7 @@ export default function TradeManager() {
                               </PrimaryBtn>
                               <PrimaryBtn
                                 onClick={() =>
-                                  openAddSpotPending(item.id, item.trade_setup)
+                                  openAddSpotPending(item.id, item.trade_setup, item?.order_id)
                                 }
                                 className="bg-green-600 hover:bg-green-700 text-xs px-2 py-1"
                                 disabled={loading.addSpot}
@@ -955,7 +962,7 @@ export default function TradeManager() {
                           ) : isRunningTable ? (
                             <>
                               <PrimaryBtn
-                                onClick={() => openUpdateSlTpBe(item.id)}
+                                onClick={() => openUpdateSlTpBe(item.id, item?.breakevenPrice, item?.stopLoss, item?.takeProfit)}
                                 className="bg-blue-600 hover:bg-blue-700 text-xs px-2 py-1"
                                 disabled={loading.updateSlTpBe}
                               >
@@ -977,7 +984,7 @@ export default function TradeManager() {
                               </PrimaryBtn>
                               <PrimaryBtn
                                 onClick={() =>
-                                  openAddSpotRunning(item.id, item.trade_setup)
+                                  openAddSpotRunning(item.id, item.trade_setup, item?.order_id)
                                 }
                                 className="bg-green-600 hover:bg-green-700 text-xs px-2 py-1"
                                 disabled={loading.addSpot}
@@ -1166,50 +1173,50 @@ export default function TradeManager() {
           initialData={pending.find((p) => p.id === currentAction.id) || {}}
           mode="update"
         />
-{/* ---- MODAL SECTION ---- */}
-<SpotPendingModal
-  isOpen={modals.addSpotPending}
-  onClose={() => setModals(p => ({ ...p, addSpotPending: false }))}
-  onSubmit={handleAddSpotPending}
-  loading={loading.addSpot}
-  currentAction={currentAction}
-  pending={pendingState}
-  marketData={marketState}
-  mode="add"
-/>
+        {/* ---- MODAL SECTION ---- */}
+        <SpotPendingModal
+          isOpen={modals.addSpotPending}
+          onClose={() => setModals(p => ({ ...p, addSpotPending: false }))}
+          onSubmit={handleAddSpotPending}
+          loading={loading.addSpot}
+          currentAction={currentAction}
+          pending={pendingState}
+          marketData={marketState}
+          mode="add"
+        />
 
-<SpotPendingModal
-  isOpen={modals.updateSpotPending}
-  onClose={() => setModals(p => ({ ...p, updateSpotPending: false }))}
-  onSubmit={handleUpdateSpotPending}
-  loading={loading.updateSpot}
-  currentAction={currentAction}
-  pending={pendingState}
-  marketData={marketState}
-  mode="update"
-/>
+        <SpotPendingModal
+          isOpen={modals.updateSpotPending}
+          onClose={() => setModals(p => ({ ...p, updateSpotPending: false }))}
+          onSubmit={handleUpdateSpotPending}
+          loading={loading.updateSpot}
+          currentAction={currentAction}
+          pending={pendingState}
+          marketData={marketState}
+          mode="update"
+        />
 
-<SpotRunningModal
-  isOpen={modals.addSpotRunning}
-  onClose={() => setModals(p => ({ ...p, addSpotRunning: false }))}
-  onSubmit={handleAddSpotRunning}
-  loading={loading.addSpot}
-  currentAction={currentAction}
-  running={runningState}
-  marketData={marketState}
-  mode="add"
-/>
+        <SpotRunningModal
+          isOpen={modals.addSpotRunning}
+          onClose={() => setModals(p => ({ ...p, addSpotRunning: false }))}
+          onSubmit={handleAddSpotRunning}
+          loading={loading.addSpot}
+          currentAction={currentAction}
+          running={runningState}
+          marketData={marketState}
+          mode="add"
+        />
 
-<SpotRunningModal
-  isOpen={modals.updateSpotRunning}
-  onClose={() => setModals(p => ({ ...p, updateSpotRunning: false }))}
-  onSubmit={handleUpdateSpotRunning}
-  loading={loading.updateSpot}
-  currentAction={currentAction}
-  running={runningState}
-  marketData={marketState}
-  mode="update"
-/>
+        <SpotRunningModal
+          isOpen={modals.updateSpotRunning}
+          onClose={() => setModals(p => ({ ...p, updateSpotRunning: false }))}
+          onSubmit={handleUpdateSpotRunning}
+          loading={loading.updateSpot}
+          currentAction={currentAction}
+          running={runningState}
+          marketData={marketState}
+          mode="update"
+        />
 
         <UpdateSlTpBeModal
           isOpen={modals.updateSlTpBe}
@@ -1217,6 +1224,8 @@ export default function TradeManager() {
           onSubmit={handleUpdateSlTpBe}
           loading={loading.updateSlTpBe}
           currentAction={currentAction}
+          running={runningState}
+          marketData={marketState}
         />
         <UpdatePartialCloseModal
           isOpen={modals.updatePartialClose}
@@ -1226,6 +1235,8 @@ export default function TradeManager() {
           onSubmit={handleUpdatePartialClose}
           loading={loading.updatePartialClose}
           currentAction={currentAction}
+          running={runningState}
+          marketData={marketState}
         />
         <SetVolumeToCloseModal
           isOpen={modals.setVolumeToClose}
@@ -1235,6 +1246,8 @@ export default function TradeManager() {
           onSubmit={handleSetVolumeToClose}
           loading={loading.setVolumeToClose}
           currentAction={currentAction}
+          running={runningState}
+          marketData={marketState}
         />
         <QueueDeleteConfirm
           isOpen={modals.queueDelete}
@@ -1288,7 +1301,7 @@ const AddSpotModal: React.FC<{
       if (field === "entry_price" && currentAction.parentId && currentAction.tradeSetup) {
         const source = isPending ? pending : running;
         const parent = source.find((p) => p.id === currentAction.parentId);
-       
+
       }
       setErrors(newErrors);
     };
@@ -1422,7 +1435,7 @@ const UpdateSpotModal: React.FC<{
       delete newErrors[field];
       if (field === "risk_percentage" && (value < 0 || value > 100))
         newErrors[field] = "Must be between 0 and 100";
-     
+
       setErrors(newErrors);
     };
     const handleChange = (key: string, value: any) => {
@@ -1517,263 +1530,7 @@ const UpdateSpotModal: React.FC<{
       </ModalWrapper>
     );
   };
-/* --------------------------------------------------------------------- */
-const UpdateSlTpBeModal: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (data: {
-    slToUpdate?: number;
-    tpToUpdate?: number;
-    breakevenPrice?: number;
-  }) => void;
-  loading: boolean;
-  currentAction: { id: string };
-}> = ({ isOpen, onClose, onSubmit, loading }) => {
-  const [formData, setFormData] = useState({
-    slToUpdate: 0,
-    tpToUpdate: 0,
-    breakevenPrice: 0,
-  });
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  useEffect(() => {
-    if (isOpen)
-      setFormData({ slToUpdate: 0, tpToUpdate: 0, breakevenPrice: 0 });
-  }, [isOpen]);
-  const validateField = (field: string, value: any) => {
-    const newErrors = { ...errors };
-    delete newErrors[field];
-    if (value <= 0 && value !== 0) newErrors[field] = "Must be positive or 0 to skip";
-    setErrors(newErrors);
-  };
-  const handleChange = (key: string, value: any) => {
-    setFormData((prev) => ({ ...prev, [key]: parseFloat(value) || 0 }));
-    validateField(key, value);
-  };
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const data: any = {};
-    if (formData.slToUpdate !== 0) data.slToUpdate = formData.slToUpdate;
-    if (formData.tpToUpdate !== 0) data.tpToUpdate = formData.tpToUpdate;
-    if (formData.breakevenPrice !== 0)
-      data.breakevenPrice = formData.breakevenPrice;
-    if (Object.keys(data).length === 0) return toast.error("Provide at least one value");
-    onSubmit(data);
-  };
-  return (
-    <ModalWrapper isOpen={isOpen} onClose={onClose}>
-      <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
-        Update SL/TP/Breakeven
-      </h3>
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <FloatingLabelInput
-          type="number"
-          label="New SL (0 to skip)"
-          value={formData.slToUpdate}
-          onChange={(e: any) => handleChange("slToUpdate", e.target.value)}
-          error={errors.slToUpdate}
-          step="0.00001"
-          min="0"
-        />
-        <FloatingLabelInput
-          type="number"
-          label="New TP (0 to skip)"
-          value={formData.tpToUpdate}
-          onChange={(e: any) => handleChange("tpToUpdate", e.target.value)}
-          error={errors.tpToUpdate}
-          step="0.00001"
-          min="0"
-        />
-        <FloatingLabelInput
-          type="number"
-          label="Breakeven Price (0 to skip)"
-          value={formData.breakevenPrice}
-          onChange={(e: any) => handleChange("breakevenPrice", e.target.value)}
-          error={errors.breakevenPrice}
-          step="0.00001"
-          min="0"
-        />
-        <div className="flex gap-3 pt-4">
-          <MutedBtn
-            type="button"
-            onClick={onClose}
-            disabled={loading}
-            className="flex-1"
-          >
-            Cancel
-          </MutedBtn>
-          <PrimaryBtn
-            type="submit"
-            disabled={loading || Object.keys(errors).length > 0}
-            className="flex-1"
-          >
-            {loading ? "Updating..." : "Update"}
-          </PrimaryBtn>
-        </div>
-      </form>
-    </ModalWrapper>
-  );
-};
-/* --------------------------------------------------------------------- */
-/* UpdatePartialCloseModal – set price + lots for a future partial close */
-const UpdatePartialCloseModal: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (data: { partialClosePrice?: number; lotToClose?: number }) => void;
-  loading: boolean;
-  currentAction: { id: string };
-}> = ({ isOpen, onClose, onSubmit, loading, currentAction }) => {
-  const [formData, setFormData] = useState({
-    partialClosePrice: 0,
-    lotToClose: 0,
-  });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  // Reset form when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      const trade = running.find((t) => t.id === currentAction.id);
-      setFormData({
-        partialClosePrice: trade?.partialClosePrice ?? 0,
-        lotToClose: trade?.lotToClose ?? 0,
-      });
-      setErrors({});
-    }
-  }, [isOpen, currentAction.id]);
-  const validate = (name: string, value: number) => {
-    const newErrors = { ...errors };
-    delete newErrors[name];
-    if (value < 0) newErrors[name] = "Must be ≥ 0 (0 = clear)";
-    else if (name === "lotToClose") {
-      const trade = running.find((t) => t.id === currentAction.id);
-      if (trade && value > (trade.volume ?? 0))
-        newErrors[name] = `Cannot exceed current volume (${trade.volume?.toFixed(2)})`;
-    }
-    setErrors(newErrors);
-  };
-  const handleChange = (key: string, value: string) => {
-    const num = parseFloat(value) || 0;
-    setFormData((prev) => ({ ...prev, [key]: num }));
-    validate(key, num);
-  };
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const payload: { partialClosePrice?: number; lotToClose?: number } = {};
-    if (formData.partialClosePrice) payload.partialClosePrice = formData.partialClosePrice;
-    if (formData.lotToClose) payload.lotToClose = formData.lotToClose;
-    if (Object.keys(payload).length === 0) {
-      toast.error("Enter at least one value (0 clears the field)");
-      return;
-    }
-    onSubmit(payload);
-  };
-  return (
-    <ModalWrapper isOpen={isOpen} onClose={onClose}>
-      <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
-        Update Partial Close
-      </h3>
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <FloatingLabelInput
-          type="number"
-          label="Partial-close price (0 = clear)"
-          value={formData.partialClosePrice}
-          onChange={(e: any) => handleChange("partialClosePrice", e.target.value)}
-          error={errors.partialClosePrice}
-          step="0.00001"
-          min="0"
-        />
-        <FloatingLabelInput
-          type="number"
-          label="Lots to close (0 = clear)"
-          value={formData.lotToClose}
-          onChange={(e: any) => handleChange("lotToClose", e.target.value)}
-          error={errors.lotToClose}
-          step="0.01"
-          min="0"
-        />
-        <div className="flex gap-3 pt-4">
-          <MutedBtn type="button" onClick={onClose} disabled={loading} className="flex-1">
-            Cancel
-          </MutedBtn>
-          <PrimaryBtn
-            type="submit"
-            disabled={loading || Object.keys(errors).length > 0}
-            className="flex-1"
-          >
-            {loading ? "Saving…" : "Update"}
-          </PrimaryBtn>
-        </div>
-      </form>
-    </ModalWrapper>
-  );
-};
-/* --------------------------------------------------------------------- */
-/* SetVolumeToCloseModal – directly set the exact volume that will be closed */
-const SetVolumeToCloseModal: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (volume: number) => void;
-  loading: boolean;
-  currentAction: { id: string };
-}> = ({ isOpen, onClose, onSubmit, loading, currentAction }) => {
-  const [volume, setVolume] = useState(0);
-  const [error, setError] = useState<string | undefined>();
-  // Load current value when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      const trade = running.find((t) => t.id === currentAction.id);
-      setVolume(trade?.volumeToClose ?? 0);
-      setError(undefined);
-    }
-  }, [isOpen, currentAction.id]);
-  const validate = (val: number) => {
-    if (val < 0) return "Volume cannot be negative";
-    const trade = running.find((t) => t.id === currentAction.id);
-    if (trade && val > (trade.volume ?? 0))
-      return `Max: ${trade.volume?.toFixed(2)}`;
-    return undefined;
-  };
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const num = parseFloat(e.target.value) || 0;
-    setVolume(num);
-    setError(validate(num));
-  };
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const err = validate(volume);
-    if (err) {
-      toast.error(err);
-      return;
-    }
-    onSubmit(volume);
-  };
-  return (
-    <ModalWrapper isOpen={isOpen} onClose={onClose}>
-      <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
-        Set Volume to Close
-      </h3>
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <FloatingLabelInput
-          type="number"
-          label="Volume (lots)"
-          value={volume}
-          onChange={handleChange}
-          error={error}
-          step="0.01"
-          min="0"
-        />
-        <div className="flex gap-3 pt-4">
-          <MutedBtn type="button" onClick={onClose} disabled={loading} className="flex-1">
-            Cancel
-          </MutedBtn>
-          <PrimaryBtn type="submit" disabled={loading || !!error} className="flex-1">
-            {loading ? "Saving…" : "Set Volume"}
-          </PrimaryBtn>
-        </div>
-      </form>
-    </ModalWrapper>
-  );
-};
-/* --------------------------------------------------------------------- */
-/* QueueDeleteConfirm – simple confirmation dialog */
+
 const QueueDeleteConfirm: React.FC<{
   isOpen: boolean;
   onClose: () => void;
