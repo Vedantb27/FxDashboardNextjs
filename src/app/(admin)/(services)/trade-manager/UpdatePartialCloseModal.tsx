@@ -45,14 +45,14 @@ const ModalWrapper: React.FC<{
   <AnimatePresence>
     {isOpen && (
       <motion.div
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-20 flex items-center justify-center p-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
       >
         <motion.div
-          className="bg-white/95 dark:bg-gray-900/95 rounded-2xl shadow-2xl p-8 w-100  max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-800"
+          className="bg-white/95 dark:bg-gray-900/95 rounded-2xl shadow-2xl p-8 w-120  max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-800"
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}

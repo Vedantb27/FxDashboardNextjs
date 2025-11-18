@@ -26,11 +26,13 @@ interface SpotPendingModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: SpotAdd) => void;
+  onDelete?: () => void;
   loading: boolean;
-  currentAction: { parentId: string; tradeSetup: string; index?: number,order_id:any };
+  currentAction: { parentId: string; tradeSetup: string; index?: number, order_id: any };
   pending: TradeData[];
   marketData: MarketData[];
   mode: "add" | "update";
+  isDeleting?: boolean;
 }
 
 const ModalWrapper: React.FC<{
@@ -41,7 +43,7 @@ const ModalWrapper: React.FC<{
   <AnimatePresence>
     {isOpen && (
       <motion.div
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-20 flex items-center justify-center p-4 mt-16"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -78,16 +80,27 @@ const MutedBtn: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = (
   />
 );
 
+const DangerBtn: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = (
+  props
+) => (
+  <button
+    {...props}
+    className={`px-6 py-2.5 rounded-lg bg-gradient-to-r from-red-600 to-rose-600 text-white text-sm font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 ${props.className || ""}`}
+  />
+);
+
 
 export default function SpotPendingModal({
   isOpen,
   onClose,
   onSubmit,
+  onDelete,
   loading,
   currentAction,
   pending,
   marketData,
   mode,
+  isDeleting
 }: SpotPendingModalProps) {
   const [form, setForm] = useState<SpotAdd>({
     entry_price: 0,
@@ -210,6 +223,12 @@ export default function SpotPendingModal({
     onSubmit(form);
   };
 
+  const handleDelete = () => {
+    if (onDelete) {
+      onDelete();
+    }
+  };
+
   return (
     <ModalWrapper isOpen={isOpen} onClose={onClose}>
       <h3 className="text-xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
@@ -251,7 +270,7 @@ export default function SpotPendingModal({
           type="number"
           label="Entry Price *"
           value={form.entry_price}
-          onChange={(e:any) => handleChange("entry_price", e.target.value)}
+          onChange={(e: any) => handleChange("entry_price", e.target.value)}
           error={errors.entry_price}
           step="0.00001"
           min="0"
@@ -260,7 +279,7 @@ export default function SpotPendingModal({
           type="number"
           label="Stop Loss *"
           value={form.stoploss}
-          onChange={(e:any) => handleChange("stoploss", e.target.value)}
+          onChange={(e: any) => handleChange("stoploss", e.target.value)}
           error={errors.stoploss}
           step="0.00001"
           min="0"
@@ -270,7 +289,7 @@ export default function SpotPendingModal({
           label="Take Profit (optional)"
           value={form.take_profit ?? ""}
           error={errors.take_profit}
-          onChange={(e:any) => handleChange("take_profit", e.target.value)}
+          onChange={(e: any) => handleChange("take_profit", e.target.value)}
           step="0.00001"
           min="0"
         />
@@ -278,7 +297,7 @@ export default function SpotPendingModal({
           type="number"
           label="Risk % *"
           value={form.risk_percentage}
-          onChange={(e:any) => handleChange("risk_percentage", e.target.value)}
+          onChange={(e: any) => handleChange("risk_percentage", e.target.value)}
           error={errors.risk_percentage}
           min="0"
           max="100"
@@ -286,10 +305,20 @@ export default function SpotPendingModal({
         />
 
         <div className="flex gap-3 pt-4">
+          {mode === "update" && onDelete && (
+            <DangerBtn
+              type="button"
+              onClick={handleDelete}
+              disabled={loading || isDeleting}
+              className="flex-1"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </DangerBtn>
+          )}
           <MutedBtn type="button" onClick={onClose} disabled={loading} className="flex-1">
             Cancel
           </MutedBtn>
-          <PrimaryBtn type="submit" disabled={loading} className="flex-1">
+          <PrimaryBtn type="submit" disabled={loading || isDeleting } className="flex-1">
             {loading
               ? mode === "update"
                 ? "Updating…"

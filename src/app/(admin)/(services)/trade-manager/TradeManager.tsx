@@ -20,6 +20,7 @@ import SpotPendingModal from "./SpotPendingModal";
 import UpdateSlTpBeModal from "./UpdateSlTpBeModal";
 import UpdatePartialCloseModal from "./UpdatePartialCloseModal";
 import SetVolumeToCloseModal from "./SetVolumeToCloseModal";
+import { getCurrencySymbol } from "../../../../utils/common";
 
 /* ============================================================================
    Types
@@ -259,6 +260,7 @@ export default function TradeManager() {
   const [executed, setExecuted] = useState<TradeData[]>([]);
   const [removed, setRemoved] = useState<TradeData[]>([]);
   const [marketState, setMarket] = useState<MarketData[]>([]);
+  const [accountInfo, setAccountInfo]: any = useState({});
   const [token, setToken] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
@@ -280,6 +282,7 @@ export default function TradeManager() {
     updatePartialClose: false,
     setVolumeToClose: false,
     queueDelete: false,
+    queueSpotDelete: false,
   });
   // Action states
   const [currentAction, setCurrentAction] = useState({
@@ -291,7 +294,8 @@ export default function TradeManager() {
     order_id: "",
     breakevenPrice: "",
     takeProfit: 0,
-    stopLoss: 0
+    stopLoss: 0,
+    spotIndex: -1,
   });
   // Loading states
   const [loading, setLoading] = useState({
@@ -303,6 +307,7 @@ export default function TradeManager() {
     updatePartialClose: false,
     setVolumeToClose: false,
     queueDelete: false,
+    queueSpotDelete: false,
   });
   /* --------------------------------------------------------------------
      Helper to get current price
@@ -408,9 +413,10 @@ export default function TradeManager() {
           if (type === "update") {
             setPending(data?.pending || []);
             setRunning(data?.running || []);
-            setExecuted(data?.executed || []);
-            setRemoved(data?.removed || []);
+            // setExecuted(data?.executed || []);
+            // setRemoved(data?.removed || []);
             setMarket(data?.market || []);
+            setAccountInfo(data?.account || []);
           } else if (type === "error") {
             toast.error(data?.message || "Unknown error");
           }
@@ -781,6 +787,27 @@ export default function TradeManager() {
       setLoading((prev) => ({ ...prev, queueDelete: false }));
     }
   };
+
+  const handleQueueSpotDelete = async () => {
+  if (!selectedAccount || !currentAction.parentId || currentAction.index < 0) return;
+  setLoading((prev) => ({ ...prev, queueSpotDelete: true }));
+  try {
+    await Request({
+      method: "POST",
+      url: "trade-manager/queue-spot-delete",
+      data: {
+        accountNumber: String(selectedAccount),
+        tradeId: String(currentAction.parentId),
+        spotIndex: String(currentAction.index)
+      },
+    });
+    setModals((prev) => ({ ...prev, updateSpotPending: false, updateSpotRunning: false }));
+  } catch (err: any) {
+    toast.error(err.response?.data?.error || "Failed to queue spot delete");
+  } finally {
+    setLoading((prev) => ({ ...prev, queueSpotDelete: false }));
+  }
+};
   /* --------------------------------------------------------------------
      Table renderer
   -------------------------------------------------------------------- */
@@ -1129,10 +1156,27 @@ export default function TradeManager() {
               )}
             </AnimatePresence>
           </div>
-          {selectedAccount && (
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Balance: ${balance.toLocaleString()}
+          {selectedAccount && (<div className="flex flex-col sm:flex-row sm:items-center sm:gap-6 bg-white dark:bg-gray-900 
+                px-4 py-3 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+
+            <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">
+              <span className="text-gray-500 dark:text-gray-400">Balance:</span>{" "}
+              <span className="font-semibold text-blue-600 dark:text-blue-400">
+                {getCurrencySymbol(accountInfo?.currency)}
+                {accountInfo?.balance?.toLocaleString()}
+              </span>
             </p>
+
+            <p className="text-sm text-gray-700 dark:text-gray-300 font-medium mt-1 sm:mt-0">
+              <span className="text-gray-500 dark:text-gray-400">Equity:</span>{" "}
+              <span className="font-semibold text-green-600 dark:text-green-400">
+                {getCurrencySymbol(accountInfo?.currency)}
+                {accountInfo?.equity?.toLocaleString()}
+              </span>
+            </p>
+
+          </div>
+
           )}
         </motion.div>
         {/* Tables */}
@@ -1189,6 +1233,8 @@ export default function TradeManager() {
           isOpen={modals.updateSpotPending}
           onClose={() => setModals(p => ({ ...p, updateSpotPending: false }))}
           onSubmit={handleUpdateSpotPending}
+          onDelete={() => handleQueueSpotDelete()}
+          isDeleting={loading.queueSpotDelete}
           loading={loading.updateSpot}
           currentAction={currentAction}
           pending={pendingState}
@@ -1211,6 +1257,8 @@ export default function TradeManager() {
           isOpen={modals.updateSpotRunning}
           onClose={() => setModals(p => ({ ...p, updateSpotRunning: false }))}
           onSubmit={handleUpdateSpotRunning}
+          onDelete={() => handleQueueSpotDelete()}
+          isDeleting={loading.queueSpotDelete}
           loading={loading.updateSpot}
           currentAction={currentAction}
           running={runningState}

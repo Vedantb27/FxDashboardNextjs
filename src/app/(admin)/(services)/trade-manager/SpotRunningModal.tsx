@@ -26,11 +26,13 @@ interface SpotRunningModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: SpotAdd) => void;
+  onDelete?: () => void;
   loading: boolean;
-  currentAction: { parentId: string; tradeSetup: string; index?: number, orderTicket:any,order_id:any };
+  currentAction: { parentId: string; tradeSetup: string; index?: number, orderTicket: any, order_id: any };
   running: TradeData[];
   marketData: MarketData[];
   mode: "add" | "update";
+  isDeleting?: boolean;
 }
 
 const ModalWrapper: React.FC<{
@@ -41,7 +43,7 @@ const ModalWrapper: React.FC<{
   <AnimatePresence>
     {isOpen && (
       <motion.div
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-20 flex items-center justify-center p-4 mt-16"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -78,15 +80,27 @@ const MutedBtn: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = (
   />
 );
 
+const DangerBtn: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = (
+  props
+) => (
+  <button
+    {...props}
+    className={`px-6 py-2.5 rounded-lg bg-gradient-to-r from-red-600 to-rose-600 text-white text-sm font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 ${props.className || ""}`}
+  />
+);
+
+
 export default function SpotRunningModal({
   isOpen,
   onClose,
   onSubmit,
+  onDelete,
   loading,
   currentAction,
   running,
   marketData,
   mode,
+  isDeleting
 }: SpotRunningModalProps) {
   const [form, setForm] = useState<SpotAdd>({
     entry_price: 0,
@@ -95,7 +109,7 @@ export default function SpotRunningModal({
     risk_percentage: 1,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [spotData,setSpotData]:any=useState({})
+  const [spotData, setSpotData]: any = useState({})
 
   useEffect(() => {
     if (!isOpen) return;
@@ -137,7 +151,7 @@ export default function SpotRunningModal({
     if (form.entry_price === null || form.entry_price <= 0) {
       e.entry_price = "Required";
     } else {
-     
+
 
       if (!e.entry_price && parent.price != null) {
         const parentPrice = parent.price;
@@ -210,6 +224,13 @@ export default function SpotRunningModal({
     if (!validate()) return;
     onSubmit(form);
   };
+
+  const handleDelete = () => {
+    if (onDelete) {
+      onDelete();
+    }
+  };
+
   return (
     <ModalWrapper isOpen={isOpen} onClose={onClose}>
       <h3 className="text-xl font-bold mb-4 bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
@@ -237,7 +258,7 @@ export default function SpotRunningModal({
                 <span className="text-red-500">{ask}</span>
               </div>
             </div>
-            
+
             <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-gray-500 dark:text-gray-500">
               <div>Entry: <span className="font-mono">{parent?.price?.toFixed(5) ?? "-"}</span></div>
               {parent?.stopLoss && <div>SL: <span className="font-mono">{parent?.stopLoss?.toFixed(5) ?? "-"}</span></div>}
@@ -245,7 +266,7 @@ export default function SpotRunningModal({
               {parent?.risk && <div>Risk: <span className="font-mono">{parent?.risk ?? "-"}%</span></div>}
             </div>
 
-           {spotData?.order_id && <div className=" text-xs text-amber-600 mt-2">This spot order is already executed with order Id {spotData?.order_id}.</div>}
+            {spotData?.order_id && <div className=" text-xs text-amber-600 mt-2">This spot order is already executed with order Id {spotData?.order_id}.</div>}
           </div>
         );
       })()}
@@ -255,7 +276,7 @@ export default function SpotRunningModal({
           type="number"
           label="Entry Price *"
           value={form.entry_price ?? ""}
-          onChange={(e:any) => handleChange("entry_price", e.target.value)}
+          onChange={(e: any) => handleChange("entry_price", e.target.value)}
           error={errors.entry_price}
           step="0.00001"
           min="0"
@@ -265,7 +286,7 @@ export default function SpotRunningModal({
           type="number"
           label="Stop Loss *"
           value={form.stoploss ?? ""}
-          onChange={(e:any) => handleChange("stoploss", e.target.value)}
+          onChange={(e: any) => handleChange("stoploss", e.target.value)}
           error={errors.stoploss}
           step="0.00001"
           min="0"
@@ -275,7 +296,7 @@ export default function SpotRunningModal({
           type="number"
           label="Take Profit (optional)"
           value={form.take_profit ?? ""}
-          onChange={(e:any) => handleChange("take_profit", e.target.value)}
+          onChange={(e: any) => handleChange("take_profit", e.target.value)}
           error={errors.take_profit}
           step="0.00001"
           min="0"
@@ -285,7 +306,7 @@ export default function SpotRunningModal({
           type="number"
           label="Risk % *"
           value={form.risk_percentage ?? ""}
-          onChange={(e:any) => handleChange("risk_percentage", e.target.value)}
+          onChange={(e: any) => handleChange("risk_percentage", e.target.value)}
           error={errors.risk_percentage}
           min="0"
           max="100"
@@ -294,17 +315,27 @@ export default function SpotRunningModal({
         />
 
         <div className="flex gap-3 pt-4">
+          {mode === "update" && onDelete && (
+            <DangerBtn
+              type="button"
+              onClick={handleDelete}
+              disabled={loading || isDeleting || spotData?.order_id}
+              className="flex-1"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </DangerBtn>
+          )}
           <MutedBtn type="button" onClick={onClose} disabled={loading} className="flex-1">
             Cancel
           </MutedBtn>
-          <PrimaryBtn type="submit" disabled={loading || spotData?.order_id} className="flex-1">
+          <PrimaryBtn type="submit" disabled={loading || spotData?.order_id || isDeleting} className="flex-1">
             {loading
               ? mode === "update"
                 ? "Updating…"
                 : "Adding…"
               : mode === "update"
-              ? "Update"
-              : "Add"}
+                ? "Update"
+                : "Add"}
           </PrimaryBtn>
         </div>
       </form>
