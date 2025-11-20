@@ -458,7 +458,7 @@ export default function TradeManager() {
   /* --------------------------------------------------------------------
      Handlers (API calls)
   -------------------------------------------------------------------- */
-  const handleAddPending = async (data: Partial<TradeData>) => {
+  const handleAddPending = useCallback(async (data: Partial<TradeData>) => {
     if (!selectedAccount) return;
     const priceError = validatePendingPrice(data);
     if (priceError) {
@@ -489,8 +489,8 @@ export default function TradeManager() {
     } finally {
       setLoading((prev) => ({ ...prev, addPending: false }));
     }
-  };
-  const handleAddRunning = async (data: Partial<TradeData>) => {
+  }, [selectedAccount]);
+  const handleAddRunning = useCallback(async (data: Partial<TradeData>) => {
     if (!selectedAccount) return;
     if (
       data.risk_percentage &&
@@ -516,12 +516,12 @@ export default function TradeManager() {
     } finally {
       setLoading((prev) => ({ ...prev, addRunning: false }));
     }
-  };
-  const openUpdatePending = (id: string, tradeSetup: string) => {
+  }, [selectedAccount]);
+  const openUpdatePending = useCallback((id: string, tradeSetup: string) => {
     setCurrentAction((prev) => ({ ...prev, id, tradeSetup }));
     setModals((prev) => ({ ...prev, updatePending: true }));
-  };
-  const handleUpdatePending = async (data: Partial<TradeData>) => {
+  }, []);
+  const handleUpdatePending = useCallback(async (data: Partial<TradeData>) => {
     if (!selectedAccount || !currentAction.id) return;
     const priceError = validatePendingPrice(data);
     if (priceError) {
@@ -548,12 +548,12 @@ export default function TradeManager() {
     } finally {
       setLoading((prev) => ({ ...prev, updatePending: false }));
     }
-  };
-  const openAddSpotPending = (parentId: string, tradeSetup: string, order_id: any) => {
+  }, [selectedAccount, currentAction.id]);
+  const openAddSpotPending = useCallback((parentId: string, tradeSetup: string, order_id: any) => {
     setCurrentAction((prev) => ({ ...prev, parentId, tradeSetup, order_id }));
     setModals((prev) => ({ ...prev, addSpotPending: true }));
-  };
-  const handleAddSpotPending = async (spotData: {
+  }, []);
+  const handleAddSpotPending = useCallback(async (spotData: {
     entry_price: number;
     stoploss: number;
     take_profit?: number;
@@ -584,8 +584,8 @@ export default function TradeManager() {
     } finally {
       setLoading((prev) => ({ ...prev, addSpot: false }));
     }
-  };
-  const openUpdateSpotPending = (
+  }, [selectedAccount, currentAction.parentId, currentAction.tradeSetup, pendingState]);
+  const openUpdateSpotPending = useCallback((
     parentId: string,
     index: number,
     tradeSetup?: string
@@ -597,8 +597,8 @@ export default function TradeManager() {
       tradeSetup: tradeSetup ?? prev.tradeSetup,
     }));
     setModals((prev) => ({ ...prev, updateSpotPending: true }));
-  };
-  const handleUpdateSpotPending = async (spotData: SpotAdd) => {
+  }, []);
+  const handleUpdateSpotPending = useCallback(async (spotData: SpotAdd) => {
     if (
       !selectedAccount ||
       !currentAction.parentId ||
@@ -629,12 +629,12 @@ export default function TradeManager() {
     } finally {
       setLoading((prev) => ({ ...prev, updateSpot: false }));
     }
-  };
-  const openAddSpotRunning = (parentId: string, tradeSetup: string, order_id: any) => {
+  }, [selectedAccount, currentAction.parentId, currentAction.index, currentAction.tradeSetup, pendingState]);
+  const openAddSpotRunning = useCallback((parentId: string, tradeSetup: string, order_id: any) => {
     setCurrentAction((prev) => ({ ...prev, parentId, tradeSetup, order_id }));
     setModals((prev) => ({ ...prev, addSpotRunning: true }));
-  };
-  const handleAddSpotRunning = async (spotData: {
+  }, []);
+  const handleAddSpotRunning = useCallback(async (spotData: {
     entry_price: number;
     stoploss: number;
     take_profit?: number;
@@ -665,8 +665,8 @@ export default function TradeManager() {
     } finally {
       setLoading((prev) => ({ ...prev, addSpot: false }));
     }
-  };
-  const openUpdateSpotRunning = (
+  }, [selectedAccount, currentAction.parentId, currentAction.tradeSetup, runningState]);
+  const openUpdateSpotRunning = useCallback((
     parentId: string,
     index: number,
     tradeSetup?: string
@@ -678,8 +678,8 @@ export default function TradeManager() {
       tradeSetup: tradeSetup ?? prev.tradeSetup,
     }));
     setModals((prev) => ({ ...prev, updateSpotRunning: true }));
-  };
-  const handleUpdateSpotRunning = async (spotData: SpotAdd) => {
+  }, []);
+  const handleUpdateSpotRunning = useCallback(async (spotData: SpotAdd) => {
     if (
       !selectedAccount ||
       !currentAction.parentId ||
@@ -710,12 +710,12 @@ export default function TradeManager() {
     } finally {
       setLoading((prev) => ({ ...prev, updateSpot: false }));
     }
-  };
-  const openUpdateSlTpBe = (id: string, breakevenPrice: any, stopLoss: any, takeProfit: any) => {
+  }, [selectedAccount, currentAction.parentId, currentAction.index, currentAction.tradeSetup, runningState]);
+  const openUpdateSlTpBe = useCallback((id: string, breakevenPrice: any, stopLoss: any, takeProfit: any) => {
     setCurrentAction((prev) => ({ ...prev, id, breakevenPrice, stopLoss, takeProfit }));
     setModals((prev) => ({ ...prev, updateSlTpBe: true }));
-  };
-  const handleUpdateSlTpBe = async (data: {
+  }, []);
+  const handleUpdateSlTpBe = useCallback(async (data: {
     slToUpdate?: number;
     tpToUpdate?: number;
     breakevenPrice?: number;
@@ -741,12 +741,12 @@ export default function TradeManager() {
     } finally {
       setLoading((prev) => ({ ...prev, updateSlTpBe: false }));
     }
-  };
-  const openUpdatePartialClose = (id: string) => {
+  }, [selectedAccount, currentAction.id]);
+  const openUpdatePartialClose = useCallback((id: string) => {
     setCurrentAction((prev) => ({ ...prev, id }));
     setModals((prev) => ({ ...prev, updatePartialClose: true }));
-  };
-  const handleUpdatePartialClose = async (data: {
+  }, []);
+  const handleUpdatePartialClose = useCallback(async (data: {
     partialClosePrice?: number;
     lotToClose?: number;
   }) => {
@@ -766,12 +766,12 @@ export default function TradeManager() {
     } finally {
       setLoading((prev) => ({ ...prev, updatePartialClose: false }));
     }
-  };
-  const openSetVolumeToClose = (id: string) => {
+  }, [selectedAccount, currentAction.id]);
+  const openSetVolumeToClose = useCallback((id: string) => {
     setCurrentAction((prev) => ({ ...prev, id }));
     setModals((prev) => ({ ...prev, setVolumeToClose: true }));
-  };
-  const handleSetVolumeToClose = async (volumeToClose: number) => {
+  }, []);
+  const handleSetVolumeToClose = useCallback(async (volumeToClose: number) => {
     if (!selectedAccount || !currentAction.id) return;
     if (volumeToClose < 0) return toast.error("Volume to close must be non-negative");
     const trade = runningState.find((t) => t.id === currentAction.id);
@@ -790,12 +790,12 @@ export default function TradeManager() {
     } finally {
       setLoading((prev) => ({ ...prev, setVolumeToClose: false }));
     }
-  };
-  const openQueueDelete = (orderTicket: string) => {
+  }, [selectedAccount, currentAction.id, runningState]);
+  const openQueueDelete = useCallback((orderTicket: string) => {
     setCurrentAction((prev) => ({ ...prev, orderTicket }));
     setModals((prev) => ({ ...prev, queueDelete: true }));
-  };
-  const handleQueueDelete = async () => {
+  }, []);
+  const handleQueueDelete = useCallback(async () => {
     if (!selectedAccount || !currentAction.orderTicket) return;
     setLoading((prev) => ({ ...prev, queueDelete: true }));
     try {
@@ -810,8 +810,8 @@ export default function TradeManager() {
     } finally {
       setLoading((prev) => ({ ...prev, queueDelete: false }));
     }
-  };
-  const handleQueueSpotDelete = async () => {
+  }, [selectedAccount, currentAction.orderTicket]);
+  const handleQueueSpotDelete = useCallback(async () => {
   if (!selectedAccount || !currentAction.parentId || currentAction.index < 0) return;
   setLoading((prev) => ({ ...prev, queueSpotDelete: true }));
   try {
@@ -830,11 +830,120 @@ export default function TradeManager() {
   } finally {
     setLoading((prev) => ({ ...prev, queueSpotDelete: false }));
   }
-};
+}, [selectedAccount, currentAction.parentId, currentAction.index]);
+  const RenderActions = useCallback(({
+    item,
+    isPendingTable,
+    isRunningTable,
+  }: {
+    item: TradeData;
+    isPendingTable: boolean;
+    isRunningTable: boolean;
+  }) => {
+    if (!isPendingTable && !isRunningTable) return null;
+    return (
+      <div className="flex flex-wrap gap-1 pt-3 mt-3 border-t border-gray-200/50 dark:border-gray-700/50">
+        {isPendingTable ? (
+          <>
+            <PrimaryBtn
+              onClick={() =>
+                openUpdatePending(item.id, item.trade_setup)
+              }
+              disabled={loading.updatePending}
+            >
+              Update
+            </PrimaryBtn>
+            <PrimaryBtn
+              onClick={() =>
+                openAddSpotPending(item.id, item.trade_setup, item?.order_id)
+              }
+              className="bg-green-600 hover:bg-green-700"
+              disabled={loading.addSpot}
+            >
+              Spot
+            </PrimaryBtn>
+            {item.spot_adds?.map((_, idx) => (
+              <PrimaryBtn
+                key={idx}
+                onClick={() =>
+                  openUpdateSpotPending(item.id, idx, item.trade_setup)
+                }
+                className="bg-indigo-600 hover:bg-indigo-700"
+                disabled={loading.updateSpot}
+              >
+                S{idx + 1}
+              </PrimaryBtn>
+            ))}
+            <DangerBtn
+              onClick={() =>
+                openQueueDelete(item.order_id || item.id)
+              }
+              disabled={loading.queueDelete}
+            >
+              Del
+            </DangerBtn>
+          </>
+        ) : (
+          <>
+            <PrimaryBtn
+              onClick={() => openUpdateSlTpBe(item.id, item?.breakevenPrice, item?.stopLoss, item?.takeProfit)}
+              className="bg-blue-600 hover:bg-blue-700"
+              disabled={loading.updateSlTpBe}
+            >
+              SL/TP
+            </PrimaryBtn>
+            <PrimaryBtn
+              onClick={() => openUpdatePartialClose(item.id)}
+              className="bg-gray-600 hover:bg-gray-700"
+              disabled={loading.updatePartialClose}
+            >
+              Partial
+            </PrimaryBtn>
+            <PrimaryBtn
+              onClick={() => openSetVolumeToClose(item.id)}
+              className="bg-amber-600 hover:bg-amber-700"
+              disabled={loading.setVolumeToClose}
+            >
+              Vol
+            </PrimaryBtn>
+            <PrimaryBtn
+              onClick={() =>
+                openAddSpotRunning(item.id, item.trade_setup, item?.order_id)
+              }
+              className="bg-green-600 hover:bg-green-700"
+              disabled={loading.addSpot}
+            >
+              Spot
+            </PrimaryBtn>
+            {item.spot_adds?.map((_, idx) => (
+              <PrimaryBtn
+                key={idx}
+                onClick={() =>
+                  openUpdateSpotRunning(item.id, idx, item.trade_setup)
+                }
+                className="bg-indigo-600 hover:bg-indigo-700"
+                disabled={loading.updateSpot}
+              >
+                S{idx + 1}
+              </PrimaryBtn>
+            ))}
+            <DangerBtn
+              onClick={() =>
+                openQueueDelete(item.order_id || item.id)
+              }
+              disabled={loading.queueDelete}
+            >
+              Close
+            </DangerBtn>
+          </>
+        )}
+      </div>
+    );
+  }, [loading, openUpdatePending, openAddSpotPending, openUpdateSpotPending, openQueueDelete, openUpdateSlTpBe, openUpdatePartialClose, openSetVolumeToClose, openAddSpotRunning, openUpdateSpotRunning]);
   /* --------------------------------------------------------------------
      Table renderer
   -------------------------------------------------------------------- */
-  const renderTable = (
+  const renderTable = useCallback((
     title: string,
     data: TradeData[],
     isPendingTable = false,
@@ -879,206 +988,204 @@ export default function TradeManager() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200/50 dark:divide-gray-700/50">
-              <thead className="bg-gray-50/50 dark:bg-gray-800/30">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                    ID
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                    Symbol
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                    Setup
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                    Volume
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                    Price
-                  </th>
-                  {showCurrentColumn && (
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider w-40">
-                      Current
-                    </th>
-                  )}
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider w-34">
-                    Profit
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200/30 dark:divide-gray-700/30 dark:bg-gray-900/20">
-                {data?.map((item, index) => {
-                  const currentPrice = showCurrentColumn
-                    ? getCurrentPrice(item.symbol, item.trade_setup)
-                    : null;
-                  const displayCurrent = currentPrice
-                    ? (item.trade_setup === "buy"
+          <>
+            <div className="md:hidden p-4 space-y-4">
+              {data.map((item) => {
+                const currentPrice = showCurrentColumn
+                  ? getCurrentPrice(item.symbol, item.trade_setup)
+                  : null;
+                const displayCurrent = currentPrice
+                  ? (item.trade_setup === "buy"
                       ? currentPrice.ask?.toFixed(5)
                       : currentPrice.bid?.toFixed(5)) ?? "--"
-                    : "--";
-                  return (
-                    <tr
-                      key={index}
-                      className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                  : "--";
+                const profitDisplay = item.profit !== undefined
+                  ? item.profit >= 0
+                    ? `+${item.profit.toFixed(2)}`
+                    : item.profit.toFixed(2)
+                  : "--";
+                const profitClass = item.profit !== undefined && item.profit >= 0
+                  ? "text-green-600"
+                  : "text-red-600";
+                const setupClass = item.trade_setup === "buy"
+                  ? "bg-green-100 text-green-800 dark:bg-green-900/80 dark:text-green-100"
+                  : "bg-red-100 text-red-800 dark:bg-red-900/80 dark:text-red-100";
+                return (
+                  <div
+                    key={item.id}
+                    className="bg-white/80 dark:bg-gray-800/40 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm"
+                  >
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h4 className="text-lg font-bold text-gray-900 dark:text-white">
+                          {item.symbol}
+                        </h4>
+                        <span
+                          className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${setupClass}`}
+                        >
+                          {item.trade_setup?.toUpperCase()}
+                        </span>
+                      </div>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
                         {item?.id ? (
                           item.id
                         ) : (
                           <span className="inline-flex items-center">
-                            Adding.. &nbsp; <div className="animate-ping rounded-full h-3 w-3 bg-blue-500"></div>
+                            Adding..{" "}
+                            <div className="animate-ping rounded-full h-2 w-2 bg-blue-500 ml-1"></div>
                           </span>
                         )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-mono">
-                        {item.symbol}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      </span>
+                    </div>
+                    <div className="space-y-2 text-sm mb-4">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500 dark:text-gray-400">Volume</span>
+                        <span className="font-mono text-gray-900 dark:text-white">
+                          {item.volume?.toFixed(2) ?? "--"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500 dark:text-gray-400">Price</span>
+                        <span className="font-mono text-gray-900 dark:text-white">
+                          {item.price?.toFixed(5) ?? "--"}
+                        </span>
+                      </div>
+                      {showCurrentColumn && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-500 dark:text-gray-400">Current</span>
+                          <span className="font-mono text-gray-600 dark:text-gray-300">
+                            {displayCurrent}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex justify-between">
+                        <span className="text-gray-500 dark:text-gray-400">Profit</span>
                         <span
-                          className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${item.trade_setup === "buy"
-                            ? "bg-green-100 text-green-800 dark:bg-green-900/80 dark:text-green-100"
-                            : "bg-red-100 text-red-800 dark:bg-red-900/80 dark:text-red-100"
+                          className={`font-medium font-mono ${item.profit !== undefined ? profitClass : ""}`}
+                        >
+                          {profitDisplay}
+                        </span>
+                      </div>
+                    </div>
+                    <RenderActions
+                      item={item}
+                      isPendingTable={isPendingTable}
+                      isRunningTable={isRunningTable}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+            <div className="hidden md:block overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200/50 dark:divide-gray-700/50">
+                <thead className="bg-gray-50/50 dark:bg-gray-800/30">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                      ID
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                      Symbol
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                      Setup
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                      Volume
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                      Price
+                    </th>
+                    {showCurrentColumn && (
+                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider w-40">
+                        Current
+                      </th>
+                    )}
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider w-34">
+                      Profit
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200/30 dark:divide-gray-700/30 dark:bg-gray-900/20">
+                  {data?.map((item) => {
+                    const currentPrice = showCurrentColumn
+                      ? getCurrentPrice(item.symbol, item.trade_setup)
+                      : null;
+                    const displayCurrent = currentPrice
+                      ? (item.trade_setup === "buy"
+                          ? currentPrice.ask?.toFixed(5)
+                          : currentPrice.bid?.toFixed(5)) ?? "--"
+                      : "--";
+                    return (
+                      <tr
+                        key={item.id}
+                        className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors"
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                          {item?.id ? (
+                            item.id
+                          ) : (
+                            <span className="inline-flex items-center">
+                              Adding.. &nbsp; <div className="animate-ping rounded-full h-3 w-3 bg-blue-500"></div>
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-mono">
+                          {item.symbol}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${item.trade_setup === "buy"
+                              ? "bg-green-100 text-green-800 dark:bg-green-900/80 dark:text-green-100"
+                              : "bg-red-100 text-red-800 dark:bg-red-900/80 dark:text-red-100"
+                              }`}
+                          >
+                            {item.trade_setup?.toUpperCase()}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-mono">
+                          {item.volume?.toFixed(2)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-mono">
+                          {item.price?.toFixed(5)}
+                        </td>
+                        {showCurrentColumn && (
+                          <td className="px-6 py-4 whitespace-nowrap w-40 text-sm font-mono text-gray-600 dark:text-gray-300">
+                            {displayCurrent}
+                          </td>
+                        )}
+                        <td
+                          className={`px-6 py-4 whitespace-nowrap text-sm font-medium w-34 ${item.profit !== undefined && item.profit >= 0
+                            ? "text-green-600"
+                            : "text-red-600"
                             }`}
                         >
-                          {item.trade_setup?.toUpperCase()}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-mono">
-                        {item.volume?.toFixed(2)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-mono">
-                        {item.price?.toFixed(5)}
-                      </td>
-                      {showCurrentColumn && (
-                        <td className="px-6 py-4 whitespace-nowrap w-40 text-sm font-mono text-gray-600 dark:text-gray-300">
-                          {displayCurrent}
+                          {item.profit !== undefined
+                            ? item.profit >= 0
+                              ? `+${item.profit.toFixed(2)}`
+                              : item.profit.toFixed(2)
+                            : "--"}
                         </td>
-                      )}
-                      <td
-                        className={`px-6 py-4 whitespace-nowrap text-sm font-medium w-34 ${item.profit !== undefined && item.profit >= 0
-                          ? "text-green-600"
-                          : "text-red-600"
-                          }`}
-                      >
-                        {item.profit !== undefined
-                          ? item.profit >= 0
-                            ? `+${item.profit.toFixed(2)}`
-                            : item.profit.toFixed(2)
-                          : "--"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex flex-wrap gap-1">
-                          {isPendingTable ? (
-                            <>
-                              <PrimaryBtn
-                                onClick={() =>
-                                  openUpdatePending(item.id, item.trade_setup)
-                                }
-                                disabled={loading.updatePending}
-                              >
-                                Update
-                              </PrimaryBtn>
-                              <PrimaryBtn
-                                onClick={() =>
-                                  openAddSpotPending(item.id, item.trade_setup, item?.order_id)
-                                }
-                                className="bg-green-600 hover:bg-green-700"
-                                disabled={loading.addSpot}
-                              >
-                                Spot
-                              </PrimaryBtn>
-                              {item.spot_adds?.map((_, idx) => (
-                                <PrimaryBtn
-                                  key={idx}
-                                  onClick={() =>
-                                    openUpdateSpotPending(item.id, idx, item.trade_setup)
-                                  }
-                                  className="bg-indigo-600 hover:bg-indigo-700"
-                                  disabled={loading.updateSpot}
-                                >
-                                  S{idx + 1}
-                                </PrimaryBtn>
-                              ))}
-                              <DangerBtn
-                                onClick={() =>
-                                  openQueueDelete(item.order_id || item.id)
-                                }
-                                disabled={loading.queueDelete}
-                              >
-                                Del
-                              </DangerBtn>
-                            </>
-                          ) : isRunningTable ? (
-                            <>
-                              <PrimaryBtn
-                                onClick={() => openUpdateSlTpBe(item.id, item?.breakevenPrice, item?.stopLoss, item?.takeProfit)}
-                                className="bg-blue-600 hover:bg-blue-700"
-                                disabled={loading.updateSlTpBe}
-                              >
-                                SL/TP
-                              </PrimaryBtn>
-                              <PrimaryBtn
-                                onClick={() => openUpdatePartialClose(item.id)}
-                                className="bg-gray-600 hover:bg-gray-700"
-                                disabled={loading.updatePartialClose}
-                              >
-                                Partial
-                              </PrimaryBtn>
-                              <PrimaryBtn
-                                onClick={() => openSetVolumeToClose(item.id)}
-                                className="bg-amber-600 hover:bg-amber-700"
-                                disabled={loading.setVolumeToClose}
-                              >
-                                Vol
-                              </PrimaryBtn>
-                              <PrimaryBtn
-                                onClick={() =>
-                                  openAddSpotRunning(item.id, item.trade_setup, item?.order_id)
-                                }
-                                className="bg-green-600 hover:bg-green-700"
-                                disabled={loading.addSpot}
-                              >
-                                Spot
-                              </PrimaryBtn>
-                              {item.spot_adds?.map((_, idx) => (
-                                <PrimaryBtn
-                                  key={idx}
-                                  onClick={() =>
-                                    openUpdateSpotRunning(item.id, idx, item.trade_setup)
-                                  }
-                                  className="bg-indigo-600 hover:bg-indigo-700"
-                                  disabled={loading.updateSpot}
-                                >
-                                  S{idx + 1}
-                                </PrimaryBtn>
-                              ))}
-                              <DangerBtn
-                                onClick={() =>
-                                  openQueueDelete(item.order_id || item.id)
-                                }
-                                disabled={loading.queueDelete}
-                              >
-                                Close
-                              </DangerBtn>
-                            </>
-                          ) : null}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <RenderActions
+                            item={item}
+                            isPendingTable={isPendingTable}
+                            isRunningTable={isRunningTable}
+                          />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </motion.div>
     );
-  };
+  }, [getCurrentPrice, loading, isConnecting, RenderActions, openUpdatePending, openAddSpotPending, openUpdateSpotPending, openQueueDelete, openUpdateSlTpBe, openUpdatePartialClose, openSetVolumeToClose, openAddSpotRunning, openUpdateSpotRunning]);
   /* --------------------------------------------------------------------
      Render
   -------------------------------------------------------------------- */
@@ -1247,7 +1354,6 @@ export default function TradeManager() {
           initialData={pending.find((p) => p.id === currentAction.id) || {}}
           mode="update"
         />
-        {/* ---- MODAL SECTION ---- */}
         <SpotPendingModal
           isOpen={modals.addSpotPending}
           onClose={() => setModals(p => ({ ...p, addSpotPending: false }))}
@@ -1335,272 +1441,6 @@ export default function TradeManager() {
   );
 }
 /* --------------------------------------------------------------------- */
-const AddSpotModal: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (data: {
-    entry_price: number;
-    stoploss: number;
-    take_profit?: number;
-    risk_percentage: number;
-  }) => void;
-  loading: boolean;
-  isPending: boolean;
-  currentAction: { parentId: string; tradeSetup: string };
-}> = ({
-  isOpen,
-  onClose,
-  onSubmit,
-  loading,
-  isPending,
-  currentAction,
-}) => {
-    const [formData, setFormData] = useState({
-      entry_price: 0,
-      stoploss: 0,
-      take_profit: 0,
-      risk_percentage: 1,
-    });
-    const [errors, setErrors] = useState<{ [key: string]: string }>({});
-    useEffect(() => {
-      if (isOpen)
-        setFormData({ entry_price: 0, stoploss: 0, take_profit: 0, risk_percentage: 1 });
-    }, [isOpen]);
-    const validateField = (field: string, value: any) => {
-      const newErrors = { ...errors };
-      delete newErrors[field];
-      if (field === "risk_percentage" && (value < 0 || value > 100))
-        newErrors[field] = "Must be between 0 and 100";
-      if (field === "entry_price" && currentAction.parentId && currentAction.tradeSetup) {
-        const source = isPending ? pending : running;
-        const parent = source.find((p) => p.id === currentAction.parentId);
-      }
-      setErrors(newErrors);
-    };
-    const handleChange = (key: string, value: any) => {
-      setFormData((prev) => ({ ...prev, [key]: value }));
-      validateField(key, value);
-    };
-    const handleSubmit = (e: React.FormEvent) => {
-      e.preventDefault();
-      if (
-        formData.entry_price <= 0 ||
-        formData.stoploss <= 0 ||
-        formData.risk_percentage < 0 ||
-        formData.risk_percentage > 100
-      ) {
-        toast.error("Valid positive values required");
-        return;
-      }
-      onSubmit(formData);
-    };
-    return (
-      <ModalWrapper isOpen={isOpen} onClose={onClose}>
-        <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
-          Add Spot {isPending ? "to Pending" : "to Running"}
-        </h3>
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <FloatingLabelInput
-            type="number"
-            placeholder="Entry Price *"
-            value={formData.entry_price}
-            onChange={(e: any) =>
-              handleChange("entry_price", parseFloat(e.target.value) || 0)
-            }
-            error={errors.entry_price}
-            step="0.00001"
-            min="0"
-            label="Entry Price *"
-          />
-          <FloatingLabelInput
-            type="number"
-            placeholder="Stop Loss *"
-            value={formData.stoploss}
-            onChange={(e: any) =>
-              handleChange("stoploss", parseFloat(e.target.value) || 0)
-            }
-            error={errors.stoploss}
-            step="0.00001"
-            min="0"
-            label="Stop Loss *"
-          />
-          <FloatingLabelInput
-            type="number"
-            placeholder="Take Profit (optional)"
-            value={formData.take_profit}
-            onChange={(e: any) =>
-              handleChange("take_profit", parseFloat(e.target.value) || 0)
-            }
-            step="0.00001"
-            min="0"
-            label="Take Profit (optional)"
-          />
-          <FloatingLabelInput
-            type="number"
-            placeholder="Risk % *"
-            value={formData.risk_percentage}
-            onChange={(e: any) =>
-              handleChange("risk_percentage", parseFloat(e.target.value) || 0)
-            }
-            error={errors.risk_percentage}
-            min="0"
-            max="100"
-            step="0.1"
-            label="Risk % *"
-          />
-          <div className="flex gap-3 pt-4">
-            <MutedBtn
-              type="button"
-              onClick={onClose}
-              disabled={loading}
-              className="flex-1"
-            >
-              Cancel
-            </MutedBtn>
-            <PrimaryBtn
-              type="submit"
-              disabled={loading || Object.keys(errors).length > 0}
-              className="flex-1"
-            >
-              {loading ? "Adding..." : "Add Spot"}
-            </PrimaryBtn>
-          </div>
-        </form>
-      </ModalWrapper>
-    );
-  };
-/* --------------------------------------------------------------------- */
-const UpdateSpotModal: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (data: SpotAdd) => void;
-  loading: boolean;
-  isPending: boolean;
-  currentAction: { parentId: string; index: number; tradeSetup: string };
-}> = ({
-  isOpen,
-  onClose,
-  onSubmit,
-  loading,
-  isPending,
-  currentAction,
-}) => {
-    const [formData, setFormData] = useState<SpotAdd>({
-      entry_price: 0,
-      stoploss: 0,
-      risk_percentage: 1,
-    });
-    const [errors, setErrors] = useState<{ [key: string]: string }>({});
-    useEffect(() => {
-      if (isOpen) {
-        const source = isPending ? pending : running;
-        const parent = source.find((p) => p.id === currentAction.parentId);
-        const spot = parent?.spot_adds?.[currentAction.index];
-        setFormData(
-          spot ?? { entry_price: 0, stoploss: 0, risk_percentage: 1 }
-        );
-        setErrors({});
-      }
-    }, [isOpen, currentAction, isPending]);
-    const validateField = (field: string, value: any) => {
-      const newErrors = { ...errors };
-      delete newErrors[field];
-      if (field === "risk_percentage" && (value < 0 || value > 100))
-        newErrors[field] = "Must be between 0 and 100";
-      setErrors(newErrors);
-    };
-    const handleChange = (key: string, value: any) => {
-      setFormData((prev) => ({ ...prev, [key]: value }));
-      validateField(key, value);
-    };
-    const handleSubmit = (e: React.FormEvent) => {
-      e.preventDefault();
-      if (
-        formData.entry_price <= 0 ||
-        formData.stoploss <= 0 ||
-        formData.risk_percentage < 0 ||
-        formData.risk_percentage > 100
-      ) {
-        toast.error("Valid positive values required");
-        return;
-      }
-      onSubmit(formData);
-    };
-    return (
-      <ModalWrapper isOpen={isOpen} onClose={onClose}>
-        <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
-          Update Spot {currentAction.index + 1}
-        </h3>
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <FloatingLabelInput
-            type="number"
-            placeholder="Entry Price *"
-            value={formData.entry_price}
-            onChange={(e: any) =>
-              handleChange("entry_price", parseFloat(e.target.value) || 0)
-            }
-            error={errors.entry_price}
-            step="0.00001"
-            min="0"
-            label="Entry Price *"
-          />
-          <FloatingLabelInput
-            type="number"
-            placeholder="Stop Loss *"
-            value={formData.stoploss}
-            onChange={(e: any) =>
-              handleChange("stoploss", parseFloat(e.target.value) || 0)
-            }
-            error={errors.stoploss}
-            step="0.00001"
-            min="0"
-            label="Stop Loss *"
-          />
-          <FloatingLabelInput
-            type="number"
-            placeholder="Take Profit"
-            value={formData.take_profit || ""}
-            onChange={(e: any) =>
-              handleChange("take_profit", parseFloat(e.target.value) || 0)
-            }
-            step="0.00001"
-            min="0"
-            label="Take Profit"
-          />
-          <FloatingLabelInput
-            type="number"
-            placeholder="Risk % *"
-            value={formData.risk_percentage}
-            onChange={(e: any) =>
-              handleChange("risk_percentage", parseFloat(e.target.value) || 0)
-            }
-            error={errors.risk_percentage}
-            min="0"
-            max="100"
-            step="0.1"
-            label="Risk % *"
-          />
-          <div className="flex gap-3 pt-4">
-            <MutedBtn
-              type="button"
-              onClick={onClose}
-              disabled={loading}
-              className="flex-1"
-            >
-              Cancel
-            </MutedBtn>
-            <PrimaryBtn
-              type="submit"
-              disabled={loading || Object.keys(errors).length > 0}
-              className="flex-1"
-            >
-              {loading ? "Updating..." : "Update Spot"}
-            </PrimaryBtn>
-          </div>
-        </form>
-      </ModalWrapper>
-    );
-  };
 const QueueDeleteConfirm: React.FC<{
   isOpen: boolean;
   onClose: () => void;
