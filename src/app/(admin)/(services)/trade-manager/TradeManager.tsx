@@ -15,6 +15,7 @@ import mt5 from "../../../../icons/mt5.png";
 import cTraderIcon from "../../../../icons/ctrader.png";
 import { motion, AnimatePresence } from "framer-motion";
 import AddPendingModal from "./AddPendingModal";
+import AddRunningModal from "./AddRunningModal";
 import SpotRunningModal from "./SpotRunningModal";
 import SpotPendingModal from "./SpotPendingModal";
 import UpdateSlTpBeModal from "./UpdateSlTpBeModal";
@@ -273,6 +274,7 @@ export default function TradeManager() {
   // Modal states
   const [modals, setModals] = useState({
     addPending: false,
+    addRunning: false,
     updatePending: false,
     addSpotPending: false,
     updateSpotPending: false,
@@ -300,6 +302,7 @@ export default function TradeManager() {
   // Loading states
   const [loading, setLoading] = useState({
     addPending: false,
+    addRunning: false,
     updatePending: false,
     addSpot: false,
     updateSpot: false,
@@ -488,6 +491,33 @@ export default function TradeManager() {
       toast.error(err.response?.data?.error || "Failed to add pending order");
     } finally {
       setLoading((prev) => ({ ...prev, addPending: false }));
+    }
+  };
+  const handleAddRunning = async (data: Partial<TradeData>) => {
+    if (!selectedAccount) return;
+    if (
+      data.risk_percentage &&
+      (data.risk_percentage < 0 || data.risk_percentage > 100)
+    ) {
+      toast.error("Risk percentage must be between 0 and 100");
+      return;
+    }
+    setLoading((prev) => ({ ...prev, addRunning: true }));
+    try {
+      await Request({
+        method: "POST",
+        url: "trade-manager/add-running",
+        data: {
+          accountNumber: selectedAccount,
+          id: Date.now().toString(),
+          ...data,
+        },
+      });
+      setModals((prev) => ({ ...prev, addRunning: false }));
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Failed to add running order");
+    } finally {
+      setLoading((prev) => ({ ...prev, addRunning: false }));
     }
   };
   const openUpdatePending = (id: string, tradeSetup: string) => {
@@ -837,6 +867,17 @@ export default function TradeManager() {
               className="px-4 py-2 text-sm"
             >
               Add Pending
+            </PrimaryBtn>
+          )}
+          {title === "Open Positions" && (
+            <PrimaryBtn
+              onClick={() =>
+                setModals((prev) => ({ ...prev, addRunning: true }))
+              }
+              disabled={isConnecting}
+              className="px-4 py-2 text-sm"
+            >
+              Add Market
             </PrimaryBtn>
           )}
         </div>
@@ -1204,6 +1245,14 @@ export default function TradeManager() {
           onClose={() => setModals((p) => ({ ...p, addPending: false }))}
           onSubmit={handleAddPending}
           loading={loading.addPending}
+          symbols={availableSymbols}
+          marketData={marketState}
+        />
+        <AddRunningModal
+          isOpen={modals.addRunning}
+          onClose={() => setModals((p) => ({ ...p, addRunning: false }))}
+          onSubmit={handleAddRunning}
+          loading={loading.addRunning}
           symbols={availableSymbols}
           marketData={marketState}
         />
