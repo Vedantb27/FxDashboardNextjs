@@ -69,7 +69,7 @@ const ModalWrapper: React.FC<{
                 onClick={onClose}
             >
                 <motion.div
-                    className={`bg-white/95 dark:bg-gray-900/95 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl ms-60 p-8 max-h-[90vh] overflow-y-auto ${wide ? 'w-full max-w-4xl' : 'w-full max-w-md'}`}
+                    className={`bg-white/95 dark:bg-gray-900/95 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl ms-0 lg:ms-60 p-4 md:p-8 max-h-[90vh] overflow-y-auto ${wide ? 'w-full max-w-4xl' : 'w-full max-w-md'}`}
                     initial={{ scale: 0.95, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.95, opacity: 0 }}
@@ -357,7 +357,7 @@ const AddPendingModal: React.FC<AddPendingModalProps> = ({ isOpen, onClose, onSu
                     </svg>
                 </button>
             </div>
-            <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6">
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 {/* Column 1 */}
                 <div className="space-y-4">
                     {/* Symbol with Searchable Dropdown */}
@@ -454,7 +454,7 @@ const AddPendingModal: React.FC<AddPendingModalProps> = ({ isOpen, onClose, onSu
                         min="0"
                     />
                 </div>
-                <div className="col-span-2 flex gap-3 pt-6">
+                <div className="col-span-1 sm:col-span-2 flex gap-3 pt-6">
                     <MutedBtn
                         type="button"
                         onClick={onClose}

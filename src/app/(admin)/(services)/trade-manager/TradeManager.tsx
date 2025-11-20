@@ -22,7 +22,6 @@ import UpdateSlTpBeModal from "./UpdateSlTpBeModal";
 import UpdatePartialCloseModal from "./UpdatePartialCloseModal";
 import SetVolumeToCloseModal from "./SetVolumeToCloseModal";
 import { getCurrencySymbol } from "../../../../utils/common";
-
 /* ============================================================================
    Types
 =========================================================================== */
@@ -104,7 +103,6 @@ export const validatePendingPrice = (
   }
   return null;
 };
-
 /* ============================================================================
    Reusable UI Components
 =========================================================================== */
@@ -159,7 +157,6 @@ const FloatingLabelInput = (
     )}
   </div>
 );
-
 const PrimaryBtn: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({
   className,
   children,
@@ -167,7 +164,7 @@ const PrimaryBtn: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({
 }) => (
   <button
     {...rest}
-    className={`px-6 py-2.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed ${className ||
+    className={`px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed ${className ||
       ""}`}
   >
     {children}
@@ -180,7 +177,7 @@ const MutedBtn: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({
 }) => (
   <button
     {...rest}
-    className={`px-6 py-2.5 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm font-semibold shadow hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed ${className ||
+    className={`px-4 py-2 rounded-md bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 text-xs font-medium shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed ${className ||
       ""}`}
   >
     {children}
@@ -193,7 +190,7 @@ const DangerBtn: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({
 }) => (
   <button
     {...rest}
-    className={`px-6 py-2.5 rounded-lg bg-gradient-to-r from-red-600 to-rose-600 text-white text-sm font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed ${className ||
+    className={`px-4 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white text-xs font-medium shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed ${className ||
       ""}`}
   >
     {children}
@@ -566,7 +563,6 @@ export default function TradeManager() {
       return;
     const parent = pendingState.find((p) => p.id === currentAction.parentId);
     if (!parent) return toast.error("Parent order not found");
-
     if (
       spotData.risk_percentage < 0 ||
       spotData.risk_percentage > 100 ||
@@ -648,7 +644,6 @@ export default function TradeManager() {
       return;
     const parent = runningState.find((p) => p.id === currentAction.parentId);
     if (!parent) return toast.error("Parent trade not found");
-
     if (
       spotData.risk_percentage < 0 ||
       spotData.risk_percentage > 100 ||
@@ -694,7 +689,6 @@ export default function TradeManager() {
       return;
     const parent = runningState.find((p) => p.id === currentAction.parentId);
     if (!parent) return toast.error("Parent trade not found");
-
     if (
       spotData.risk_percentage < 0 ||
       spotData.risk_percentage > 100 ||
@@ -817,7 +811,6 @@ export default function TradeManager() {
       setLoading((prev) => ({ ...prev, queueDelete: false }));
     }
   };
-
   const handleQueueSpotDelete = async () => {
   if (!selectedAccount || !currentAction.parentId || currentAction.index < 0) return;
   setLoading((prev) => ({ ...prev, queueSpotDelete: true }));
@@ -864,7 +857,6 @@ export default function TradeManager() {
                 setModals((prev) => ({ ...prev, addPending: true }))
               }
               disabled={isConnecting}
-              className="px-4 py-2 text-sm"
             >
               Add Pending
             </PrimaryBtn>
@@ -875,7 +867,6 @@ export default function TradeManager() {
                 setModals((prev) => ({ ...prev, addRunning: true }))
               }
               disabled={isConnecting}
-              className="px-4 py-2 text-sm"
             >
               Add Market
             </PrimaryBtn>
@@ -936,7 +927,6 @@ export default function TradeManager() {
                       className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors"
                     >
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-
                         {item?.id ? (
                           item.id
                         ) : (
@@ -944,8 +934,6 @@ export default function TradeManager() {
                             Adding.. &nbsp; <div className="animate-ping rounded-full h-3 w-3 bg-blue-500"></div>
                           </span>
                         )}
-
-
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-mono">
                         {item.symbol}
@@ -984,14 +972,13 @@ export default function TradeManager() {
                           : "--"}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-1">
                           {isPendingTable ? (
                             <>
                               <PrimaryBtn
                                 onClick={() =>
                                   openUpdatePending(item.id, item.trade_setup)
                                 }
-                                className="text-xs px-2 py-1"
                                 disabled={loading.updatePending}
                               >
                                 Update
@@ -1000,7 +987,7 @@ export default function TradeManager() {
                                 onClick={() =>
                                   openAddSpotPending(item.id, item.trade_setup, item?.order_id)
                                 }
-                                className="bg-green-600 hover:bg-green-700 text-xs px-2 py-1"
+                                className="bg-green-600 hover:bg-green-700"
                                 disabled={loading.addSpot}
                               >
                                 Spot
@@ -1011,7 +998,7 @@ export default function TradeManager() {
                                   onClick={() =>
                                     openUpdateSpotPending(item.id, idx, item.trade_setup)
                                   }
-                                  className="bg-purple-600 hover:bg-purple-700 text-xs px-2 py-1"
+                                  className="bg-indigo-600 hover:bg-indigo-700"
                                   disabled={loading.updateSpot}
                                 >
                                   S{idx + 1}
@@ -1021,7 +1008,6 @@ export default function TradeManager() {
                                 onClick={() =>
                                   openQueueDelete(item.order_id || item.id)
                                 }
-                                className="text-xs px-2 py-1"
                                 disabled={loading.queueDelete}
                               >
                                 Del
@@ -1031,21 +1017,21 @@ export default function TradeManager() {
                             <>
                               <PrimaryBtn
                                 onClick={() => openUpdateSlTpBe(item.id, item?.breakevenPrice, item?.stopLoss, item?.takeProfit)}
-                                className="bg-blue-600 hover:bg-blue-700 text-xs px-2 py-1"
+                                className="bg-blue-600 hover:bg-blue-700"
                                 disabled={loading.updateSlTpBe}
                               >
                                 SL/TP
                               </PrimaryBtn>
                               <PrimaryBtn
                                 onClick={() => openUpdatePartialClose(item.id)}
-                                className="bg-orange-600 hover:bg-orange-700 text-xs px-2 py-1"
+                                className="bg-gray-600 hover:bg-gray-700"
                                 disabled={loading.updatePartialClose}
                               >
                                 Partial
                               </PrimaryBtn>
                               <PrimaryBtn
                                 onClick={() => openSetVolumeToClose(item.id)}
-                                className="bg-yellow-600 hover:bg-yellow-700 text-xs px-2 py-1"
+                                className="bg-amber-600 hover:bg-amber-700"
                                 disabled={loading.setVolumeToClose}
                               >
                                 Vol
@@ -1054,7 +1040,7 @@ export default function TradeManager() {
                                 onClick={() =>
                                   openAddSpotRunning(item.id, item.trade_setup, item?.order_id)
                                 }
-                                className="bg-green-600 hover:bg-green-700 text-xs px-2 py-1"
+                                className="bg-green-600 hover:bg-green-700"
                                 disabled={loading.addSpot}
                               >
                                 Spot
@@ -1065,7 +1051,7 @@ export default function TradeManager() {
                                   onClick={() =>
                                     openUpdateSpotRunning(item.id, idx, item.trade_setup)
                                   }
-                                  className="bg-purple-600 hover:bg-purple-700 text-xs px-2 py-1"
+                                  className="bg-indigo-600 hover:bg-indigo-700"
                                   disabled={loading.updateSpot}
                                 >
                                   S{idx + 1}
@@ -1075,7 +1061,6 @@ export default function TradeManager() {
                                 onClick={() =>
                                   openQueueDelete(item.order_id || item.id)
                                 }
-                                className="text-xs px-2 py-1"
                                 disabled={loading.queueDelete}
                               >
                                 Close
@@ -1179,7 +1164,7 @@ export default function TradeManager() {
                         onClick={() =>
                           handleAccountChange(account.accountNumber.toString())
                         }
-                        className="w-full flex items-center gap-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm dark:text-white  text-gray-800 "
+                        className="w-full flex items-center gap-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm dark:text-white text-gray-800 "
                       >
                         <Image
                           src={
@@ -1197,9 +1182,8 @@ export default function TradeManager() {
               )}
             </AnimatePresence>
           </div>
-          {selectedAccount && (<div className="flex flex-col sm:flex-row sm:items-center sm:gap-6 bg-white dark:bg-gray-900 
+          {selectedAccount && (<div className="flex flex-col sm:flex-row sm:items-center sm:gap-6 bg-white dark:bg-gray-900
                 px-4 py-3 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-
             <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">
               <span className="text-gray-500 dark:text-gray-400">Balance:</span>{" "}
               <span className="font-semibold text-blue-600 dark:text-blue-400">
@@ -1207,7 +1191,6 @@ export default function TradeManager() {
                 {accountInfo?.balance?.toLocaleString()}
               </span>
             </p>
-
             <p className="text-sm text-gray-700 dark:text-gray-300 font-medium mt-1 sm:mt-0">
               <span className="text-gray-500 dark:text-gray-400">Equity:</span>{" "}
               <span className="font-semibold text-green-600 dark:text-green-400">
@@ -1215,9 +1198,7 @@ export default function TradeManager() {
                 {accountInfo?.equity?.toLocaleString()}
               </span>
             </p>
-
           </div>
-
           )}
         </motion.div>
         {/* Tables */}
@@ -1277,7 +1258,6 @@ export default function TradeManager() {
           marketData={marketState}
           mode="add"
         />
-
         <SpotPendingModal
           isOpen={modals.updateSpotPending}
           onClose={() => setModals(p => ({ ...p, updateSpotPending: false }))}
@@ -1290,7 +1270,6 @@ export default function TradeManager() {
           marketData={marketState}
           mode="update"
         />
-
         <SpotRunningModal
           isOpen={modals.addSpotRunning}
           onClose={() => setModals(p => ({ ...p, addSpotRunning: false }))}
@@ -1301,7 +1280,6 @@ export default function TradeManager() {
           marketData={marketState}
           mode="add"
         />
-
         <SpotRunningModal
           isOpen={modals.updateSpotRunning}
           onClose={() => setModals(p => ({ ...p, updateSpotRunning: false }))}
@@ -1314,7 +1292,6 @@ export default function TradeManager() {
           marketData={marketState}
           mode="update"
         />
-
         <UpdateSlTpBeModal
           isOpen={modals.updateSlTpBe}
           onClose={() => setModals((p) => ({ ...p, updateSlTpBe: false }))}
@@ -1357,7 +1334,6 @@ export default function TradeManager() {
     </div>
   );
 }
-
 /* --------------------------------------------------------------------- */
 const AddSpotModal: React.FC<{
   isOpen: boolean;
@@ -1398,7 +1374,6 @@ const AddSpotModal: React.FC<{
       if (field === "entry_price" && currentAction.parentId && currentAction.tradeSetup) {
         const source = isPending ? pending : running;
         const parent = source.find((p) => p.id === currentAction.parentId);
-
       }
       setErrors(newErrors);
     };
@@ -1532,7 +1507,6 @@ const UpdateSpotModal: React.FC<{
       delete newErrors[field];
       if (field === "risk_percentage" && (value < 0 || value > 100))
         newErrors[field] = "Must be between 0 and 100";
-
       setErrors(newErrors);
     };
     const handleChange = (key: string, value: any) => {
@@ -1627,7 +1601,6 @@ const UpdateSpotModal: React.FC<{
       </ModalWrapper>
     );
   };
-
 const QueueDeleteConfirm: React.FC<{
   isOpen: boolean;
   onClose: () => void;

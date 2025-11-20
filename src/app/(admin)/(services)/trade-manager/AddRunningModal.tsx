@@ -51,14 +51,14 @@ const ModalWrapper: React.FC<{
     <AnimatePresence>
         {isOpen && (
             <motion.div
-                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 flex items-center justify-center p-4 mt-16 "
+                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 flex items-center justify-center p-2 sm:p-4 mt-4 sm:mt-16 "
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={onClose}
             >
                 <motion.div
-                    className={`bg-white/95 dark:bg-gray-900/95 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl ms-60 p-8 max-h-[90vh] overflow-y-auto ${wide ? 'w-full max-w-4xl' : 'w-full max-w-md'}`}
+                    className={`bg-white/95 dark:bg-gray-900/95 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl ms-0 sm:ms-60 p-4 sm:p-6 lg:p-8 max-h-[90vh] overflow-y-auto ${wide ? 'w-full max-w-4xl' : 'w-full max-w-md'}`}
                     initial={{ scale: 0.95, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.95, opacity: 0 }}
@@ -212,7 +212,7 @@ const AddRunningModal: React.FC<AddRunningModalProps> = ({ isOpen, onClose, onSu
         if (!data.trade_setup || !data.stopLoss) return null;
         const curr = getCurrentPriceLocal(data.symbol || '', data.trade_setup, marketData);
         if (!curr) return null;
-        const entry:any = data.trade_setup === "buy" ? curr.ask : curr.bid;
+        const entry: any = data.trade_setup === "buy" ? curr.ask : curr.bid;
         const sl = data.stopLoss;
         const isBuy = data.trade_setup === "buy";
         if (isBuy && sl >= entry)
@@ -229,7 +229,7 @@ const AddRunningModal: React.FC<AddRunningModalProps> = ({ isOpen, onClose, onSu
         if (!data.trade_setup || data.takeProfit === undefined || data.takeProfit <= 0) return null;
         const curr = getCurrentPriceLocal(data.symbol || '', data.trade_setup, marketData);
         if (!curr) return null;
-        const entry:any = data.trade_setup === "buy" ? curr.ask : curr.bid;
+        const entry: any = data.trade_setup === "buy" ? curr.ask : curr.bid;
         const tp = data.takeProfit;
         const isBuy = data.trade_setup === "buy";
         if (isBuy && tp <= entry)
@@ -303,7 +303,7 @@ const AddRunningModal: React.FC<AddRunningModalProps> = ({ isOpen, onClose, onSu
     return (
         <ModalWrapper isOpen={isOpen} onClose={onClose} wide={true}>
             <div className="flex items-center justify-between">
-                <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                <h3 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                     ADD MARKET ORDER
                 </h3>
                 <button
@@ -316,7 +316,7 @@ const AddRunningModal: React.FC<AddRunningModalProps> = ({ isOpen, onClose, onSu
                     </svg>
                 </button>
             </div>
-            <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6">
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 {/* Column 1 */}
                 <div className="space-y-4">
                     {/* Symbol with Searchable Dropdown */}
@@ -351,7 +351,7 @@ const AddRunningModal: React.FC<AddRunningModalProps> = ({ isOpen, onClose, onSu
                     />
                 </div>
                 {/* Column 2 */}
-                <div className="space-y-4 mt-6">
+                <div className="mt-0 md:mt-6 space-y-4">
                     <FloatingLabelInput
                         type="number"
                         label="Take Profit (optional)"
@@ -383,7 +383,7 @@ const AddRunningModal: React.FC<AddRunningModalProps> = ({ isOpen, onClose, onSu
                         </div>
                     )}
                 </div>
-                <div className="col-span-2 flex gap-3 pt-6">
+                <div className="col-span-1 md:col-span-2 flex gap-3 pt-6">
                     <MutedBtn
                         type="button"
                         onClick={onClose}
