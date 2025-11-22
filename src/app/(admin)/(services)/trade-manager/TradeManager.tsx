@@ -22,6 +22,7 @@ import UpdateSlTpBeModal from "./UpdateSlTpBeModal";
 import UpdatePartialCloseModal from "./UpdatePartialCloseModal";
 import SetVolumeToCloseModal from "./SetVolumeToCloseModal";
 import { getCurrencySymbol } from "../../../../utils/common";
+import DetailsModal from "./DetailsModal";
 /* ============================================================================
    Types
 =========================================================================== */
@@ -42,6 +43,7 @@ export interface TradeData {
   takeProfit?: number;
   execution_time?: string;
   closing_time?: string;
+  closing_price?: number;
   profit?: number;
   order_id?: string;
   order_type?: string; // 'limit' | 'stop'
@@ -57,6 +59,14 @@ export interface TradeData {
   volumeToClose?: number;
   partiallyClosed?: Array<{ lots: number; price: number }>;
 }
+interface PaginationInfo {
+  page: number;
+  limit: number;
+  total: number;
+  pages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
 interface Account {
   accountNumber: number;
   server: string;
@@ -69,6 +79,11 @@ export interface MarketData {
   bid: number | null;
   ask: number | null;
   timestamp: string;
+}
+interface TableColumn {
+  key: string;
+  label: string;
+  width?: string;
 }
 /* ============================================================================
    Global helpers (used by modals)
@@ -196,6 +211,54 @@ const DangerBtn: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({
     {children}
   </button>
 );
+const InfoBtn: React.FC<{onClick: () => void}> = ({onClick}) => (
+  <button
+    onClick={onClick}
+    className="p-1 text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors text-sm font-medium"
+    title="View Details"
+  >
+    ℹ️
+  </button>
+);
+interface PaginationProps {
+  page: number;
+  total: number;
+  limit: number;
+  onPageChange: (page: number) => void;
+  disabled?: boolean;
+}
+const Pagination: React.FC<PaginationProps> = ({ page, total, limit, onPageChange, disabled = false }) => {
+  const totalPages = Math.ceil(total / limit);
+  if (totalPages <= 1) return null;
+  const start = (page - 1) * limit + 1;
+  const end = Math.min(page * limit, total);
+  return (
+    <div className="px-6 py-3 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center">
+      <span className="text-sm text-gray-600 dark:text-gray-300">
+        Showing {start} to {end} of {total} results
+      </span>
+      <div className="flex items-center space-x-2">
+        <MutedBtn
+          onClick={() => onPageChange(page - 1)}
+          disabled={disabled || page === 1}
+          className="px-3 py-1 text-xs"
+        >
+          Previous
+        </MutedBtn>
+        <span className="px-3 py-1 bg-white dark:bg-gray-700 rounded text-xs font-medium text-gray-900 dark:text-white">
+          {page} of {totalPages}
+        </span>
+        <MutedBtn
+          onClick={() => onPageChange(page + 1)}
+          disabled={disabled || page === totalPages}
+          className="px-3 py-1 text-xs"
+        >
+          Next
+        </MutedBtn>
+      </div>
+    </div>
+  );
+};
 const SkeletonLoader: React.FC = () => (
   <div className="animate-pulse space-y-6">
     <div className="p-6 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white/70 dark:bg-gray-900/60">
@@ -255,13 +318,22 @@ export default function TradeManager() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [pendingState, setPending] = useState<TradeData[]>([]);
   const [runningState, setRunning] = useState<TradeData[]>([]);
-  const [executed, setExecuted] = useState<TradeData[]>([]);
-  const [removed, setRemoved] = useState<TradeData[]>([]);
+  const [executedTrades, setExecutedTrades] = useState<TradeData[]>([]);
+  const [executedPage, setExecutedPage] = useState(1);
+  const [executedTotal, setExecutedTotal] = useState(0);
+  const [loadingExecuted, setLoadingExecuted] = useState(false);
+  const [removedTrades, setRemovedTrades] = useState<TradeData[]>([]);
+  const [removedPage, setRemovedPage] = useState(1);
+  const [removedTotal, setRemovedTotal] = useState(0);
+  const [loadingRemoved, setLoadingRemoved] = useState(false);
   const [marketState, setMarket] = useState<MarketData[]>([]);
   const [accountInfo, setAccountInfo]: any = useState({});
   const [token, setToken] = useState<string | null>(null);
+  const [detailsItem, setDetailsItem] = useState<TradeData | null>(null);
+  const [detailsModal, setDetailsModal] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
+  const LIMIT = 10;
   // Sync globals for modals
   useEffect(() => {
     pending = pendingState;
@@ -309,6 +381,46 @@ export default function TradeManager() {
     queueDelete: false,
     queueSpotDelete: false,
   });
+  /* --------------------------------------------------------------------
+     Fetch executed and removed
+  -------------------------------------------------------------------- */
+  const fetchExecuted = useCallback(async (page: number = 1) => {
+    if (!selectedAccount) return;
+    setLoadingExecuted(true);
+    try {
+      const response = await Request({
+        method: "GET",
+        url: `trade-manager/get-executed-order?accountNumber=${selectedAccount}&page=${page}&limit=${LIMIT}`,
+      });
+      setExecutedTrades(response.trades || []);
+      setExecutedTotal(response.pagination?.total || 0);
+      setExecutedPage(page);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to fetch executed trades");
+    } finally {
+      setLoadingExecuted(false);
+    }
+  }, [selectedAccount]);
+  const fetchRemoved = useCallback(async (page: number = 1) => {
+    if (!selectedAccount) return;
+    setLoadingRemoved(true);
+    try {
+      const response = await Request({
+        method: "GET",
+        url: `trade-manager/get-removed-order?accountNumber=${selectedAccount}&page=${page}&limit=${LIMIT}`,
+      });
+      setRemovedTrades(response.orders || []);
+      setRemovedTotal(response.pagination?.total || 0);
+      setRemovedPage(page);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to fetch removed orders");
+    } finally {
+      setLoadingRemoved(false);
+    }
+  }, [selectedAccount]);
+  // MOVED: Page change handlers (must be at top level to avoid conditional hook calls)
+  const handleExecutedPageChange = useCallback((p: number) => fetchExecuted(p), [fetchExecuted]);
+  const handleRemovedPageChange = useCallback((p: number) => fetchRemoved(p), [fetchRemoved]);
   /* --------------------------------------------------------------------
      Helper to get current price
   -------------------------------------------------------------------- */
@@ -368,6 +480,14 @@ export default function TradeManager() {
     fetchAccounts();
   }, [token]);
   /* --------------------------------------------------------------------
+     Fetch executed and removed on account change
+  -------------------------------------------------------------------- */
+  useEffect(() => {
+    if (!selectedAccount) return;
+    fetchExecuted(1);
+    fetchRemoved(1);
+  }, [selectedAccount, fetchExecuted, fetchRemoved]);
+  /* --------------------------------------------------------------------
      Dropdown click-outside
   -------------------------------------------------------------------- */
   useEffect(() => {
@@ -413,8 +533,6 @@ export default function TradeManager() {
           if (type === "update") {
             setPending(data?.pending || []);
             setRunning(data?.running || []);
-            // setExecuted(data?.executed || []);
-            // setRemoved(data?.removed || []);
             setMarket(data?.market || []);
             setAccountInfo(data?.account || []);
           } else if (type === "error") {
@@ -940,16 +1058,52 @@ export default function TradeManager() {
       </div>
     );
   }, [loading, openUpdatePending, openAddSpotPending, openUpdateSpotPending, openQueueDelete, openUpdateSlTpBe, openUpdatePartialClose, openSetVolumeToClose, openAddSpotRunning, openUpdateSpotRunning]);
+  const openDetails = useCallback((item: TradeData) => {
+    setDetailsItem(item);
+    setDetailsModal(true);
+  }, []);
   /* --------------------------------------------------------------------
      Table renderer
   -------------------------------------------------------------------- */
+  const getColumns = useCallback((
+    title: string,
+    isPendingTable: boolean,
+    isRunningTable: boolean
+  ): TableColumn[] => {
+    let cols: TableColumn[] = [
+      { key: 'id', label: 'ID' },
+      { key: 'symbol', label: 'Symbol' },
+      { key: 'setup', label: 'Setup' },
+      { key: 'volume', label: 'Volume' },
+      { key: 'price', label: 'Price' },
+    ];
+    if (isPendingTable || isRunningTable) {
+      cols.push({ key: 'current', label: 'Current', width: 'w-40' });
+      cols.push({ key: 'profit', label: 'Profit', width: 'w-34' });
+    } else if (title === "Closed Trades") {
+      cols.splice(5, 0, { key: 'closeTime', label: 'Close Time', width: 'w-48' });
+      cols.push({ key: 'profit', label: 'Profit', width: 'w-34' });
+    } else if (title === "Removed Orders") {
+      cols.splice(5, 0, { key: 'startTime', label: 'Start Time', width: 'w-48' });
+    }
+    cols.push({ key: 'actions', label: 'Actions' });
+    return cols;
+  }, []);
   const renderTable = useCallback((
     title: string,
     data: TradeData[],
     isPendingTable = false,
-    isRunningTable = false
+    isRunningTable = false,
+    page = 1,
+    total = 0,
+    limit = 10,
+    onPageChange?: (page: number) => void,
+    onRefresh?: () => void,
+    loading?: boolean
   ) => {
     const showCurrentColumn = isPendingTable || isRunningTable;
+    const columns = getColumns(title, isPendingTable, isRunningTable);
+    const handleOpenDetails = (item: TradeData) => openDetails(item);
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -960,6 +1114,15 @@ export default function TradeManager() {
           <h3 className="text-xl font-bold text-gray-900 dark:text-white">
             {title}
           </h3>
+          {onRefresh && (
+            <PrimaryBtn
+              onClick={onRefresh}
+              className="text-xs px-3 py-1.5 ml-auto"
+              disabled={!!loading}
+            >
+              Refresh
+            </PrimaryBtn>
+          )}
           {title === "Pending Orders" && (
             <PrimaryBtn
               onClick={() =>
@@ -981,7 +1144,68 @@ export default function TradeManager() {
             </PrimaryBtn>
           )}
         </div>
-        {data.length === 0 ? (
+        {loading ? (
+          <>
+            <div className="md:hidden p-4 space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <div
+                  key={i}
+                  className="bg-white/80 dark:bg-gray-800/40 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm animate-pulse"
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <div className="h-6 w-24 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+                      <div className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                    </div>
+                    <div className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  </div>
+                  <div className="space-y-3">
+                    {[...Array(4)].map((_, j) => (
+                      <div key={j} className="flex justify-between h-4">
+                        <div className="w-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                        <div className="w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="h-9 w-24 bg-gray-200 dark:bg-gray-700 rounded mt-4"></div>
+                </div>
+              ))}
+            </div>
+            <div className="hidden md:block overflow-x-auto animate-pulse">
+              <table className="min-w-full divide-y divide-gray-200/50 dark:divide-gray-700/50">
+                <thead className="bg-gray-50/50 dark:bg-gray-800/30">
+                  <tr>
+                    {columns.map((col) => (
+                      <th
+                        key={col.key}
+                        className={`px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider ${col.width || ''}`}
+                      >
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200/30 dark:divide-gray-700/30 dark:bg-gray-900/20">
+                  {[...Array(5)].map((_, i) => (
+                    <tr
+                      key={i}
+                      className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors"
+                    >
+                      {columns.map((col) => {
+                        const tdClass = `px-6 py-4 whitespace-nowrap text-sm ${col.width || ''}`;
+                        return (
+                          <td key={col.key} className={tdClass}>
+                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full max-w-32"></div>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        ) : data.length === 0 ? (
           <div className="p-8 text-center">
             <p className="text-gray-500 dark:text-gray-400 text-sm">
               No {title.toLowerCase()} available.
@@ -1010,6 +1234,13 @@ export default function TradeManager() {
                 const setupClass = item.trade_setup === "buy"
                   ? "bg-green-100 text-green-800 dark:bg-green-900/80 dark:text-green-100"
                   : "bg-red-100 text-red-800 dark:bg-red-900/80 dark:text-red-100";
+                const timeDisplay = title === "Closed Trades"
+                  ? item.closing_time ? new Date(item.closing_time).toLocaleString() : '--'
+                  : title === "Removed Orders"
+                  ? item.start_time ? new Date(item.start_time).toLocaleString() : '--'
+                  : '';
+                const showProfitMobile = title === "Closed Trades" || isRunningTable;
+                const showTimeMobile = title === "Closed Trades" || title === "Removed Orders";
                 return (
                   <div
                     key={item.id}
@@ -1058,20 +1289,41 @@ export default function TradeManager() {
                           </span>
                         </div>
                       )}
-                      <div className="flex justify-between">
-                        <span className="text-gray-500 dark:text-gray-400">Profit</span>
-                        <span
-                          className={`font-medium font-mono ${item.profit !== undefined ? profitClass : ""}`}
-                        >
-                          {profitDisplay}
-                        </span>
-                      </div>
+                      {showTimeMobile && timeDisplay && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-500 dark:text-gray-400">
+                            {title === "Closed Trades" ? "Close Time" : "Start Time"}
+                          </span>
+                          <span className="text-gray-900 dark:text-white text-xs">
+                            {timeDisplay}
+                          </span>
+                        </div>
+                      )}
+                      {showProfitMobile && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-500 dark:text-gray-400">Profit</span>
+                          <span
+                            className={`font-medium font-mono ${item.profit !== undefined ? profitClass : ""}`}
+                          >
+                            {profitDisplay}
+                          </span>
+                        </div>
+                      )}
                     </div>
-                    <RenderActions
-                      item={item}
-                      isPendingTable={isPendingTable}
-                      isRunningTable={isRunningTable}
-                    />
+                    {isPendingTable || isRunningTable ? (
+                      <RenderActions
+                        item={item}
+                        isPendingTable={isPendingTable}
+                        isRunningTable={isRunningTable}
+                      />
+                    ) : (
+                      <PrimaryBtn
+                        onClick={() => handleOpenDetails(item)}
+                        className="w-full text-xs"
+                      >
+                        View Details
+                      </PrimaryBtn>
+                    )}
                   </div>
                 );
               })}
@@ -1080,32 +1332,14 @@ export default function TradeManager() {
               <table className="min-w-full divide-y divide-gray-200/50 dark:divide-gray-700/50">
                 <thead className="bg-gray-50/50 dark:bg-gray-800/30">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                      ID
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                      Symbol
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                      Setup
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                      Volume
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                      Price
-                    </th>
-                    {showCurrentColumn && (
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider w-40">
-                        Current
+                    {columns.map((col) => (
+                      <th
+                        key={col.key}
+                        className={`px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider ${col.width || ''}`}
+                      >
+                        {col.label}
                       </th>
-                    )}
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider w-34">
-                      Profit
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                      Actions
-                    </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200/30 dark:divide-gray-700/30 dark:bg-gray-900/20">
@@ -1118,63 +1352,96 @@ export default function TradeManager() {
                           ? currentPrice.ask?.toFixed(5)
                           : currentPrice.bid?.toFixed(5)) ?? "--"
                       : "--";
+                    const profitDisplay = item.profit !== undefined
+                      ? item.profit >= 0
+                        ? `+${item.profit.toFixed(2)}`
+                        : item.profit.toFixed(2)
+                      : "--";
+                    const profitClass = item.profit !== undefined && item.profit >= 0
+                      ? "text-green-600"
+                      : "text-red-600";
+                    const setupClass = item.trade_setup === "buy"
+                      ? "bg-green-100 text-green-800 dark:bg-green-900/80 dark:text-green-100"
+                      : "bg-red-100 text-red-800 dark:bg-red-900/80 dark:text-red-100";
+                    const closeTimeDisplay = item.closing_time ? new Date(item.closing_time).toLocaleString() : '--';
+                    const startTimeDisplay = item.start_time ? new Date(item.start_time).toLocaleString() : '--';
                     return (
                       <tr
                         key={item.id}
                         className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors"
                       >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                          {item?.id ? (
-                            item.id
-                          ) : (
-                            <span className="inline-flex items-center">
-                              Adding.. &nbsp; <div className="animate-ping rounded-full h-3 w-3 bg-blue-500"></div>
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-mono">
-                          {item.symbol}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span
-                            className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${item.trade_setup === "buy"
-                              ? "bg-green-100 text-green-800 dark:bg-green-900/80 dark:text-green-100"
-                              : "bg-red-100 text-red-800 dark:bg-red-900/80 dark:text-red-100"
-                              }`}
-                          >
-                            {item.trade_setup?.toUpperCase()}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-mono">
-                          {item.volume?.toFixed(2)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-mono">
-                          {item.price?.toFixed(5)}
-                        </td>
-                        {showCurrentColumn && (
-                          <td className="px-6 py-4 whitespace-nowrap w-40 text-sm font-mono text-gray-600 dark:text-gray-300">
-                            {displayCurrent}
-                          </td>
-                        )}
-                        <td
-                          className={`px-6 py-4 whitespace-nowrap text-sm font-medium w-34 ${item.profit !== undefined && item.profit >= 0
-                            ? "text-green-600"
-                            : "text-red-600"
-                            }`}
-                        >
-                          {item.profit !== undefined
-                            ? item.profit >= 0
-                              ? `+${item.profit.toFixed(2)}`
-                              : item.profit.toFixed(2)
-                            : "--"}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <RenderActions
-                            item={item}
-                            isPendingTable={isPendingTable}
-                            isRunningTable={isRunningTable}
-                          />
-                        </td>
+                        {columns.map((col) => {
+                          let content: React.ReactNode = '--';
+                          let tdClass = `px-6 py-4 whitespace-nowrap text-sm`;
+                          if (col.width) tdClass += ` ${col.width}`;
+                          switch (col.key) {
+                            case 'id':
+                              content = item?.id ? (
+                                item.id
+                              ) : (
+                                <span className="inline-flex items-center">
+                                  Adding.. &nbsp; <div className="animate-ping rounded-full h-3 w-3 bg-blue-500"></div>
+                                </span>
+                              );
+                              tdClass += ` font-medium text-gray-900 dark:text-white`;
+                              break;
+                            case 'symbol':
+                              content = item.symbol;
+                              tdClass += ` text-gray-900 dark:text-white font-mono`;
+                              break;
+                            case 'setup':
+                              content = (
+                                <span
+                                  className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${setupClass}`}
+                                >
+                                  {item.trade_setup?.toUpperCase()}
+                                </span>
+                              );
+                              break;
+                            case 'volume':
+                              content = item.volume?.toFixed(2) || '--';
+                              tdClass += ` text-gray-900 dark:text-white font-mono`;
+                              break;
+                            case 'price':
+                              content = item.price?.toFixed(5) || '--';
+                              tdClass += ` text-gray-900 dark:text-white font-mono`;
+                              break;
+                            case 'current':
+                              content = displayCurrent;
+                              tdClass += ` font-mono text-gray-600 dark:text-gray-300`;
+                              break;
+                            case 'profit':
+                              content = profitDisplay;
+                              tdClass += ` font-medium font-mono ${profitClass}`;
+                              break;
+                            case 'closeTime':
+                              content = closeTimeDisplay;
+                              tdClass += ` text-gray-900 dark:text-white`;
+                              break;
+                            case 'startTime':
+                              content = startTimeDisplay;
+                              tdClass += ` text-gray-900 dark:text-white`;
+                              break;
+                            case 'actions':
+                              if (isPendingTable || isRunningTable) {
+                                content = <RenderActions item={item} isPendingTable={isPendingTable} isRunningTable={isRunningTable} />;
+                              } else {
+                                content = <InfoBtn onClick={() => handleOpenDetails(item)} />;
+                              }
+                              tdClass += ` font-medium`;
+                              break;
+                            default:
+                              content = '--';
+                          }
+                          return (
+                            <td
+                              key={col.key}
+                              className={tdClass}
+                            >
+                              {content}
+                            </td>
+                          );
+                        })}
                       </tr>
                     );
                   })}
@@ -1183,9 +1450,18 @@ export default function TradeManager() {
             </div>
           </>
         )}
+        {total > 0 && (
+          <Pagination
+            page={page}
+            total={total}
+            limit={limit}
+            onPageChange={onPageChange || (() => {})}
+            disabled={!!loading}
+          />
+        )}
       </motion.div>
     );
-  }, [getCurrentPrice, loading, isConnecting, RenderActions, openUpdatePending, openAddSpotPending, openUpdateSpotPending, openQueueDelete, openUpdateSlTpBe, openUpdatePartialClose, openSetVolumeToClose, openAddSpotRunning, openUpdateSpotRunning]);
+  }, [getCurrentPrice, loading, isConnecting, RenderActions, openDetails, getColumns]);
   /* --------------------------------------------------------------------
      Render
   -------------------------------------------------------------------- */
@@ -1313,8 +1589,8 @@ export default function TradeManager() {
           <div className="space-y-6">
             {renderTable("Pending Orders", pendingState, true, false)}
             {renderTable("Open Positions", runningState, false, true)}
-            {renderTable("Closed Trades", executed, false, false)}
-            {renderTable("Removed Orders", removed, false, false)}
+            {renderTable("Closed Trades", executedTrades, false, false, executedPage, executedTotal, LIMIT, handleExecutedPageChange, () => fetchExecuted(executedPage), loadingExecuted)}
+            {renderTable("Removed Orders", removedTrades, false, false, removedPage, removedTotal, LIMIT, handleRemovedPageChange, () => fetchRemoved(removedPage), loadingRemoved)}
           </div>
         ) : (
           <motion.div
@@ -1435,6 +1711,12 @@ export default function TradeManager() {
           onConfirm={handleQueueDelete}
           loading={loading.queueDelete}
           orderTicket={currentAction.orderTicket}
+        />
+        <DetailsModal
+          isOpen={detailsModal}
+          // TradeData={TradeData}
+          onClose={() => setDetailsModal(false)}
+          item={detailsItem}
         />
       </div>
     </div>
