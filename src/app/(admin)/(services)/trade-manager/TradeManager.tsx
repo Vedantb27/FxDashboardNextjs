@@ -23,6 +23,8 @@ import UpdatePartialCloseModal from "./UpdatePartialCloseModal";
 import SetVolumeToCloseModal from "./SetVolumeToCloseModal";
 import { getCurrencySymbol } from "../../../../utils/common";
 import DetailsModal from "./DetailsModal";
+import { IconRefresh } from "@tabler/icons-react";
+import { convertToUserLocal } from "../../../../utils/serverTime";
 /* ============================================================================
    Types
 =========================================================================== */
@@ -150,28 +152,7 @@ const ModalWrapper: React.FC<{
     )}
   </AnimatePresence>
 );
-const FloatingLabelInput = (
-  props: any & { label?: string; error?: string }
-) => (
-  <div className="relative mb-3">
-    <input
-      {...props}
-      placeholder={props.label}
-      className={`peer w-full p-3 pt-6 rounded-lg border transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm bg-transparent appearance-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${props.error
-        ? "border-red-500 focus:border-red-500 focus:ring-red-200"
-        : "border-gray-300 dark:border-gray-600 focus:border-blue-400"
-        } ${props.className || ""}`}
-    />
-    {props.label && (
-      <label className={`absolute left-3 top-3 text-sm text-gray-500 transition-all duration-200 ease-in-out pointer-events-none peer-focus:-top-2 peer-focus:text-xs peer:not(:placeholder-shown):-top-2 peer:not(:placeholder-shown):text-xs ${props.error ? 'text-red-500 peer-focus:text-red-500 peer:not(:placeholder-shown):text-red-500' : 'peer-focus:text-blue-400 peer:not(:placeholder-shown):text-blue-400'}`}>
-        {props.label}
-      </label>
-    )}
-    {props.error && (
-      <p className="mt-1 text-xs text-red-600 dark:text-red-400">{props.error}</p>
-    )}
-  </div>
-);
+
 const PrimaryBtn: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({
   className,
   children,
@@ -211,7 +192,7 @@ const DangerBtn: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({
     {children}
   </button>
 );
-const InfoBtn: React.FC<{onClick: () => void}> = ({onClick}) => (
+const InfoBtn: React.FC<{ onClick: () => void }> = ({ onClick }) => (
   <button
     onClick={onClick}
     className="p-1 text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors text-sm font-medium"
@@ -930,25 +911,25 @@ export default function TradeManager() {
     }
   }, [selectedAccount, currentAction.orderTicket]);
   const handleQueueSpotDelete = useCallback(async () => {
-  if (!selectedAccount || !currentAction.parentId || currentAction.index < 0) return;
-  setLoading((prev) => ({ ...prev, queueSpotDelete: true }));
-  try {
-    await Request({
-      method: "POST",
-      url: "trade-manager/queue-spot-delete",
-      data: {
-        accountNumber: String(selectedAccount),
-        tradeId: String(currentAction.parentId),
-        spotIndex: String(currentAction.index)
-      },
-    });
-    setModals((prev) => ({ ...prev, updateSpotPending: false, updateSpotRunning: false }));
-  } catch (err: any) {
-    toast.error(err.response?.data?.error || "Failed to queue spot delete");
-  } finally {
-    setLoading((prev) => ({ ...prev, queueSpotDelete: false }));
-  }
-}, [selectedAccount, currentAction.parentId, currentAction.index]);
+    if (!selectedAccount || !currentAction.parentId || currentAction.index < 0) return;
+    setLoading((prev) => ({ ...prev, queueSpotDelete: true }));
+    try {
+      await Request({
+        method: "POST",
+        url: "trade-manager/queue-spot-delete",
+        data: {
+          accountNumber: String(selectedAccount),
+          tradeId: String(currentAction.parentId),
+          spotIndex: String(currentAction.index)
+        },
+      });
+      setModals((prev) => ({ ...prev, updateSpotPending: false, updateSpotRunning: false }));
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Failed to queue spot delete");
+    } finally {
+      setLoading((prev) => ({ ...prev, queueSpotDelete: false }));
+    }
+  }, [selectedAccount, currentAction.parentId, currentAction.index]);
   const RenderActions = useCallback(({
     item,
     isPendingTable,
@@ -1084,7 +1065,7 @@ export default function TradeManager() {
       cols.splice(5, 0, { key: 'closeTime', label: 'Close Time', width: 'w-48' });
       cols.push({ key: 'profit', label: 'Profit', width: 'w-34' });
     } else if (title === "Removed Orders") {
-      cols.splice(5, 0, { key: 'startTime', label: 'Start Time', width: 'w-48' });
+      // cols.splice(5, 0, { key: 'startTime', label: 'Added Time', width: 'w-48' });
     }
     cols.push({ key: 'actions', label: 'Actions' });
     return cols;
@@ -1115,13 +1096,27 @@ export default function TradeManager() {
             {title}
           </h3>
           {onRefresh && (
-            <PrimaryBtn
+            <button
               onClick={onRefresh}
-              className="text-xs px-3 py-1.5 ml-auto"
               disabled={!!loading}
+              className="
+    p-2 rounded-full transition-colors
+    bg-gray-200 dark:bg-gray-700
+    hover:bg-gray-300 dark:hover:bg-gray-600
+    active:bg-gray-400 dark:active:bg-gray-500
+    disabled:opacity-50 disabled:cursor-not-allowed
+    text-black dark:text-white
+  "
+
+              aria-label="Refresh"
             >
-              Refresh
-            </PrimaryBtn>
+              <IconRefresh
+                stroke={1.5}
+                className={`w-5 h-5 ${loading ? "animate-spin" : ""}`}
+              />
+            </button>
+
+
           )}
           {title === "Pending Orders" && (
             <PrimaryBtn
@@ -1220,8 +1215,8 @@ export default function TradeManager() {
                   : null;
                 const displayCurrent = currentPrice
                   ? (item.trade_setup === "buy"
-                      ? currentPrice.ask?.toFixed(5)
-                      : currentPrice.bid?.toFixed(5)) ?? "--"
+                    ? currentPrice.ask?.toFixed(5)
+                    : currentPrice.bid?.toFixed(5)) ?? "--"
                   : "--";
                 const profitDisplay = item.profit !== undefined
                   ? item.profit >= 0
@@ -1235,10 +1230,10 @@ export default function TradeManager() {
                   ? "bg-green-100 text-green-800 dark:bg-green-900/80 dark:text-green-100"
                   : "bg-red-100 text-red-800 dark:bg-red-900/80 dark:text-red-100";
                 const timeDisplay = title === "Closed Trades"
-                  ? item.closing_time ? new Date(item.closing_time).toLocaleString() : '--'
+                  ? item.closing_time ? convertToUserLocal(item.closing_time) : '--'
                   : title === "Removed Orders"
-                  ? item.start_time ? new Date(item.start_time).toLocaleString() : '--'
-                  : '';
+                    ? item.start_time ? convertToUserLocal(item.start_time) : '--'
+                    : '';
                 const showProfitMobile = title === "Closed Trades" || isRunningTable;
                 const showTimeMobile = title === "Closed Trades" || title === "Removed Orders";
                 return (
@@ -1292,7 +1287,7 @@ export default function TradeManager() {
                       {showTimeMobile && timeDisplay && (
                         <div className="flex justify-between">
                           <span className="text-gray-500 dark:text-gray-400">
-                            {title === "Closed Trades" ? "Close Time" : "Start Time"}
+                            {title === "Closed Trades" ? "Close Time" : "Added Time"}
                           </span>
                           <span className="text-gray-900 dark:text-white text-xs">
                             {timeDisplay}
@@ -1349,8 +1344,8 @@ export default function TradeManager() {
                       : null;
                     const displayCurrent = currentPrice
                       ? (item.trade_setup === "buy"
-                          ? currentPrice.ask?.toFixed(5)
-                          : currentPrice.bid?.toFixed(5)) ?? "--"
+                        ? currentPrice.ask?.toFixed(5)
+                        : currentPrice.bid?.toFixed(5)) ?? "--"
                       : "--";
                     const profitDisplay = item.profit !== undefined
                       ? item.profit >= 0
@@ -1363,8 +1358,8 @@ export default function TradeManager() {
                     const setupClass = item.trade_setup === "buy"
                       ? "bg-green-100 text-green-800 dark:bg-green-900/80 dark:text-green-100"
                       : "bg-red-100 text-red-800 dark:bg-red-900/80 dark:text-red-100";
-                    const closeTimeDisplay = item.closing_time ? new Date(item.closing_time).toLocaleString() : '--';
-                    const startTimeDisplay = item.start_time ? new Date(item.start_time).toLocaleString() : '--';
+                    const closeTimeDisplay = item.closing_time ? convertToUserLocal(item.closing_time) : '--';
+                    const startTimeDisplay = item.start_time ? convertToUserLocal(item.start_time) : '--';
                     return (
                       <tr
                         key={item.id}
@@ -1455,7 +1450,7 @@ export default function TradeManager() {
             page={page}
             total={total}
             limit={limit}
-            onPageChange={onPageChange || (() => {})}
+            onPageChange={onPageChange || (() => { })}
             disabled={!!loading}
           />
         )}

@@ -286,35 +286,42 @@ export default function OverallTarget({ tradeHistory, balance, isLoadingTrades,c
           </>
         ) : (
           <>
-            <div>
-              <p className="mb-1 text-center text-gray-500 text-theme-xs dark:text-gray-400 sm:text-sm">
-                Monthly gain
-              </p>
-              <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-                {monthlyProfit.toFixed(2)} {getCurrencySymbol(currency)}
-                {monthlyProfit >= 0 ? <UpArrow /> : <DownArrow />}
-              </p>
-            </div>
-            <div className="w-px bg-gray-200 h-7 dark:bg-gray-800"></div>
-            <div>
-              <p className="mb-1 text-center text-gray-500 text-theme-xs dark:text-gray-400 sm:text-sm">
-                Weekly gain
-              </p>
-              <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-                {weeklyProfit.toFixed(2)} {getCurrencySymbol(currency)}
-                {weeklyProfit >= 0 ? <UpArrow /> : <DownArrow />}
-              </p>
-            </div>
-            <div className="w-px bg-gray-200 h-7 dark:bg-gray-800"></div>
-            <div>
-              <p className="mb-1 text-center text-gray-500 text-theme-xs dark:text-gray-400 sm:text-sm">
-                Daily gain
-              </p>
-              <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-                {dailyProfit.toFixed(2)} {getCurrencySymbol(currency)}
-                {dailyProfit >= 0 ? <UpArrow /> : <DownArrow />}
-              </p>
-            </div>
+           <div className="flex flex-nowrap items-center justify-center gap-0.5 px-4 py-1 sm:gap-5">
+  <div>
+    <p className="mb-1 text-center text-gray-500 text-xs dark:text-gray-400 sm:text-sm">
+      Monthly gain
+    </p>
+    <p className="flex items-center justify-center text-center gap-1 whitespace-nowrap text-sm font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
+      {monthlyProfit.toFixed(2)} {getCurrencySymbol(currency)}
+      {monthlyProfit >= 0 ? <UpArrow /> : <DownArrow />}
+    </p>
+  </div>
+
+  <div className="w-px bg-gray-200 h-7 dark:bg-gray-800"></div>
+
+  <div>
+    <p className="mb-1 text-center text-gray-500 text-xs dark:text-gray-400 sm:text-sm">
+      Weekly gain
+    </p>
+    <p className="flex items-center justify-center text-center gap-1 whitespace-nowrap text-sm font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
+      {weeklyProfit.toFixed(2)} {getCurrencySymbol(currency)}
+      {weeklyProfit >= 0 ? <UpArrow /> : <DownArrow />}
+    </p>
+  </div>
+
+  <div className="w-px bg-gray-200 h-7 dark:bg-gray-800"></div>
+
+  <div>
+    <p className="mb-1 text-center text-gray-500 text-xs dark:text-gray-400 sm:text-sm">
+      Daily gain
+    </p>
+    <p className="flex items-center  text-center justify-center gap-1 whitespace-nowrap text-sm font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
+      {dailyProfit.toFixed(2)} {getCurrencySymbol(currency)}
+      {dailyProfit >= 0 ? <UpArrow /> : <DownArrow />}
+    </p>
+  </div>
+</div>
+
           </>
         )}
       </div>

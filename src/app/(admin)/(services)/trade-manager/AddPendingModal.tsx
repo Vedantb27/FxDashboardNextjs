@@ -470,7 +470,7 @@ const AddPendingModal: React.FC<AddPendingModalProps> = ({ isOpen, onClose, onSu
                             Object.keys(errors).length > 0 ||
                             (
                                 initialData?.takeProfit === formData?.takeProfit &&
-                                initialData?.stopLoss === formData?.stopLoss && mode === 'update'
+                                initialData?.stopLoss === formData?.stopLoss &&  initialData?.removalPrice === formData?.removalPrice && mode === 'update'
                             )
                         }
                         className="flex-1"

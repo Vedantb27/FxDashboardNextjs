@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { convertToUserLocal } from "../../../../utils/serverTime";
 
 interface DetailsModalProps {
   isOpen: boolean;
@@ -68,9 +69,9 @@ const DetailsModal: React.FC<DetailsModalProps> = ({ isOpen, onClose, item }) =>
         <div className="text-gray-900 dark:text-white"><strong>Price:</strong> {item.price?.toFixed(5) || '--'}</div>
         {item.closing_price && <div className="text-gray-900 dark:text-white"><strong>Close Price:</strong> {item.closing_price.toFixed(5)}</div>}
         {item.removalPrice && <div className="text-gray-900 dark:text-white"><strong>Removal Price:</strong> {item.removalPrice.toFixed(5)}</div>}
-        {item.closing_time && <div className="text-gray-900 dark:text-white"><strong>Closed:</strong> {new Date(item.closing_time).toLocaleString()}</div>}
-        {item.start_time && <div className="text-gray-900 dark:text-white"><strong>Started:</strong> {new Date(item.start_time).toLocaleString()}</div>}
-        {item.execution_time && <div className="text-gray-900 dark:text-white"><strong>Executed:</strong> {new Date(item.execution_time).toLocaleString()}</div>}
+        {item.closing_time && <div className="text-gray-900 dark:text-white"><strong>Closed:</strong> {convertToUserLocal(item.closing_time)}</div>}
+        {/* {item.start_time && <div className="text-gray-900 dark:text-white"><strong>Started:</strong> {getFormattedUserLocalTime(item.start_time)}</div>} */}
+        {item.execution_time && <div className="text-gray-900 dark:text-white"><strong>Executed:</strong> {convertToUserLocal(item.execution_time)}</div>}
         {item.profit !== undefined && (
           <div className={item.profit >= 0 ? "text-green-600" : "text-red-600"}>
             <strong>Profit:</strong> {item.profit >= 0 ? `+${item.profit.toFixed(2)}` : item.profit.toFixed(2)}
