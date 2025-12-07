@@ -11,6 +11,7 @@ import { useState, useEffect } from "react";
 import { useModal } from "../../hooks/useModal";
 import { Modal } from "../../components/ui/modal";
 import AUD from "../../icons/currencyPairs/AUD.png";
+import CNH from "../../icons/currencyPairs/CNH.png";
 import CAD from "../../icons/currencyPairs/CAD.png";
 import GBP from "../../icons/currencyPairs/GBP.png";
 import NZD from "../../icons/currencyPairs/NZD.png";
@@ -57,6 +58,7 @@ interface RecentOrdersProps {
 // Icon mappings
 const ICONS = {
   AUD,
+  CNH,
   CAD,
   GBP,
   NZD,
@@ -73,8 +75,8 @@ interface PairIconProps {
   size?: number; // in px
 }
 
-const BASES = ["AUD", "CAD", "GBP", "NZD", "USD", "EUR", "CHF", "JPY","BTC"] as const;
-const QUOTES = ["AUD", "CAD", "GBP", "NZD", "USD", "EUR", "CHF", "JPY","BTC"] as const;
+const BASES = ["AUD", "CAD", "GBP", "NZD", "USD", "EUR", "CHF", "JPY","BTC","CNH"] as const;
+const QUOTES = ["AUD", "CAD", "GBP", "NZD", "USD", "EUR", "CHF", "JPY","BTC","CNH"] as const;
 
 type Base = typeof BASES[number];
 type Quote = typeof QUOTES[number];
