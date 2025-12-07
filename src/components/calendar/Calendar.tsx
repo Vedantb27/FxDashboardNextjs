@@ -95,7 +95,7 @@ const Calendar: React.FC = () => {
   const [dailyProfits, setDailyProfits] = useState<{ [date: string]: number }>({});
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
-  const [balance, setBalance]:any = useState(0);
+  const [balance, setBalance]: any = useState(0);
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const calendarRef = useRef<FullCalendar>(null);
@@ -128,11 +128,16 @@ const Calendar: React.FC = () => {
           });
           setAccounts(sortedAccounts || []);
           if (sortedAccounts.length > 0) {
-            setSelectedAccount(sortedAccounts[0]?.accountNumber.toString());
-            setBalance(sortedAccounts[0]?.balance.toString());
+            const first = sortedAccounts[0];
+
+            setSelectedAccount(first?.accountNumber?.toString() ?? "");
+
+            setBalance(first?.balance != null ? String(first.balance) : "0");
           }
+
         }
       } catch (error) {
+        console.log(error)
         toast.error("Error fetching accounts");
       } finally {
         setIsLoadingAccounts(false);
@@ -386,7 +391,7 @@ const Calendar: React.FC = () => {
                     className="h-9 sm:h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-left text-xs sm:text-sm text-gray-900 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
                     onClick={() => setShowDropdown(!showDropdown)}
                   >
-                  {accounts?.length>0 &&  <div className="flex items-center space-x-2">
+                    {accounts?.length > 0 && <div className="flex items-center space-x-2">
                       <Image
                         src={
                           accounts.find((acc) => acc.accountNumber.toString() === selectedAccount)?.platform === 'MT5'
@@ -405,7 +410,7 @@ const Calendar: React.FC = () => {
                   </button>
                   {showDropdown && (
                     <ul className="absolute z-10 mt-1 w-full rounded-md border border-gray-300 bg-white shadow-lg dark:bg-gray-800 dark:border-gray-600">
-                      {accounts.map((account:any) => (
+                      {accounts.map((account: any) => (
                         <li
                           key={account.accountNumber}
                           onClick={() => {
@@ -475,9 +480,9 @@ const Calendar: React.FC = () => {
             <h5 className="mb-2 font-semibold text-gray-800 modal-title text-theme-xl dark:text-white/90 lg:text-2xl">
               {selectedEvent ? "Edit Event" : "Add Event"}
             </h5>
-            
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Plan your next big moment: schedule or edit an event to stay on track
+
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Plan your next big moment: schedule or edit an event to stay on track
             </p>
           </div>
           <div className="mt-8">

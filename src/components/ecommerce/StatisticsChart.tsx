@@ -48,7 +48,7 @@ export default function StatisticsChart({ tradeHistory, balance, isLoadingTrades
   });
 
   const totalProfit = sorted.reduce((sum, t) => sum + t.profit, 0);
-  const initialBalance = balance;
+  const initialBalance = Number(balance ?? 0);
 
   let equityData: { x: number; y: number }[] = [];
 
@@ -73,7 +73,7 @@ export default function StatisticsChart({ tradeHistory, balance, isLoadingTrades
     }
   } else {
     // If no trades, show current balance at current time
-    equityData = [{ x: Date.now(), y: Number(balance.toFixed(2)) }];
+    equityData = [{ x: Date.now(), y: Number(balance?.toFixed(2)) }];
   }
 
   const options: ApexOptions = {

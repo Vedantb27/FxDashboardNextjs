@@ -40,10 +40,10 @@ interface OverallTargetProps {
   tradeHistory: Trade[];
   balance: number;
   isLoadingTrades: Boolean;
-  currency:string
+  currency: string
 }
 
-export default function OverallTarget({ tradeHistory, balance, isLoadingTrades,currency }: OverallTargetProps) {
+export default function OverallTarget({ tradeHistory, balance, isLoadingTrades, currency }: OverallTargetProps) {
   const [series, setSeries] = useState<number[]>([0]);
   const [weeklyProfit, setWeeklyProfit] = useState<number>(0);
   const [totalProfit, setTotalProfit] = useState<number>(0);
@@ -239,7 +239,7 @@ export default function OverallTarget({ tradeHistory, balance, isLoadingTrades,c
               <div className="h-28 w-28 bg-gray-200 rounded-full animate-pulse"></div> {/* Smaller skeleton size */}
             </div>
           ) : (
-            <div className="max-h-[460px]"> 
+            <div className="max-h-[460px]">
               <ReactApexChart
                 options={options}
                 series={series}
@@ -253,8 +253,19 @@ export default function OverallTarget({ tradeHistory, balance, isLoadingTrades,c
           <div className="mx-auto mt-8 w-full max-w-[380px] h-4 bg-gray-200 rounded animate-pulse"></div>
         ) : (
           <p className="mx-auto mt-8 w-full max-w-[380px] text-center text-sm text-gray-500 sm:text-base">
-            You earn {getCurrencySymbol(currency)}{totalProfit.toFixed(2)} till now, keep up your good work!
+            {totalProfit >= 0 ? (
+              <>
+                You earned {getCurrencySymbol(currency)}
+                {totalProfit.toFixed(2)} till now — keep up your good work!
+              </>
+            ) : (
+              <>
+                You are currently at a loss of {getCurrencySymbol(currency)}
+                {Math.abs(totalProfit).toFixed(2)} — don't worry, keep improving and stay consistent!
+              </>
+            )}
           </p>
+
         )}
       </div>
       <div className="flex items-center justify-center gap-5 px-6 py-3.5 sm:gap-8 sm:py-5">
@@ -286,41 +297,41 @@ export default function OverallTarget({ tradeHistory, balance, isLoadingTrades,c
           </>
         ) : (
           <>
-           <div className="flex flex-nowrap items-center justify-center gap-0.5 px-4 py-1 sm:gap-5">
-  <div>
-    <p className="mb-1 text-center text-gray-500 text-xs dark:text-gray-400 sm:text-sm">
-      Monthly gain
-    </p>
-    <p className="flex items-center justify-center text-center gap-1 whitespace-nowrap text-sm font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-      {monthlyProfit.toFixed(2)} {getCurrencySymbol(currency)}
-      {monthlyProfit >= 0 ? <UpArrow /> : <DownArrow />}
-    </p>
-  </div>
+            <div className="flex flex-nowrap items-center justify-center gap-0.5 px-4 py-1 sm:gap-5">
+              <div>
+                <p className="mb-1 text-center text-gray-500 text-xs dark:text-gray-400 sm:text-sm">
+                  Monthly gain
+                </p>
+                <p className="flex items-center justify-center text-center gap-1 whitespace-nowrap text-sm font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
+                  {monthlyProfit.toFixed(2)} {getCurrencySymbol(currency)}
+                  {monthlyProfit >= 0 ? <UpArrow /> : <DownArrow />}
+                </p>
+              </div>
 
-  <div className="w-px bg-gray-200 h-7 dark:bg-gray-800"></div>
+              <div className="w-px bg-gray-200 h-7 dark:bg-gray-800"></div>
 
-  <div>
-    <p className="mb-1 text-center text-gray-500 text-xs dark:text-gray-400 sm:text-sm">
-      Weekly gain
-    </p>
-    <p className="flex items-center justify-center text-center gap-1 whitespace-nowrap text-sm font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-      {weeklyProfit.toFixed(2)} {getCurrencySymbol(currency)}
-      {weeklyProfit >= 0 ? <UpArrow /> : <DownArrow />}
-    </p>
-  </div>
+              <div>
+                <p className="mb-1 text-center text-gray-500 text-xs dark:text-gray-400 sm:text-sm">
+                  Weekly gain
+                </p>
+                <p className="flex items-center justify-center text-center gap-1 whitespace-nowrap text-sm font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
+                  {weeklyProfit.toFixed(2)} {getCurrencySymbol(currency)}
+                  {weeklyProfit >= 0 ? <UpArrow /> : <DownArrow />}
+                </p>
+              </div>
 
-  <div className="w-px bg-gray-200 h-7 dark:bg-gray-800"></div>
+              <div className="w-px bg-gray-200 h-7 dark:bg-gray-800"></div>
 
-  <div>
-    <p className="mb-1 text-center text-gray-500 text-xs dark:text-gray-400 sm:text-sm">
-      Daily gain
-    </p>
-    <p className="flex items-center  text-center justify-center gap-1 whitespace-nowrap text-sm font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-      {dailyProfit.toFixed(2)} {getCurrencySymbol(currency)}
-      {dailyProfit >= 0 ? <UpArrow /> : <DownArrow />}
-    </p>
-  </div>
-</div>
+              <div>
+                <p className="mb-1 text-center text-gray-500 text-xs dark:text-gray-400 sm:text-sm">
+                  Daily gain
+                </p>
+                <p className="flex items-center  text-center justify-center gap-1 whitespace-nowrap text-sm font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
+                  {dailyProfit.toFixed(2)} {getCurrencySymbol(currency)}
+                  {dailyProfit >= 0 ? <UpArrow /> : <DownArrow />}
+                </p>
+              </div>
+            </div>
 
           </>
         )}

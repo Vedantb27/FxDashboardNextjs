@@ -113,6 +113,7 @@ export default function EcommerceClient() {
             url: "trade-history",
             params: { accountNumber: selectedAccount },
           });
+          console.log(tradeResponse,"tradeResponse")
           if (tradeResponse) {
             dispatch({
               type: "SET_TRADE_HISTORY",
