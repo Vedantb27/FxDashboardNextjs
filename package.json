@@ -54,6 +54,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/react-transition-group": "^4.4.12",
+    "eslint": "^9.39.1",
     "postcss": "^8",
     "tailwindcss": "^4.1.17",
     "typescript": "^5"
