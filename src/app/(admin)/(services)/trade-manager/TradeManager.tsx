@@ -1493,7 +1493,7 @@ export default function TradeManager() {
               onClick={() => setShowDropdown(!showDropdown)}
               disabled={isConnecting}
             >
-              {accounts.length > 0 && selectedAccount ? (
+              {accounts.length > 0 && selectedAccount && !isLoadingAccounts? (
                 <>
                   <div className="flex items-center space-x-2">
                     <Image
@@ -1525,7 +1525,7 @@ export default function TradeManager() {
                   )}
                 </>
               ) : (
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-900"></div>
+                isLoadingAccounts?<div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-900"></div>:""
               )}
             </button>
             <AnimatePresence>
