@@ -75,8 +75,8 @@ interface PairIconProps {
   size?: number; // in px
 }
 
-const BASES = ["AUD", "CAD", "GBP", "NZD", "USD", "EUR", "CHF", "JPY","BTC","CNH"] as const;
-const QUOTES = ["AUD", "CAD", "GBP", "NZD", "USD", "EUR", "CHF", "JPY","BTC","CNH"] as const;
+const BASES = ["AUD", "CAD", "GBP", "NZD", "USD", "EUR", "CHF", "JPY", "BTC", "CNH"] as const;
+const QUOTES = ["AUD", "CAD", "GBP", "NZD", "USD", "EUR", "CHF", "JPY", "BTC", "CNH"] as const;
 
 type Base = typeof BASES[number];
 type Quote = typeof QUOTES[number];
@@ -128,7 +128,7 @@ export default function RecentOrders({ tradeHistory, isLoadingTrades, currency }
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
-  
+
   const { isOpen, openModal, closeModal } = useModal();
 
   // Calculate pagination values
@@ -166,7 +166,7 @@ export default function RecentOrders({ tradeHistory, isLoadingTrades, currency }
   const getPageNumbers = () => {
     const pageNumbers = [];
     const maxVisiblePages = 5;
-    
+
     if (totalPages <= maxVisiblePages) {
       for (let i = 1; i <= totalPages; i++) {
         pageNumbers.push(i);
@@ -175,26 +175,26 @@ export default function RecentOrders({ tradeHistory, isLoadingTrades, currency }
       const halfVisible = Math.floor(maxVisiblePages / 2);
       let start = Math.max(1, currentPage - halfVisible);
       let end = Math.min(totalPages, start + maxVisiblePages - 1);
-      
+
       if (end - start + 1 < maxVisiblePages) {
         start = Math.max(1, end - maxVisiblePages + 1);
       }
-      
+
       if (start > 1) {
         pageNumbers.push(1);
         if (start > 2) pageNumbers.push('...');
       }
-      
+
       for (let i = start; i <= end; i++) {
         pageNumbers.push(i);
       }
-      
+
       if (end < totalPages) {
         if (end < totalPages - 1) pageNumbers.push('...');
         pageNumbers.push(totalPages);
       }
     }
-    
+
     return pageNumbers;
   };
 
@@ -318,7 +318,7 @@ export default function RecentOrders({ tradeHistory, isLoadingTrades, currency }
           )}
         </Modal>
       </div>
-      
+
       {/* Items per page selector */}
       {!isLoadingTrades && tradeHistory?.length > 0 && (
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 px-1 sm:px-0">
@@ -340,14 +340,14 @@ export default function RecentOrders({ tradeHistory, isLoadingTrades, currency }
               items per page
             </span>
           </div>
-          
+
           {/* Pagination info */}
           <div className="text-xs text-gray-600 dark:text-gray-400 sm:text-sm">
             Page {currentPage} of {totalPages}
           </div>
         </div>
       )}
-      
+
       <div className="max-w-full overflow-x-auto -mx-2 sm:mx-0 px-2 sm:px-0">
         <Table>
           {/* Table Header */}
@@ -480,7 +480,7 @@ export default function RecentOrders({ tradeHistory, isLoadingTrades, currency }
                         typeof value === "number" ? profitNumber.toFixed(3) : value ?? "—";
 
                       // Determine badge color: success for positive, error for negative, warning/neutral for zero
-                      const badgeColor:any =
+                      const badgeColor: any =
                         profitNumber > 0 ? "success" : profitNumber < 0 ? "error" : "neutral";
 
                       return (
@@ -488,11 +488,16 @@ export default function RecentOrders({ tradeHistory, isLoadingTrades, currency }
                           key={key}
                           className="py-2 sm:py-3 px-2 sm:px-4 text-gray-500 text-xs sm:text-theme-sm dark:text-gray-400"
                         >
-                          <Badge size="sm" color={badgeColor}>
+                          <Badge
+                            size="sm"
+                            color={badgeColor}
+                            className="w-24"
+                          >
                             <span className="text-xs">
                               {formattedValue} {getCurrencySymbol(currency)}
                             </span>
                           </Badge>
+
                         </TableCell>
                       );
                     }
@@ -529,17 +534,17 @@ export default function RecentOrders({ tradeHistory, isLoadingTrades, currency }
                         </TableCell>
                       );
                     }
-if (key === "sr_no") {
-  const sequentialNumber = indexOfFirstItem + rowIndex + 1;
-  return (
-    <TableCell
-      key={key}
-      className="py-2 sm:py-3 px-2 sm:px-4 text-gray-500 text-xs sm:text-theme-sm dark:text-gray-400"
-    >
-      <span className="text-xs">{sequentialNumber}</span>
-    </TableCell>
-  );
-}
+                    if (key === "sr_no") {
+                      const sequentialNumber = indexOfFirstItem + rowIndex + 1;
+                      return (
+                        <TableCell
+                          key={key}
+                          className="py-2 sm:py-3 px-2 sm:px-4 text-gray-500 text-xs sm:text-theme-sm dark:text-gray-400"
+                        >
+                          <span className="text-xs">{sequentialNumber}</span>
+                        </TableCell>
+                      );
+                    }
                     if (
                       key === "sl_price" ||
                       key === "tp_price" ||
@@ -573,7 +578,7 @@ if (key === "sr_no") {
           </TableBody>
         </Table>
       </div>
-      
+
       {/* Pagination Controls */}
       {!isLoadingTrades && tradeHistory?.length > 0 && totalPages > 1 && (
         <div className="mt-4 sm:mt-6 px-1 sm:px-0">
@@ -582,11 +587,10 @@ if (key === "sr_no") {
             <button
               onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
-              className={`inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-medium sm:px-4 sm:py-2 sm:text-sm ${
-                currentPage === 1
+              className={`inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-medium sm:px-4 sm:py-2 sm:text-sm ${currentPage === 1
                   ? "border-gray-300 text-gray-400 cursor-not-allowed dark:border-gray-700 dark:text-gray-600"
                   : "border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-white/[0.03]"
-              }`}
+                }`}
             >
               <svg
                 className="h-4 w-4"
@@ -603,7 +607,7 @@ if (key === "sr_no") {
               </svg>
               <span className="hidden sm:inline">Previous</span>
             </button>
-            
+
             {/* Page Numbers */}
             <div className="flex items-center gap-1">
               {getPageNumbers().map((page, index) => (
@@ -611,28 +615,26 @@ if (key === "sr_no") {
                   key={index}
                   onClick={() => typeof page === 'number' && handlePageChange(page)}
                   disabled={page === '...'}
-                  className={`min-w-[32px] h-8 rounded-lg text-xs font-medium sm:min-w-[36px] sm:h-9 sm:text-sm ${
-                    page === currentPage
+                  className={`min-w-[32px] h-8 rounded-lg text-xs font-medium sm:min-w-[36px] sm:h-9 sm:text-sm ${page === currentPage
                       ? "bg-indigo-600 text-white"
                       : page === '...'
-                      ? "text-gray-400 cursor-default"
-                      : "text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
-                  }`}
+                        ? "text-gray-400 cursor-default"
+                        : "text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+                    }`}
                 >
                   {page}
                 </button>
               ))}
             </div>
-            
+
             {/* Next Button */}
             <button
               onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
-              className={`inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-medium sm:px-4 sm:py-2 sm:text-sm ${
-                currentPage === totalPages
+              className={`inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-medium sm:px-4 sm:py-2 sm:text-sm ${currentPage === totalPages
                   ? "border-gray-300 text-gray-400 cursor-not-allowed dark:border-gray-700 dark:text-gray-600"
                   : "border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-white/[0.03]"
-              }`}
+                }`}
             >
               <span className="hidden sm:inline">Next</span>
               <svg
@@ -652,7 +654,7 @@ if (key === "sr_no") {
           </div>
         </div>
       )}
-      
+
       {!isLoadingTrades && tradeHistory?.length === 0 && (
         <div className="py-8 text-center">
           <p className="text-gray-500 dark:text-gray-400 text-sm sm:text-base">
