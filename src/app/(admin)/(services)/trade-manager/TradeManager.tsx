@@ -1606,6 +1606,7 @@ export default function TradeManager() {
           loading={loading.addPending}
           symbols={availableSymbols}
           marketData={marketState}
+          balance={balance}
         />
         <AddRunningModal
           isOpen={modals.addRunning}
@@ -1614,6 +1615,7 @@ export default function TradeManager() {
           loading={loading.addRunning}
           symbols={availableSymbols}
           marketData={marketState}
+          // balance={balance}
         />
         <AddPendingModal
           isOpen={modals.updatePending}
@@ -1624,6 +1626,7 @@ export default function TradeManager() {
           marketData={marketState}
           initialData={pending.find((p) => p.id === currentAction.id) || {}}
           mode="update"
+          balance={balance}
         />
         <SpotPendingModal
           isOpen={modals.addSpotPending}
@@ -1634,6 +1637,7 @@ export default function TradeManager() {
           pending={pendingState}
           marketData={marketState}
           mode="add"
+          // balance={balance}
         />
         <SpotPendingModal
           isOpen={modals.updateSpotPending}
@@ -1646,6 +1650,7 @@ export default function TradeManager() {
           pending={pendingState}
           marketData={marketState}
           mode="update"
+          // balance={balance}
         />
         <SpotRunningModal
           isOpen={modals.addSpotRunning}
@@ -1656,6 +1661,7 @@ export default function TradeManager() {
           running={runningState}
           marketData={marketState}
           mode="add"
+          // balance={balance}
         />
         <SpotRunningModal
           isOpen={modals.updateSpotRunning}
@@ -1668,6 +1674,7 @@ export default function TradeManager() {
           running={runningState}
           marketData={marketState}
           mode="update"
+          // balance={balance}
         />
         <UpdateSlTpBeModal
           isOpen={modals.updateSlTpBe}

@@ -8,10 +8,10 @@ import StatisticsChart from "../../components/ecommerce/StatisticsChart";
 import RecentOrders from "../../components/ecommerce/RecentOrders";
 import Request from "../../utils/request";
 import { useGlobalState } from "../../context/GlobalStateContext";
-import { toast } from "react-toastify";
 import mt5 from '../../icons/mt5.png';
 import Image from "next/image";
 import cTraderIcon from '../../icons/ctrader.png';
+import PairwiseGainLossChart from "../../components/ecommerce/PairwiseGainLossChart";
 
 interface Trade {
   sr_no: number;
@@ -215,7 +215,6 @@ export default function EcommerceClient() {
   const tradeHistory: any = selectedAccount
     ? state.tradeHistory[selectedAccount] || []
     : [];
-console.log(tradeHistory,"tradeHistory")
   return (
     <div className="p-4">
       {/* Trading Accounts Dropdown */}
@@ -291,6 +290,9 @@ console.log(tradeHistory,"tradeHistory")
           </div>
           <div className="col-span-12">
             <StatisticsChart tradeHistory={tradeHistory} balance={balance} isLoadingTrades={isLoadingTrades} currency={currency}/>
+          </div>
+          <div className="col-span-12">
+            <PairwiseGainLossChart tradeHistory={tradeHistory} isLoadingTrades={isLoadingTrades} currency={currency}/>
           </div>
           <div className="col-span-12 xl:col-span-5">
             {/* <DemographicCard isLoadingTrades={isLoadingTrades} /> */}

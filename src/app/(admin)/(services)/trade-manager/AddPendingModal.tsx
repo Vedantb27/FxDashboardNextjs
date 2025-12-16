@@ -7,7 +7,6 @@ import React, {
     MouseEvent,
 } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { toast } from "react-toastify";
 import { TradeData, MarketData } from "./TradeManager"; // Import types from main file (adjust path if needed)
 import FieldSelect from "../../../../components/form/FieldSelect";
 import SymbolSelect from "../../../../components/form/SymbolSelect";
@@ -120,6 +119,7 @@ interface AddPendingModalProps {
     marketData: MarketData[];
     initialData?: Partial<TradeData>;
     mode?: 'add' | 'update';
+    balance:any
 }
 const AddPendingModal: React.FC<AddPendingModalProps> = ({ isOpen, onClose, onSubmit, loading, symbols, marketData, initialData, mode = 'add' }) => {
     const [formData, setFormData] = useState<Partial<TradeData>>({
