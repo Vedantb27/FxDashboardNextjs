@@ -588,8 +588,8 @@ export default function RecentOrders({ tradeHistory, isLoadingTrades, currency }
               onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
               className={`inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-medium sm:px-4 sm:py-2 sm:text-sm ${currentPage === 1
-                  ? "border-gray-300 text-gray-400 cursor-not-allowed dark:border-gray-700 dark:text-gray-600"
-                  : "border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-white/[0.03]"
+                ? "border-gray-300 text-gray-400 cursor-not-allowed dark:border-gray-700 dark:text-gray-600"
+                : "border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-white/[0.03]"
                 }`}
             >
               <svg
@@ -616,10 +616,10 @@ export default function RecentOrders({ tradeHistory, isLoadingTrades, currency }
                   onClick={() => typeof page === 'number' && handlePageChange(page)}
                   disabled={page === '...'}
                   className={`min-w-[32px] h-8 rounded-lg text-xs font-medium sm:min-w-[36px] sm:h-9 sm:text-sm ${page === currentPage
-                      ? "bg-indigo-600 text-white"
-                      : page === '...'
-                        ? "text-gray-400 cursor-default"
-                        : "text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+                    ? "bg-indigo-600 text-white"
+                    : page === '...'
+                      ? "text-gray-400 cursor-default"
+                      : "text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
                     }`}
                 >
                   {page}
@@ -632,8 +632,8 @@ export default function RecentOrders({ tradeHistory, isLoadingTrades, currency }
               onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
               className={`inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-medium sm:px-4 sm:py-2 sm:text-sm ${currentPage === totalPages
-                  ? "border-gray-300 text-gray-400 cursor-not-allowed dark:border-gray-700 dark:text-gray-600"
-                  : "border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-white/[0.03]"
+                ? "border-gray-300 text-gray-400 cursor-not-allowed dark:border-gray-700 dark:text-gray-600"
+                : "border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-white/[0.03]"
                 }`}
             >
               <span className="hidden sm:inline">Next</span>
