@@ -237,42 +237,42 @@ export default function PairwiseGainLossChart({ tradeHistory, isLoadingTrades, c
                     </p>
                 </div>
             ) : (
-               <div className="relative h-80 sm:h-96 overflow-x-auto">
-  <div
-    className="h-full"
-    style={{
-      minWidth:
-        chartData.length > 6
-          ? chartData.length * 80 // each bar ~80px on mobile
-          : "100%",
-    }}
-  >
-                    <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                            data={chartData}
-                            margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
-                        >
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                            <XAxis
-                                dataKey="symbol"
-                                axisLine={false}
-                                tickLine={false}
-                                tick={<CustomXAxisTick />}
-                                height={60}
-                                interval={0}
-                            />
-                            <YAxis
-                                axisLine={false}
-                                tickLine={false}
-                                tickFormatter={(value) => `${value.toFixed(0)}${getCurrencySymbol(currency)}`}
-                                tick={{ fontSize: 12, fill: "#6b7280" }}
-                            />
-                            <Tooltip content={<CustomTooltip />} />
-                          <Bar dataKey="profit" fill="#10B981" />
+                <div className="relative h-80 sm:h-96 overflow-x-auto">
+                    <div
+                        className="h-full"
+                        style={{
+                            minWidth:
+                                chartData.length > 6
+                                    ? chartData.length * 80 // each bar ~80px on mobile
+                                    : "100%",
+                        }}
+                    >
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                                data={chartData}
+                                margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
+                            >
+                                {/* <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" /> */}
+                                <XAxis
+                                    dataKey="symbol"
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={<CustomXAxisTick />}
+                                    height={60}
+                                    interval={0}
+                                />
+                                <YAxis
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tickFormatter={(value) => `${value.toFixed(0)}${getCurrencySymbol(currency)}`}
+                                    tick={{ fontSize: 12, fill: "#6b7280" }}
+                                />
+                                <Tooltip content={<CustomTooltip />} />
+                                <Bar dataKey="profit" fill="#10B981" />
 
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
             )}
         </div>
