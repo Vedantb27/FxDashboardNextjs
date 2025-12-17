@@ -252,7 +252,7 @@ export default function PairwiseGainLossChart({ tradeHistory, isLoadingTrades, c
                                 data={chartData}
                                 margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
                             >
-                                {/* <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" /> */}
+                                
                                 <XAxis
                                     dataKey="symbol"
                                     axisLine={false}
@@ -265,11 +265,10 @@ export default function PairwiseGainLossChart({ tradeHistory, isLoadingTrades, c
                                     axisLine={false}
                                     tickLine={false}
                                     tickFormatter={(value) => `${value.toFixed(0)}${getCurrencySymbol(currency)}`}
-                                    tick={{ fontSize: 12, fill: "#6b7280" }}
+                                    tick={{ fontSize: 12, fill: "#9eb6e6ff" }}
                                 />
                                 <Tooltip content={<CustomTooltip />} />
-                                <Bar dataKey="profit" fill="#10B981" />
-
+                                <Bar dataKey="profit"  fill="#10B981"  activeBar={{ fill: "#263333ff" }}/>
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
