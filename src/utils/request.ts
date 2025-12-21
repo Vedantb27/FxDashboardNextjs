@@ -34,7 +34,7 @@ const Request = async ({ method, url, data = {}, params = {} }: RequestParams) =
     }
   }
   else{
-    return;
+    window.location.href = '/signin';
   }
 
   const headers = {
