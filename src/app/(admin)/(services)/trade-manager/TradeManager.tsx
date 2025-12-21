@@ -23,7 +23,7 @@ import UpdatePartialCloseModal from "./UpdatePartialCloseModal";
 import SetVolumeToCloseModal from "./SetVolumeToCloseModal";
 import { getCurrencySymbol } from "../../../../utils/common";
 import DetailsModal from "./DetailsModal";
-import { IconRefresh } from "@tabler/icons-react";
+import { IconRefresh, IconEdit, IconPlus, IconTrash, IconInfoCircle } from "@tabler/icons-react";
 import { convertToUserLocal } from "../../../../utils/serverTime";
 /* ============================================================================
    Types
@@ -132,14 +132,14 @@ const ModalWrapper: React.FC<{
   <AnimatePresence>
     {isOpen && (
       <motion.div
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-center justify-center p-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
       >
         <motion.div
-          className={`bg-white/95 dark:bg-gray-900/95 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl mx-4 p-8 max-h-[90vh] overflow-y-auto ${wide ? 'w-full max-w-4xl' : 'w-full max-w-md'}`}
+          className={`bg-white/90 dark:bg-slate-900/90 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl shadow-2xl mx-4 p-6 max-h-[90vh] overflow-y-auto ${wide ? 'w-full max-w-4xl' : 'w-full max-w-sm'}`}
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
@@ -152,7 +152,6 @@ const ModalWrapper: React.FC<{
     )}
   </AnimatePresence>
 );
-
 const PrimaryBtn: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({
   className,
   children,
@@ -160,7 +159,7 @@ const PrimaryBtn: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({
 }) => (
   <button
     {...rest}
-    className={`px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed ${className ||
+    className={`px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed ${className ||
       ""}`}
   >
     {children}
@@ -173,7 +172,7 @@ const MutedBtn: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({
 }) => (
   <button
     {...rest}
-    className={`px-4 py-2 rounded-md bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 text-xs font-medium shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed ${className ||
+    className={`px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-900 dark:text-slate-100 text-xs font-medium shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed ${className ||
       ""}`}
   >
     {children}
@@ -186,7 +185,7 @@ const DangerBtn: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({
 }) => (
   <button
     {...rest}
-    className={`px-4 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white text-xs font-medium shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed ${className ||
+    className={`px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-medium shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed ${className ||
       ""}`}
   >
     {children}
@@ -195,10 +194,10 @@ const DangerBtn: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({
 const InfoBtn: React.FC<{ onClick: () => void }> = ({ onClick }) => (
   <button
     onClick={onClick}
-    className="p-1 text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors text-sm font-medium"
+    className="p-1.5 text-emerald-500 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 transition-colors text-sm font-medium"
     title="View Details"
   >
-    ℹ️
+    <IconInfoCircle size={16} />
   </button>
 );
 interface PaginationProps {
@@ -214,25 +213,25 @@ const Pagination: React.FC<PaginationProps> = ({ page, total, limit, onPageChang
   const start = (page - 1) * limit + 1;
   const end = Math.min(page * limit, total);
   return (
-    <div className="px-6 py-3 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center">
-      <span className="text-sm text-gray-600 dark:text-gray-300">
-        Showing {start} to {end} of {total} results
+    <div className="px-6 py-3 bg-slate-50/50 dark:bg-slate-800/50 border-t border-slate-200/50 dark:border-slate-700/50 flex justify-between items-center">
+      <span className="text-xs text-slate-600 dark:text-slate-300">
+       {start}–{end} of {total}
       </span>
       <div className="flex items-center space-x-2">
         <MutedBtn
           onClick={() => onPageChange(page - 1)}
           disabled={disabled || page === 1}
-          className="px-3 py-1 text-xs"
+          className="px-2.5 py-1 text-xs"
         >
           Previous
         </MutedBtn>
-        <span className="px-3 py-1 bg-white dark:bg-gray-700 rounded text-xs font-medium text-gray-900 dark:text-white">
+        <span className="px-2.5 py-1 bg-white/60 dark:bg-slate-700/60 rounded text-xs font-medium text-slate-900 dark:text-white">
           {page} of {totalPages}
         </span>
         <MutedBtn
           onClick={() => onPageChange(page + 1)}
           disabled={disabled || page === totalPages}
-          className="px-3 py-1 text-xs"
+          className="px-2.5 py-1 text-xs"
         >
           Next
         </MutedBtn>
@@ -242,26 +241,26 @@ const Pagination: React.FC<PaginationProps> = ({ page, total, limit, onPageChang
 };
 const SkeletonLoader: React.FC = () => (
   <div className="animate-pulse space-y-6">
-    <div className="p-6 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white/70 dark:bg-gray-900/60">
-      <div className="h-4 w-40 bg-gray-200 dark:bg-gray-700 rounded mb-4"></div>
-      <div className="h-10 w-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
+    <div className="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60">
+      <div className="h-4 w-40 bg-slate-200 dark:bg-slate-700 rounded mb-4"></div>
+      <div className="h-10 w-64 bg-slate-200 dark:bg-slate-700 rounded"></div>
     </div>
     {["Pending Orders", "Open Positions", "Closed Trades", "Removed Orders"].map(
       (section) => (
         <div
           key={section}
-          className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white/70 dark:bg-gray-900/60 overflow-hidden"
+          className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 overflow-hidden"
         >
-          <div className="p-4 border-b border-gray-200 dark:border-gray-800">
-            <div className="h-6 w-40 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          <div className="p-4 border-b border-slate-200 dark:border-slate-800">
+            <div className="h-6 w-40 bg-slate-200 dark:bg-slate-700 rounded"></div>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full">
               <thead>
-                <tr className="bg-gray-50 dark:bg-gray-800">
+                <tr className="bg-slate-50 dark:bg-slate-800">
                   {[...Array(7)].map((_, i) => (
                     <th key={i} className="px-6 py-3">
-                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                      <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded"></div>
                     </th>
                   ))}
                 </tr>
@@ -270,11 +269,11 @@ const SkeletonLoader: React.FC = () => (
                 {[...Array(3)].map((_, i) => (
                   <tr
                     key={i}
-                    className="divide-y divide-gray-200 dark:divide-gray-700"
+                    className="divide-y divide-slate-200 dark:divide-slate-700"
                   >
                     {[...Array(7)].map((_, j) => (
                       <td key={j} className="px-6 py-4">
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                        <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded"></div>
                       </td>
                     ))}
                   </tr>
@@ -941,7 +940,7 @@ export default function TradeManager() {
   }) => {
     if (!isPendingTable && !isRunningTable) return null;
     return (
-      <div className="flex flex-wrap gap-1 pt-3 mt-3 border-t border-gray-200/50 dark:border-gray-700/50">
+      <div className="flex flex-wrap gap-1 pt-2 mt-2 border-t border-slate-200/30 dark:border-slate-700/30">
         {isPendingTable ? (
           <>
             <PrimaryBtn
@@ -949,17 +948,18 @@ export default function TradeManager() {
                 openUpdatePending(item.id, item.trade_setup)
               }
               disabled={loading.updatePending}
+              className="bg-amber-500 hover:bg-amber-600"
             >
-              Update
+              <IconEdit size={12} className="mr-1 inline" /> Edit
             </PrimaryBtn>
             <PrimaryBtn
               onClick={() =>
                 openAddSpotPending(item.id, item.trade_setup, item?.order_id)
               }
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-emerald-600 hover:bg-emerald-700"
               disabled={loading.addSpot}
             >
-              Spot
+              <IconPlus size={12} className="mr-1 inline" /> Spot
             </PrimaryBtn>
             {item.spot_adds?.map((_, idx) => (
               <PrimaryBtn
@@ -979,7 +979,7 @@ export default function TradeManager() {
               }
               disabled={loading.queueDelete}
             >
-              Del
+              <IconTrash size={12} className="mr-1 inline" /> Del
             </DangerBtn>
           </>
         ) : (
@@ -989,11 +989,11 @@ export default function TradeManager() {
               className="bg-blue-600 hover:bg-blue-700"
               disabled={loading.updateSlTpBe}
             >
-              SL/TP
+              <IconEdit size={12} className="mr-1 inline" /> SL/TP
             </PrimaryBtn>
             <PrimaryBtn
               onClick={() => openUpdatePartialClose(item.id)}
-              className="bg-gray-600 hover:bg-gray-700"
+              className="bg-slate-600 hover:bg-slate-700"
               disabled={loading.updatePartialClose}
             >
               Partial
@@ -1009,10 +1009,10 @@ export default function TradeManager() {
               onClick={() =>
                 openAddSpotRunning(item.id, item.trade_setup, item?.order_id)
               }
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-emerald-600 hover:bg-emerald-700"
               disabled={loading.addSpot}
             >
-              Spot
+              <IconPlus size={12} className="mr-1 inline" /> Spot
             </PrimaryBtn>
             {item.spot_adds?.map((_, idx) => (
               <PrimaryBtn
@@ -1032,7 +1032,7 @@ export default function TradeManager() {
               }
               disabled={loading.queueDelete}
             >
-              Close
+              <IconTrash size={12} className="mr-1 inline" /> Close
             </DangerBtn>
           </>
         )}
@@ -1085,14 +1085,17 @@ export default function TradeManager() {
     const showCurrentColumn = isPendingTable || isRunningTable;
     const columns = getColumns(title, isPendingTable, isRunningTable);
     const handleOpenDetails = (item: TradeData) => openDetails(item);
+    const noScroll = title === "Closed Trades" || title === "Removed Orders";
+    const tableWrapperClass = `hidden md:block ${noScroll ? 'overflow-visible' : 'overflow-x-auto'}`;
+    const tableClass = `min-w-full divide-y divide-slate-200/50 dark:divide-slate-700/50 ${noScroll ? 'w-full table-auto' : ''}`;
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white/70 dark:bg-gray-900/60 backdrop-blur-md shadow-xl overflow-hidden"
+        className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 backdrop-blur-md shadow-xl overflow-hidden"
       >
-        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200/50 dark:border-gray-700/50 bg-gradient-to-r from-gray-50/50 to-transparent dark:from-gray-800/50">
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+        <div className="flex justify-between items-center px-6 py-4 border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-slate-50/60 to-emerald-50/30 dark:from-slate-800/60 dark:to-emerald-900/20">
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white">
             {title}
           </h3>
           {onRefresh && (
@@ -1100,23 +1103,20 @@ export default function TradeManager() {
               onClick={onRefresh}
               disabled={!!loading}
               className="
-    p-2 rounded-full transition-colors
-    bg-gray-200 dark:bg-gray-700
-    hover:bg-gray-300 dark:hover:bg-gray-600
-    active:bg-gray-400 dark:active:bg-gray-500
+    p-2 rounded-full transition-all
+    bg-slate-200/60 dark:bg-slate-700/60
+    hover:bg-slate-300/60 dark:hover:bg-slate-600/60
+    active:bg-slate-400/60 dark:active:bg-slate-500/60
     disabled:opacity-50 disabled:cursor-not-allowed
-    text-black dark:text-white
+    text-slate-900 dark:text-slate-100
   "
-
               aria-label="Refresh"
             >
               <IconRefresh
                 stroke={1.5}
-                className={`w-5 h-5 ${loading ? "animate-spin" : ""}`}
+                className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
               />
             </button>
-
-
           )}
           {title === "Pending Orders" && (
             <PrimaryBtn
@@ -1125,7 +1125,7 @@ export default function TradeManager() {
               }
               disabled={isConnecting}
             >
-              Add Pending
+              <IconPlus size={12} className="mr-1 inline" /> Add Pending
             </PrimaryBtn>
           )}
           {title === "Open Positions" && (
@@ -1135,7 +1135,7 @@ export default function TradeManager() {
               }
               disabled={isConnecting}
             >
-              Add Market
+              <IconPlus size={12} className="mr-1 inline" /> Add Market
             </PrimaryBtn>
           )}
         </div>
@@ -1145,52 +1145,52 @@ export default function TradeManager() {
               {[...Array(3)].map((_, i) => (
                 <div
                   key={i}
-                  className="bg-white/80 dark:bg-gray-800/40 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm animate-pulse"
+                  className="bg-white/90 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-700/50 shadow-sm animate-pulse"
                 >
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <div className="h-6 w-24 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
-                      <div className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                      <div className="h-6 w-24 bg-slate-200 dark:bg-slate-700 rounded mb-2"></div>
+                      <div className="h-4 w-16 bg-slate-200 dark:bg-slate-700 rounded-full"></div>
                     </div>
-                    <div className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                    <div className="h-4 w-16 bg-slate-200 dark:bg-slate-700 rounded"></div>
                   </div>
                   <div className="space-y-3">
                     {[...Array(4)].map((_, j) => (
                       <div key={j} className="flex justify-between h-4">
-                        <div className="w-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                        <div className="w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                        <div className="w-20 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                        <div className="w-16 bg-slate-200 dark:bg-slate-700 rounded"></div>
                       </div>
                     ))}
                   </div>
-                  <div className="h-9 w-24 bg-gray-200 dark:bg-gray-700 rounded mt-4"></div>
+                  <div className="h-9 w-24 bg-slate-200 dark:bg-slate-700 rounded mt-4"></div>
                 </div>
               ))}
             </div>
-            <div className="hidden md:block overflow-x-auto animate-pulse">
-              <table className="min-w-full divide-y divide-gray-200/50 dark:divide-gray-700/50">
-                <thead className="bg-gray-50/50 dark:bg-gray-800/30">
+            <div className={`animate-pulse ${tableWrapperClass}`}>
+              <table className={tableClass}>
+                <thead className="bg-slate-50/60 dark:bg-slate-800/40">
                   <tr>
                     {columns.map((col) => (
                       <th
                         key={col.key}
-                        className={`px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider ${col.width || ''}`}
+                        className={`px-6 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider ${col.width || ''}`}
                       >
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                        <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4"></div>
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200/30 dark:divide-gray-700/30 dark:bg-gray-900/20">
+                <tbody className="bg-white divide-y divide-slate-200/40 dark:divide-slate-700/40 dark:bg-slate-900/30">
                   {[...Array(5)].map((_, i) => (
                     <tr
                       key={i}
-                      className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors"
+                      className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors"
                     >
                       {columns.map((col) => {
                         const tdClass = `px-6 py-4 whitespace-nowrap text-sm ${col.width || ''}`;
                         return (
                           <td key={col.key} className={tdClass}>
-                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full max-w-32"></div>
+                            <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-full max-w-32"></div>
                           </td>
                         );
                       })}
@@ -1202,7 +1202,7 @@ export default function TradeManager() {
           </>
         ) : data.length === 0 ? (
           <div className="p-8 text-center">
-            <p className="text-gray-500 dark:text-gray-400 text-sm">
+            <p className="text-slate-500 dark:text-slate-400 text-sm">
               No {title.toLowerCase()} available.
             </p>
           </div>
@@ -1224,11 +1224,11 @@ export default function TradeManager() {
                     : item.profit.toFixed(2)
                   : "--";
                 const profitClass = item.profit !== undefined && item.profit >= 0
-                  ? "text-green-600"
-                  : "text-red-600";
+                  ? "text-emerald-600"
+                  : "text-rose-600";
                 const setupClass = item.trade_setup === "buy"
-                  ? "bg-green-100 text-green-800 dark:bg-green-900/80 dark:text-green-100"
-                  : "bg-red-100 text-red-800 dark:bg-red-900/80 dark:text-red-100";
+                  ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/80 dark:text-emerald-100"
+                  : "bg-rose-100 text-rose-800 dark:bg-rose-900/80 dark:text-rose-100";
                 const timeDisplay = title === "Closed Trades"
                   ? item.closing_time ? convertToUserLocal(item.closing_time) : '--'
                   : title === "Removed Orders"
@@ -1237,13 +1237,15 @@ export default function TradeManager() {
                 const showProfitMobile = title === "Closed Trades" || isRunningTable;
                 const showTimeMobile = title === "Closed Trades" || title === "Removed Orders";
                 return (
-                  <div
+                  <motion.div
                     key={item.id}
-                    className="bg-white/80 dark:bg-gray-800/40 rounded-xl p-4 border border-gray-200/50 dark:border-gray-700/50 shadow-sm"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="bg-white/90 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-700/50 shadow-sm hover:shadow-md transition-all"
                   >
                     <div className="flex justify-between items-start mb-3">
                       <div>
-                        <h4 className="text-lg font-bold text-gray-900 dark:text-white">
+                        <h4 className="text-lg font-bold text-slate-900 dark:text-white">
                           {item.symbol}
                         </h4>
                         <span
@@ -1252,51 +1254,51 @@ export default function TradeManager() {
                           {item.trade_setup?.toUpperCase()}
                         </span>
                       </div>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                      <span className="text-xs text-slate-500 dark:text-slate-400">
                         {item?.id ? (
                           item.id
                         ) : (
                           <span className="inline-flex items-center">
                             Adding..{" "}
-                            <div className="animate-ping rounded-full h-2 w-2 bg-blue-500 ml-1"></div>
+                            <div className="animate-ping rounded-full h-2 w-2 bg-emerald-500 ml-1"></div>
                           </span>
                         )}
                       </span>
                     </div>
                     <div className="space-y-2 text-sm mb-4">
                       <div className="flex justify-between">
-                        <span className="text-gray-500 dark:text-gray-400">Volume</span>
-                        <span className="font-mono text-gray-900 dark:text-white">
+                        <span className="text-slate-500 dark:text-slate-400">Volume</span>
+                        <span className="font-mono text-slate-900 dark:text-white">
                           {item.volume?.toFixed(2) ?? "--"}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-500 dark:text-gray-400">Price</span>
-                        <span className="font-mono text-gray-900 dark:text-white">
+                        <span className="text-slate-500 dark:text-slate-400">Price</span>
+                        <span className="font-mono text-slate-900 dark:text-white">
                           {item.price?.toFixed(5) ?? "--"}
                         </span>
                       </div>
                       {showCurrentColumn && (
                         <div className="flex justify-between">
-                          <span className="text-gray-500 dark:text-gray-400">Current</span>
-                          <span className="font-mono text-gray-600 dark:text-gray-300">
+                          <span className="text-slate-500 dark:text-slate-400">Current</span>
+                          <span className="font-mono text-slate-600 dark:text-slate-300">
                             {displayCurrent}
                           </span>
                         </div>
                       )}
                       {showTimeMobile && timeDisplay && (
                         <div className="flex justify-between">
-                          <span className="text-gray-500 dark:text-gray-400">
+                          <span className="text-slate-500 dark:text-slate-400">
                             {title === "Closed Trades" ? "Close Time" : "Added Time"}
                           </span>
-                          <span className="text-gray-900 dark:text-white text-xs">
+                          <span className="text-slate-900 dark:text-white text-xs">
                             {timeDisplay}
                           </span>
                         </div>
                       )}
                       {showProfitMobile && (
                         <div className="flex justify-between">
-                          <span className="text-gray-500 dark:text-gray-400">Profit</span>
+                          <span className="text-slate-500 dark:text-slate-400">Profit</span>
                           <span
                             className={`font-medium font-mono ${item.profit !== undefined ? profitClass : ""}`}
                           >
@@ -1314,132 +1316,129 @@ export default function TradeManager() {
                     ) : (
                       <PrimaryBtn
                         onClick={() => handleOpenDetails(item)}
-                        className="w-full text-xs"
+                        className="w-full text-xs bg-emerald-600 hover:bg-emerald-700"
                       >
                         View Details
                       </PrimaryBtn>
                     )}
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>
-            <div className="hidden md:block overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200/50 dark:divide-gray-700/50">
-                <thead className="bg-gray-50/50 dark:bg-gray-800/30">
+            <div className={tableWrapperClass}>
+              <table className={tableClass}>
+                <thead className="bg-slate-50/60 dark:bg-slate-800/40">
                   <tr>
                     {columns.map((col) => (
                       <th
                         key={col.key}
-                        className={`px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider ${col.width || ''}`}
+                        className={`px-6 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider ${col.width || ''}`}
                       >
                         {col.label}
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200/30 dark:divide-gray-700/30 dark:bg-gray-900/20">
-                  {data?.map((item) => {
-                    const currentPrice = showCurrentColumn
-                      ? getCurrentPrice(item.symbol, item.trade_setup)
-                      : null;
-                    const displayCurrent = currentPrice
-                      ? (item.trade_setup === "buy"
-                        ? currentPrice.ask?.toFixed(5)
-                        : currentPrice.bid?.toFixed(5)) ?? "--"
-                      : "--";
-                    const profitDisplay = item.profit !== undefined
-                      ? item.profit >= 0
-                        ? `+${item.profit.toFixed(2)}`
-                        : item.profit.toFixed(2)
-                      : "--";
-                    const profitClass = item.profit !== undefined && item.profit >= 0
-                      ? "text-green-600"
-                      : "text-red-600";
-                    const setupClass = item.trade_setup === "buy"
-                      ? "bg-green-100 text-green-800 dark:bg-green-900/80 dark:text-green-100"
-                      : "bg-red-100 text-red-800 dark:bg-red-900/80 dark:text-red-100";
-                    const closeTimeDisplay = item.closing_time ? convertToUserLocal(item.closing_time) : '--';
-                    const startTimeDisplay = item.start_time ? convertToUserLocal(item.start_time) : '--';
-                    return (
-                      <tr
-                        key={item.id}
-                        className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors"
-                      >
-                        {columns.map((col) => {
-                          let content: React.ReactNode = '--';
-                          let tdClass = `px-6 py-4 whitespace-nowrap text-sm`;
-                          if (col.width) tdClass += ` ${col.width}`;
-                          switch (col.key) {
-                            case 'id':
-                              content = item?.id ? (
-                                item.id
-                              ) : (
-                                <span className="inline-flex items-center">
-                                  Adding.. &nbsp; <div className="animate-ping rounded-full h-3 w-3 bg-blue-500"></div>
-                                </span>
-                              );
-                              tdClass += ` font-medium text-gray-900 dark:text-white`;
-                              break;
-                            case 'symbol':
-                              content = item.symbol;
-                              tdClass += ` text-gray-900 dark:text-white font-mono`;
-                              break;
-                            case 'setup':
-                              content = (
-                                <span
-                                  className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${setupClass}`}
-                                >
-                                  {item.trade_setup?.toUpperCase()}
-                                </span>
-                              );
-                              break;
-                            case 'volume':
-                              content = item.volume?.toFixed(2) || '--';
-                              tdClass += ` text-gray-900 dark:text-white font-mono`;
-                              break;
-                            case 'price':
-                              content = item.price?.toFixed(5) || '--';
-                              tdClass += ` text-gray-900 dark:text-white font-mono`;
-                              break;
-                            case 'current':
-                              content = displayCurrent;
-                              tdClass += ` font-mono text-gray-600 dark:text-gray-300`;
-                              break;
-                            case 'profit':
-                              content = profitDisplay;
-                              tdClass += ` font-medium font-mono ${profitClass}`;
-                              break;
-                            case 'closeTime':
-                              content = closeTimeDisplay;
-                              tdClass += ` text-gray-900 dark:text-white`;
-                              break;
-                            case 'startTime':
-                              content = startTimeDisplay;
-                              tdClass += ` text-gray-900 dark:text-white`;
-                              break;
-                            case 'actions':
-                              if (isPendingTable || isRunningTable) {
-                                content = <RenderActions item={item} isPendingTable={isPendingTable} isRunningTable={isRunningTable} />;
-                              } else {
-                                content = <InfoBtn onClick={() => handleOpenDetails(item)} />;
-                              }
-                              tdClass += ` font-medium`;
-                              break;
-                            default:
-                              content = '--';
-                          }
-                          return (
-                            <td
-                              key={col.key}
-                              className={tdClass}
-                            >
-                              {content}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    );
-                  })}
+                <tbody className="bg-white divide-y divide-slate-200/40 dark:divide-slate-700/40 dark:bg-slate-900/30">
+                  {data?.map((item, index) => (
+                    <motion.tr
+                      key={item.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-all"
+                    >
+                      {columns.map((col) => {
+                        let content: React.ReactNode = '--';
+                        let tdClass = `px-6 py-4 whitespace-nowrap text-sm`;
+                        if (col.width) tdClass += ` ${col.width}`;
+                        switch (col.key) {
+                          case 'id':
+                            content = item?.id ? (
+                              item.id
+                            ) : (
+                              <span className="inline-flex items-center">
+                                Adding.. &nbsp; <div className="animate-ping rounded-full h-3 w-3 bg-emerald-500"></div>
+                              </span>
+                            );
+                            tdClass += ` font-medium text-slate-900 dark:text-white`;
+                            break;
+                          case 'symbol':
+                            content = item.symbol;
+                            tdClass += ` text-slate-900 dark:text-white font-mono`;
+                            break;
+                          case 'setup':
+                            content = (
+                              <span
+                                className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${item.trade_setup === "buy"
+                                  ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/80 dark:text-emerald-100"
+                                  : "bg-rose-100 text-rose-800 dark:bg-rose-900/80 dark:text-rose-100"
+                                  }`}
+                              >
+                                {item.trade_setup?.toUpperCase()}
+                              </span>
+                            );
+                            break;
+                          case 'volume':
+                            content = item.volume?.toFixed(2) || '--';
+                            tdClass += ` text-slate-900 dark:text-white font-mono`;
+                            break;
+                          case 'price':
+                            content = item.price?.toFixed(5) || '--';
+                            tdClass += ` text-slate-900 dark:text-white font-mono`;
+                            break;
+                          case 'current':
+                            const currentPrice = getCurrentPrice(item.symbol, item.trade_setup);
+                            const displayCurrent = currentPrice
+                              ? (item.trade_setup === "buy"
+                                ? currentPrice.ask?.toFixed(5)
+                                : currentPrice.bid?.toFixed(5)) ?? "--"
+                              : "--";
+                            content = displayCurrent;
+                            tdClass += ` font-mono text-slate-600 dark:text-slate-300`;
+                            break;
+                          case 'profit':
+                            const profitDisplay = item.profit !== undefined
+                              ? item.profit >= 0
+                                ? `+${item.profit.toFixed(2)}`
+                                : item.profit.toFixed(2)
+                              : "--";
+                            content = profitDisplay;
+                            tdClass += ` font-medium font-mono ${item.profit !== undefined && item.profit >= 0
+                              ? "text-emerald-600"
+                              : "text-rose-600"
+                              }`;
+                            break;
+                          case 'closeTime':
+                            content = item.closing_time ? convertToUserLocal(item.closing_time) : '--';
+                            tdClass += ` text-slate-900 dark:text-white`;
+                            break;
+                          case 'startTime':
+                            content = item.start_time ? convertToUserLocal(item.start_time) : '--';
+                            tdClass += ` text-slate-900 dark:text-white`;
+                            break;
+                          case 'actions':
+                            if (isPendingTable || isRunningTable) {
+                              content = <RenderActions item={item} isPendingTable={isPendingTable} isRunningTable={isRunningTable} />;
+                            } else {
+                              content = <InfoBtn onClick={() => handleOpenDetails(item)} />;
+                            }
+                            tdClass += ` font-medium`;
+                            break;
+                          default:
+                            content = '--';
+                        }
+                        return (
+                          <td
+                            key={col.key}
+                            className={tdClass}
+                          >
+                            {content}
+                          </td>
+                        );
+                      })}
+                    </motion.tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -1462,7 +1461,7 @@ export default function TradeManager() {
   -------------------------------------------------------------------- */
   if (isLoadingAccounts || !token) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-emerald-50 dark:from-slate-900 dark:to-emerald-900">
         <div className="container mx-auto px-4 py-8">
           <PageBreadcrumb pageTitle="Trade Manager" />
           <SkeletonLoader />
@@ -1475,21 +1474,21 @@ export default function TradeManager() {
     .filter((s): s is string => !!s)
     .sort();
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-emerald-50 dark:from-slate-900 dark:to-emerald-900">
       <div className="container mx-auto px-4 py-8">
         <PageBreadcrumb pageTitle="Trade Manager" />
         {/* Account selector */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white/70 dark:bg-gray-900/70 backdrop-blur-md p-6 mb-8 shadow-xl"
+          className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/70 backdrop-blur-md p-6 mb-8 shadow-xl"
         >
           <div ref={dropdownRef} className="relative w-full max-w-sm mb-4">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Trading Account
             </label>
             <button
-              className="w-full flex items-center justify-between p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white/80 dark:bg-gray-800/50 hover:ring-2 hover:ring-blue-400 transition-all text-sm text-gray-900 dark:text-white"
+              className="w-full flex items-center justify-between p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white/80 dark:bg-slate-800/50 hover:ring-2 hover:ring-emerald-400 transition-all text-sm text-slate-900 dark:text-white"
               onClick={() => setShowDropdown(!showDropdown)}
               disabled={isConnecting}
             >
@@ -1521,11 +1520,11 @@ export default function TradeManager() {
                     </span>
                   </div>
                   {isConnecting && (
-                    <div className="animate-ping rounded-full h-3 w-3 bg-blue-500"></div>
+                    <div className="animate-ping rounded-full h-3 w-3 bg-emerald-500"></div>
                   )}
                 </>
               ) : (
-                isLoadingAccounts?<div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-900"></div>:""
+                isLoadingAccounts?<div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-900"></div>:""
               )}
             </button>
             <AnimatePresence>
@@ -1534,7 +1533,7 @@ export default function TradeManager() {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="absolute z-10 w-full mt-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 shadow-xl"
+                  className="absolute z-10 w-full mt-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 shadow-xl"
                 >
                   {accounts.map((account) => (
                     <li key={account.accountNumber}>
@@ -1542,7 +1541,7 @@ export default function TradeManager() {
                         onClick={() =>
                           handleAccountChange(account.accountNumber.toString())
                         }
-                        className="w-full flex items-center gap-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm dark:text-white text-gray-800 "
+                        className="w-full flex items-center gap-3 p-2 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-sm dark:text-white text-slate-800 "
                       >
                         <Image
                           src={
@@ -1560,18 +1559,18 @@ export default function TradeManager() {
               )}
             </AnimatePresence>
           </div>
-          {selectedAccount && (<div className="flex flex-col sm:flex-row sm:items-center sm:gap-6 bg-white dark:bg-gray-900
-                px-4 py-3 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-            <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">
-              <span className="text-gray-500 dark:text-gray-400">Balance:</span>{" "}
-              <span className="font-semibold text-blue-600 dark:text-blue-400">
+          {selectedAccount && (<div className="flex flex-col sm:flex-row sm:items-center sm:gap-6 bg-white/80 dark:bg-slate-800/50
+                px-4 py-3 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+            <p className="text-sm text-slate-700 dark:text-slate-300 font-medium">
+              <span className="text-slate-500 dark:text-slate-400">Balance:</span>{" "}
+              <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                 {getCurrencySymbol(accountInfo?.currency)}
                 {accountInfo?.balance?.toLocaleString()}
               </span>
             </p>
-            <p className="text-sm text-gray-700 dark:text-gray-300 font-medium mt-1 sm:mt-0">
-              <span className="text-gray-500 dark:text-gray-400">Equity:</span>{" "}
-              <span className="font-semibold text-green-600 dark:text-green-400">
+            <p className="text-sm text-slate-700 dark:text-slate-300 font-medium mt-1 sm:mt-0">
+              <span className="text-slate-500 dark:text-slate-400">Equity:</span>{" "}
+              <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                 {getCurrencySymbol(accountInfo?.currency)}
                 {accountInfo?.equity?.toLocaleString()}
               </span>
@@ -1593,7 +1592,7 @@ export default function TradeManager() {
             animate={{ opacity: 1 }}
             className="text-center py-12"
           >
-            <p className="text-gray-500 dark:text-gray-400 text-lg">
+            <p className="text-slate-500 dark:text-slate-400 text-lg">
               Please select a trading account to view live data.
             </p>
           </motion.div>
@@ -1734,10 +1733,10 @@ const QueueDeleteConfirm: React.FC<{
 }> = ({ isOpen, onClose, onConfirm, loading, orderTicket }) => {
   return (
     <ModalWrapper isOpen={isOpen} onClose={onClose}>
-      <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+      <h3 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">
         Confirm Deletion
       </h3>
-      <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
+      <p className="text-sm text-slate-600 dark:text-slate-300 mb-6">
         Are you sure you want to <strong>queue order #{orderTicket}</strong> for deletion?
         This action cannot be undone.
       </p>
