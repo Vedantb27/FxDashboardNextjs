@@ -215,7 +215,7 @@ const Pagination: React.FC<PaginationProps> = ({ page, total, limit, onPageChang
   return (
     <div className="px-6 py-3 bg-slate-50/50 dark:bg-slate-800/50 border-t border-slate-200/50 dark:border-slate-700/50 flex justify-between items-center">
       <span className="text-xs text-slate-600 dark:text-slate-300">
-       {start}–{end} of {total}
+        {start}–{end} of {total}
       </span>
       <div className="flex items-center space-x-2">
         <MutedBtn
@@ -314,6 +314,11 @@ export default function TradeManager() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const LIMIT = 10;
+
+  type TradeTab = "pending" | "running" | "executed" | "removed";
+
+  const [activeTab, setActiveTab] = useState<TradeTab>("pending");
+
   // Sync globals for modals
   useEffect(() => {
     pending = pendingState;
@@ -1492,7 +1497,7 @@ export default function TradeManager() {
               onClick={() => setShowDropdown(!showDropdown)}
               disabled={isConnecting}
             >
-              {accounts.length > 0 && selectedAccount && !isLoadingAccounts? (
+              {accounts.length > 0 && selectedAccount && !isLoadingAccounts ? (
                 <>
                   <div className="flex items-center space-x-2">
                     <Image
@@ -1524,7 +1529,7 @@ export default function TradeManager() {
                   )}
                 </>
               ) : (
-                isLoadingAccounts?<div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-900"></div>:""
+                isLoadingAccounts ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-900"></div> : ""
               )}
             </button>
             <AnimatePresence>
@@ -1578,14 +1583,71 @@ export default function TradeManager() {
           </div>
           )}
         </motion.div>
+
+        {/* Tabs */}
+        <div className="mb-6">
+          <div className="flex flex-wrap gap-2 bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl p-2 shadow-sm">
+            {[
+              { key: "pending", label: "Pending Orders" },
+              { key: "running", label: "Open Positions" },
+              { key: "executed", label: "Closed Trades" },
+              { key: "removed", label: "Removed Orders" },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key as TradeTab)}
+                className={`
+          px-4 py-2 rounded-lg text-sm font-medium transition-all
+          ${activeTab === tab.key
+                    ? "bg-emerald-600 text-white shadow"
+                    : "text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-700/60"
+                  }
+        `}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Tables */}
         {selectedAccount ? (
           <div className="space-y-6">
-            {renderTable("Pending Orders", pendingState, true, false)}
-            {renderTable("Open Positions", runningState, false, true)}
-            {renderTable("Closed Trades", executedTrades, false, false, executedPage, executedTotal, LIMIT, handleExecutedPageChange, () => fetchExecuted(executedPage), loadingExecuted)}
-            {renderTable("Removed Orders", removedTrades, false, false, removedPage, removedTotal, LIMIT, handleRemovedPageChange, () => fetchRemoved(removedPage), loadingRemoved)}
+            {activeTab === "pending" &&
+              renderTable("Pending Orders", pendingState, true, false)}
+
+            {activeTab === "running" &&
+              renderTable("Open Positions", runningState, false, true)}
+
+            {activeTab === "executed" &&
+              renderTable(
+                "Closed Trades",
+                executedTrades,
+                false,
+                false,
+                executedPage,
+                executedTotal,
+                LIMIT,
+                handleExecutedPageChange,
+                () => fetchExecuted(executedPage),
+                loadingExecuted
+              )}
+
+            {activeTab === "removed" &&
+              renderTable(
+                "Removed Orders",
+                removedTrades,
+                false,
+                false,
+                removedPage,
+                removedTotal,
+                LIMIT,
+                handleRemovedPageChange,
+                () => fetchRemoved(removedPage),
+                loadingRemoved
+              )}
           </div>
+
         ) : (
           <motion.div
             initial={{ opacity: 0 }}
@@ -1614,7 +1676,7 @@ export default function TradeManager() {
           loading={loading.addRunning}
           symbols={availableSymbols}
           marketData={marketState}
-          // balance={balance}
+        // balance={balance}
         />
         <AddPendingModal
           isOpen={modals.updatePending}
@@ -1636,7 +1698,7 @@ export default function TradeManager() {
           pending={pendingState}
           marketData={marketState}
           mode="add"
-          // balance={balance}
+        // balance={balance}
         />
         <SpotPendingModal
           isOpen={modals.updateSpotPending}
@@ -1649,7 +1711,7 @@ export default function TradeManager() {
           pending={pendingState}
           marketData={marketState}
           mode="update"
-          // balance={balance}
+        // balance={balance}
         />
         <SpotRunningModal
           isOpen={modals.addSpotRunning}
@@ -1660,7 +1722,7 @@ export default function TradeManager() {
           running={runningState}
           marketData={marketState}
           mode="add"
-          // balance={balance}
+        // balance={balance}
         />
         <SpotRunningModal
           isOpen={modals.updateSpotRunning}
@@ -1673,7 +1735,7 @@ export default function TradeManager() {
           running={runningState}
           marketData={marketState}
           mode="update"
-          // balance={balance}
+        // balance={balance}
         />
         <UpdateSlTpBeModal
           isOpen={modals.updateSlTpBe}
