@@ -157,6 +157,81 @@ const Calendar: React.FC = () => {
     Warning: "warning",
   };
 
+  function getDstStartUTC(year: number): Date {
+  // 2nd Sunday of March at 2:00 AM UTC (DST start)
+  const march = new Date(Date.UTC(year, 2, 1));
+  const firstSundayOffset = (7 - march.getUTCDay()) % 7;
+  const secondSunday = 1 + firstSundayOffset + 7;
+  return new Date(Date.UTC(year, 2, secondSunday, 2, 0, 0));
+}
+
+function getDstEndUTC(year: number): Date {
+  // 1st Sunday of November at 2:00 AM UTC (DST end)
+  const november = new Date(Date.UTC(year, 10, 1));
+  const firstSundayOffset = (7 - november.getUTCDay()) % 7;
+  const firstSunday = 1 + firstSundayOffset;
+  return new Date(Date.UTC(year, 10, firstSunday, 2, 0, 0));
+}
+function getMt5OffsetHours(dateUTC: Date): number {
+  const year = dateUTC.getUTCFullYear();
+  const dstStart = getDstStartUTC(year);
+  const dstEnd = getDstEndUTC(year);
+  return (dateUTC >= dstStart && dateUTC < dstEnd) ? 3 : 2;
+}
+
+function adjustTimeToLocal(dateStr: string, timeStr: string): { date: string; time: string } {
+  const year = parseInt(dateStr.substring(0, 4));
+  const dstStart = getDstStartUTC(year);
+  const dstEnd = getDstEndUTC(year);
+
+  // Parse server time string as if it were UTC (temporary)
+  let tempDate = new Date(`${dateStr}T${timeStr}Z`);
+  let utcTimestamp = tempDate.getTime();
+
+  // Initial assumption: standard offset (UTC+2)
+  utcTimestamp -= 2 * 60 * 60 * 1000;
+  let candidateDate = new Date(utcTimestamp);
+
+  // Compute offset based on candidate UTC
+  let offset = getMt5OffsetHours(candidateDate);
+
+  // If DST offset applies, subtract the additional hour
+  if (offset === 3) {
+    utcTimestamp -= 60 * 60 * 1000;
+    candidateDate = new Date(utcTimestamp);
+    // Double-check offset (handles edge cases near transitions)
+    offset = getMt5OffsetHours(candidateDate);
+  }
+
+  // Now convert UTC timestamp to user's local time
+  const localDate = new Date(utcTimestamp);
+  const localYear = localDate.getFullYear();
+  const localMonth = String(localDate.getMonth() + 1).padStart(2, '0');
+  const localDay = String(localDate.getDate()).padStart(2, '0');
+  const localHours = String(localDate.getHours()).padStart(2, '0');
+  const localMinutes = String(localDate.getMinutes()).padStart(2, '0');
+  const localSeconds = String(localDate.getSeconds()).padStart(2, '0');
+
+  return {
+    date: `${localYear}-${localMonth}-${localDay}`,
+    time: `${localHours}:${localMinutes}:${localSeconds}`,
+  };
+}
+
+  function adjustTrade(trade: any) {
+  const openAdjusted = adjustTimeToLocal(trade.open_date, trade.open_time);
+  const closeAdjusted = adjustTimeToLocal(trade.close_date, trade.close_time);
+
+  return {
+    ...trade,
+    open_date: openAdjusted.date,
+    open_time: openAdjusted.time,
+    close_date: closeAdjusted.date,
+    close_time: closeAdjusted.time,
+  };
+}
+
+
   useEffect(() => {
     const fetchAccounts = async () => {
       setIsLoadingAccounts(true);
@@ -235,17 +310,17 @@ const Calendar: React.FC = () => {
             params: { accountNumber: selectedAccount },
           });
           if (tradeResponse) {
-            const trades: TradeHistory[] = tradeResponse;
+            const adjustedTrades = (tradeResponse).map(adjustTrade);
             dispatch({
               type: "SET_TRADE_HISTORY",
               payload: {
                 accountNumber: selectedAccount,
-                trades,
+                trades:adjustedTrades,
               },
             });
             // Calculate daily profits locally
             const dailyProfitMap: { [date: string]: number } = {};
-            trades.forEach((trade) => {
+            adjustedTrades.forEach((trade:any) => {
               const date = trade?.close_date;
               if (!dailyProfitMap[date]) {
                 dailyProfitMap[date] = 0;
