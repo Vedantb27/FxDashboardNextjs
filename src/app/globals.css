@@ -758,3 +758,11 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
+.fc-daygrid-day {
+  border-radius: 20px;
+  margin: 4px;            /* space between cells */
+  overflow: hidden;       /* important for rounding */
+  
+}
+

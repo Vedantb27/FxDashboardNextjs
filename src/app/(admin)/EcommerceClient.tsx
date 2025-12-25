@@ -291,9 +291,9 @@ export default function EcommerceClient() {
           <div className="col-span-12">
             <StatisticsChart tradeHistory={tradeHistory} balance={balance} isLoadingTrades={isLoadingTrades} currency={currency}/>
           </div>
-          <div className="col-span-12">
+          {/* <div className="col-span-12">
             <PairwiseGainLossChart tradeHistory={tradeHistory} isLoadingTrades={isLoadingTrades} currency={currency}/>
-          </div>
+          </div> */}
           <div className="col-span-12 xl:col-span-5">
             {/* <DemographicCard isLoadingTrades={isLoadingTrades} /> */}
           </div>

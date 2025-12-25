@@ -81,6 +81,53 @@ const SkeletonLoader: React.FC = () => {
     </div>
   );
 };
+ const weeks = [
+    {
+      id: 1,
+      title: 'Week One',
+      dateRange: 'Sep 28 - Oct 4',
+      trades: 'No trades',
+      pnl: '0',
+      days: '0',
+      pnlColor: 'text-white',
+    },
+    {
+      id: 2,
+      title: 'Week Two',
+      dateRange: 'Oct 5 - Oct 11',
+      trades: 'No trades',
+      pnl: '0',
+      days: '0',
+      pnlColor: 'text-white',
+    },
+    {
+      id: 3,
+      title: 'Week Three',
+      dateRange: 'Oct 12 - Oct 18',
+      trades: 'No trades',
+      pnl: '0',
+      days: '0',
+      pnlColor: 'text-white',
+    },
+    {
+      id: 4,
+      title: 'Week Four',
+      dateRange: 'Oct 19 - Oct 25',
+      trades: null,
+      pnl: '+$225.15',
+      days: '1',
+      pnlColor: 'text-green-400',
+    },
+    {
+      id: 5,
+      title: 'Week Five',
+      dateRange: 'Oct 26 - Nov 1',
+      trades: null,
+      pnl: '-$81.64',
+      days: '2',
+      pnlColor: 'text-red-400',
+    },
+  ];
 
 const Calendar: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
@@ -342,7 +389,7 @@ const Calendar: React.FC = () => {
       const percentage = ((profit / balance) * 100).toFixed(2);
       const isPositive = profit >= 0;
       return (
-        <div className="flex flex-col items-center max-h-[150px]">
+        <div className="flex flex-col items-center max-h-[150px] ">
           <span className={arg.isOther ? "opacity-50" : ""}>
             <span className="text-blue-600 "> {arg.date.getDate()}</span>
             <span
@@ -363,7 +410,7 @@ const Calendar: React.FC = () => {
     const dateStr = formatDateToYYYYMMDD(arg.date.toISOString());
     const profit = dailyProfits[dateStr];
     if (profit !== undefined) {
-      return profit >= 0 ? "bg-success-500/15" : "bg-error-500/15";
+      return profit >= 0 ? "bg-success-500/15" : "bg-error-500/15 ";
     }
     return "";
   };
@@ -435,7 +482,8 @@ const Calendar: React.FC = () => {
               )}
             </div>
           </div>
-          <div className="custom-calendar">
+          <div className="custom-calendar ">
+            
             <FullCalendar
               ref={calendarRef}
               plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -600,6 +648,114 @@ const Calendar: React.FC = () => {
           </div>
         </div>
       </Modal>
+       <div className=" bg-slate-900 p-6 md:p-8">
+      <h1 className="text-2xl font-bold text-white mb-8">Weekly Summary</h1>
+
+      {/* Desktop: Horizontal Grid */}
+      <div className="hidden lg:grid lg:grid-cols-5 gap-4 mb-8">
+        {weeks.map((week) => (
+          <div
+            key={week.id}
+            className="bg-slate-800 rounded-lg p-6 border border-slate-700 hover:border-slate-600 transition-colors"
+          >
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-white mb-1">
+                {week.title}
+              </h2>
+              <p className="text-sm text-slate-400">{week.dateRange}</p>
+            </div>
+
+          
+
+            {week.pnl && (
+              <div className="flex items-end justify-between">
+                <div>
+                  <p className="text-xs text-slate-500 mb-1">PnL</p>
+                  <p className={`text-lg font-semibold ${week.pnlColor}`}>
+                    {week.pnl}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-slate-500 mb-1">Trading Days</p>
+                  <p className="text-lg font-semibold text-white">
+                    {week.days}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Tablet: 2 Columns */}
+      <div className="hidden md:grid lg:hidden grid-cols-2 gap-4 mb-8">
+        {weeks.map((week) => (
+          <div
+            key={week.id}
+            className="bg-slate-800 rounded-lg p-6 border border-slate-700 hover:border-slate-600 transition-colors"
+          >
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-white mb-1">
+                {week.title}
+              </h2>
+              <p className="text-sm text-slate-400">{week.dateRange}</p>
+            </div>
+            {week.pnl && (
+              <div className="flex items-end justify-between">
+                <div>
+                  <p className="text-xs text-slate-500 mb-1">PnL</p>
+                  <p className={`text-lg font-semibold ${week.pnlColor}`}>
+                    {week.pnl}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-slate-500 mb-1">Trading Days</p>
+                  <p className="text-lg font-semibold text-white">
+                    {week.days}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Mobile: Vertical Stack */}
+      <div className="md:hidden space-y-4">
+        {weeks.map((week) => (
+          <div
+            key={week.id}
+            className="bg-slate-800 rounded-lg p-6 border border-slate-700 hover:border-slate-600 transition-colors"
+          >
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h2 className="text-lg font-semibold text-white">
+                  {week.title}
+                </h2>
+                <p className="text-sm text-slate-400">{week.dateRange}</p>
+              </div>
+            </div>
+
+            {week.pnl && (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-slate-500 mb-1">PnL</p>
+                  <p className={`text-lg font-semibold ${week.pnlColor}`}>
+                    {week.pnl}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500 mb-1">Trading Days</p>
+                  <p className="text-lg font-semibold text-white">
+                    {week.days}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
     </div>
   );
 };
@@ -608,7 +764,7 @@ const renderEventContent = (eventInfo: EventContentArg) => {
   const colorClass = `fc-bg-${eventInfo.event.extendedProps.calendar.toLowerCase()}`;
   return (
     <div
-      className={`event-fc-color flex fc-event-main ${colorClass} p-1 rounded-sm`}
+      className={`event-fc-color flex fc-event-main ${colorClass} p-1 rounded-sm `}
     >
       <div className="fc-daygrid-event-dot"></div>
       <div className="fc-event-time">{eventInfo.timeText}</div>
