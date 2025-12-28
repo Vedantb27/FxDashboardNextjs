@@ -23,6 +23,7 @@ import mt5 from '../../icons/mt5.png';
 import Image from "next/image";
 import cTraderIcon from '../../icons/ctrader.png';
 import ProfitabilityAnalytics from "./ProfitabilityAnalytics";
+import { boolean } from "zod";
 
 interface CalendarEvent extends EventInput {
   id?: string;
@@ -109,7 +110,18 @@ const SkeletonLoader: React.FC = () => {
     </div>
   );
 };
-const weeks = [
+
+interface weekData {
+  id: number,
+  title: string,
+  dateRange: string,
+  trades: string,
+  pnl: string,
+  days: string,
+  pnlColor: string,
+}
+
+const weeks: weekData[] = [
   {
     id: 1,
     title: 'Week One',
@@ -141,46 +153,21 @@ const weeks = [
     id: 4,
     title: 'Week Four',
     dateRange: 'Oct 19 - Oct 25',
-    trades: null,
-    pnl: '+$225.15',
-    days: '1',
-    pnlColor: 'text-green-400',
+    trades: 'No trades',
+    pnl: '0',
+    days: '0',
+    pnlColor: 'text-white',
   },
   {
     id: 5,
     title: 'Week Five',
     dateRange: 'Oct 26 - Nov 1',
-    trades: null,
-    pnl: '-$81.64',
-    days: '2',
-    pnlColor: 'text-red-400',
+    trades: 'no trades',
+    pnl: '0',
+    days: '0',
+    pnlColor: 'text-white',
   },
 ];
-
-const shortData2 = {
-  profit: 0,
-  wins: 0,
-  losses: 0,
-  winAmount: 0,
-  lossAmount: 0,
-  winRate: 0
-};
-
-const profitabilityData2 = {
-  totalTrades: 14,
-  wins: 4,
-  losses: 10,
-  winRate: 28.57
-};
-
-const longData2 = {
-  profit: 319.08,
-  wins: 3,
-  losses: 7,
-  winAmount: 260.29,
-  lossAmount: 579.37,
-  winRate: 30
-};
 
 const Calendar: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
@@ -197,9 +184,10 @@ const Calendar: React.FC = () => {
   const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
   const [balance, setBalance]: any = useState(0);
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
+  const [weeeksTradingData, setWeeksTradingData] = useState<weekData[]>(weeks);
   const [showDropdown, setShowDropdown] = useState(false);
   const [shortData, setShortData] = useState<ShortData>({ profit: 0, wins: 0, losses: 0, winAmount: 0, lossAmount: 0, winRate: 0 });
-  const [profitabilityData, setProfitabilityData] = useState<ProfitabilityData >({ totalTrades: 0, wins: 0, losses: 0, winRate: 0 });
+  const [profitabilityData, setProfitabilityData] = useState<ProfitabilityData>({ totalTrades: 0, wins: 0, losses: 0, winRate: 0 });
   const [longData, setLongData] = useState<LongData>({ profit: 0, wins: 0, losses: 0, winAmount: 0, lossAmount: 0, winRate: 0 })
   const [currentMonth, setCurrentMonth] = useState({
     month: new Date().getMonth(),
@@ -323,12 +311,8 @@ const Calendar: React.FC = () => {
     short.lossAmount = Number(short.lossAmount.toFixed(2));
     let winRate = short.wins > 0 ? (short.wins / (short.wins + short.losses) * 100) : 0;
     short.winRate = Number(winRate.toFixed(2));
-    console.log("short", short);
     setShortData(short);
   }
-  useEffect(() => {
-    console.log("UPDATED shortData", shortData);
-  }, [shortData]);
 
   function calculateprofitabilityData(trades: any[], currentMonth: { month: number; year: number }) {
     let sortTrades: any[] = [];
@@ -339,9 +323,9 @@ const Calendar: React.FC = () => {
         sortTrades.push(trade);
       }
     });
-    const profitability ={ totalTrades: 0, wins: 0, losses: 0, winRate: 0 }
+    const profitability = { totalTrades: 0, wins: 0, losses: 0, winRate: 0 }
     sortTrades.forEach((trade) => {
-      profitability.totalTrades +=1;
+      profitability.totalTrades += 1;
       if (trade.profit > 0) {
         profitability.wins += 1;
       } else {
@@ -350,7 +334,6 @@ const Calendar: React.FC = () => {
     });
     let winRate = profitability.wins > 0 ? (profitability.wins / (profitability.wins + profitability.losses) * 100) : 0;
     profitability.winRate = Number(winRate.toFixed(2));
-    console.log("short", profitability);
     setProfitabilityData(profitability);
   }
 
@@ -386,21 +369,126 @@ const Calendar: React.FC = () => {
     longs.lossAmount = Number(longs.lossAmount.toFixed(2));
     let winRate = longs.wins > 0 ? (longs.wins / (longs.wins + longs.losses) * 100) : 0;
     longs.winRate = Number(winRate.toFixed(2));
-    console.log("longs", longs);
     setLongData(longs);
+  }
 
+  function getCalendarWeeks(month: any, year: any) {
+    // This includes partial weeks from previous/next month
+    const formatDateLocal = (date: Date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+    const weeks = [];
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+
+    // Start from the Sunday before (or Monday) of the first week
+    let currentDate = new Date(firstDay);
+    currentDate.setDate(currentDate.getDate() - currentDate.getDay()); // Go to Sunday
+    let weekIndex = 0;
+    // Continue until we've covered the last day
+    while (currentDate <= lastDay) {
+      const weekStart = new Date(currentDate);
+      const weekEnd = new Date(currentDate);
+      weekEnd.setDate(weekEnd.getDate() + 6);
+      weekIndex++;
+      weeks.push({
+        week: weekIndex,
+        start: weekStart,
+        end: weekEnd,
+        startStr: formatDateLocal(weekStart),
+        endStr: formatDateLocal(weekEnd),
+      });
+
+      currentDate.setDate(currentDate.getDate() + 7);
+    }
+    return weeks;
+  }
+
+  function isInDateRange(startDate: string, endDate: string, givenDate: string) {
+    return givenDate >= startDate && givenDate <= endDate;
+  }
+
+  function calcualteWeeklyData(trades: any[], currentMonth: { month: number, year: number }) {
+    const weeekrange = getCalendarWeeks(currentMonth.month, currentMonth.year);
+    const weekTitle = ["Week One", "Week Two", "Week Three", "Week Four", "Week Five"];
+
+    // Initialize all weeks with default data
+    const weeksData: weekData[] = weeekrange.map((week, index) => {
+      const startDate = new Date(week.startStr);
+      const endDate = new Date(week.endStr);
+      const dateRange = `${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+      console.log('Date Range is', dateRange);
+      return {
+        id: index + 1,
+        title: weekTitle[index] || `Week ${index + 1}`,
+        dateRange: dateRange,
+        trades: '0',
+        pnl: '0',
+        days: '0',
+        pnlColor: 'text-white',
+      };
+    });
+
+    // Track unique trading days per week
+    const tradingDaysPerWeek: { [key: number]: Set<string> } = {};
+
+    trades.forEach((trade) => {
+      const month = new Date(trade.close_date).getMonth();
+      const year = new Date(trade.close_date).getFullYear();
+
+      // Only process trades from current month
+        weeekrange.forEach((week, weekIndex) => {
+          const isAvailable = isInDateRange(week.startStr, week.endStr, trade.close_date);
+
+          if (isAvailable) {
+            // Initialize trading days set if not exists
+            if (!tradingDaysPerWeek[weekIndex]) {
+              tradingDaysPerWeek[weekIndex] = new Set();
+            }
+
+            // Add the trading day
+            tradingDaysPerWeek[weekIndex].add(trade.close_date);
+
+            // Update trades count and PnL
+            if (weeksData[weekIndex].trades === '0') {
+              weeksData[weekIndex].trades = '1';
+              weeksData[weekIndex].pnl = trade.profit.toFixed(2);
+            } else {
+              weeksData[weekIndex].trades = String(Number(weeksData[weekIndex].trades) + 1);
+              const newPnl = Number(weeksData[weekIndex].pnl) + trade.profit;
+              weeksData[weekIndex].pnl = newPnl.toFixed(2);
+            }
+
+            // Update color based on PnL
+            const currentPnl = Number(weeksData[weekIndex].pnl);
+            weeksData[weekIndex].pnlColor = currentPnl >= 0 ? 'text-green-400' : 'text-red-400';
+
+            // Update trading days count
+            weeksData[weekIndex].days = String(tradingDaysPerWeek[weekIndex].size);
+          }
+        });
+      
+    });
+
+    setWeeksTradingData(weeksData);
   }
 
   useEffect(() => {
-    console.log("event hit");
-    console.log("currentMonth", currentMonth);
     if (!selectedAccount) return;
     const tradeHistory = state.tradeHistory[selectedAccount] || [];
     calculateshortData(tradeHistory, currentMonth);
     calculateprofitabilityData(tradeHistory, currentMonth);
     calculatelongData(tradeHistory, currentMonth);
+    calcualteWeeklyData(tradeHistory, currentMonth);
+
   }, [currentMonth, selectedAccount]);
 
+  useEffect(() => {
+    console.log("weekly anaylsis Data", weeeksTradingData);
+  }, [weeeksTradingData]);
 
   useEffect(() => {
     const fetchAccounts = async () => {
@@ -907,7 +995,7 @@ const Calendar: React.FC = () => {
 
         {/* Desktop: Horizontal Grid */}
         <div className="hidden lg:grid lg:grid-cols-5 gap-4 mb-8">
-          {weeks.map((week) => (
+          {weeeksTradingData.map((week) => (
             <div
               key={week.id}
               className="bg-slate-800 rounded-lg p-6 border border-slate-700 hover:border-slate-600 transition-colors"
@@ -943,7 +1031,7 @@ const Calendar: React.FC = () => {
 
         {/* Tablet: 2 Columns */}
         <div className="hidden md:grid lg:hidden grid-cols-2 gap-4 mb-8">
-          {weeks.map((week) => (
+          {weeeksTradingData.map((week) => (
             <div
               key={week.id}
               className="bg-slate-800 rounded-lg p-6 border border-slate-700 hover:border-slate-600 transition-colors"
@@ -976,7 +1064,7 @@ const Calendar: React.FC = () => {
 
         {/* Mobile: Vertical Stack */}
         <div className="md:hidden space-y-4">
-          {weeks.map((week) => (
+          {weeeksTradingData.map((week) => (
             <div
               key={week.id}
               className="bg-slate-800 rounded-lg p-6 border border-slate-700 hover:border-slate-600 transition-colors"
