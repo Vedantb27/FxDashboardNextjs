@@ -22,6 +22,8 @@ import { useGlobalState } from "../../context/GlobalStateContext";
 import mt5 from '../../icons/mt5.png';
 import Image from "next/image";
 import cTraderIcon from '../../icons/ctrader.png';
+import ProfitabilityAnalytics from "./ProfitabilityAnalytics";
+import { boolean } from "zod";
 
 interface CalendarEvent extends EventInput {
   id?: string;
@@ -38,6 +40,7 @@ interface TradeHistory {
   open_date: string;
   close_date: string;
   profit: number;
+  type: "buy" | "sell";
 }
 
 interface Account {
@@ -46,6 +49,32 @@ interface Account {
   platform: "MT5" | "cTrader";
   createdAt: string;
 }
+
+interface ShortData {
+  profit: number;
+  wins: number;
+  losses: number;
+  winAmount: number;
+  lossAmount: number;
+  winRate: number;
+}
+
+interface ProfitabilityData {
+  totalTrades: number;
+  wins: number;
+  losses: number;
+  winRate: number;
+}
+
+interface LongData {
+  profit: number;
+  wins: number;
+  losses: number;
+  winAmount: number;
+  lossAmount: number;
+  winRate: number;
+}
+
 
 
 // Skeleton Loader Component
@@ -81,53 +110,64 @@ const SkeletonLoader: React.FC = () => {
     </div>
   );
 };
- const weeks = [
-    {
-      id: 1,
-      title: 'Week One',
-      dateRange: 'Sep 28 - Oct 4',
-      trades: 'No trades',
-      pnl: '0',
-      days: '0',
-      pnlColor: 'text-white',
-    },
-    {
-      id: 2,
-      title: 'Week Two',
-      dateRange: 'Oct 5 - Oct 11',
-      trades: 'No trades',
-      pnl: '0',
-      days: '0',
-      pnlColor: 'text-white',
-    },
-    {
-      id: 3,
-      title: 'Week Three',
-      dateRange: 'Oct 12 - Oct 18',
-      trades: 'No trades',
-      pnl: '0',
-      days: '0',
-      pnlColor: 'text-white',
-    },
-    {
-      id: 4,
-      title: 'Week Four',
-      dateRange: 'Oct 19 - Oct 25',
-      trades: null,
-      pnl: '+$225.15',
-      days: '1',
-      pnlColor: 'text-green-400',
-    },
-    {
-      id: 5,
-      title: 'Week Five',
-      dateRange: 'Oct 26 - Nov 1',
-      trades: null,
-      pnl: '-$81.64',
-      days: '2',
-      pnlColor: 'text-red-400',
-    },
-  ];
+
+interface weekData {
+  id: number,
+  title: string,
+  dateRange: string,
+  trades: string,
+  pnl: string,
+  days: string,
+  pnlColor: string,
+}
+
+const weeks: weekData[] = [
+  {
+    id: 1,
+    title: 'Week One',
+    dateRange: 'Sep 28 - Oct 4',
+    trades: 'No trades',
+    pnl: '0',
+    days: '0',
+    pnlColor: 'text-white',
+  },
+  {
+    id: 2,
+    title: 'Week Two',
+    dateRange: 'Oct 5 - Oct 11',
+    trades: 'No trades',
+    pnl: '0',
+    days: '0',
+    pnlColor: 'text-white',
+  },
+  {
+    id: 3,
+    title: 'Week Three',
+    dateRange: 'Oct 12 - Oct 18',
+    trades: 'No trades',
+    pnl: '0',
+    days: '0',
+    pnlColor: 'text-white',
+  },
+  {
+    id: 4,
+    title: 'Week Four',
+    dateRange: 'Oct 19 - Oct 25',
+    trades: 'No trades',
+    pnl: '0',
+    days: '0',
+    pnlColor: 'text-white',
+  },
+  {
+    id: 5,
+    title: 'Week Five',
+    dateRange: 'Oct 26 - Nov 1',
+    trades: 'no trades',
+    pnl: '0',
+    days: '0',
+    pnlColor: 'text-white',
+  },
+];
 
 const Calendar: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
@@ -144,7 +184,15 @@ const Calendar: React.FC = () => {
   const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
   const [balance, setBalance]: any = useState(0);
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
+  const [weeeksTradingData, setWeeksTradingData] = useState<weekData[]>(weeks);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [shortData, setShortData] = useState<ShortData>({ profit: 0, wins: 0, losses: 0, winAmount: 0, lossAmount: 0, winRate: 0 });
+  const [profitabilityData, setProfitabilityData] = useState<ProfitabilityData>({ totalTrades: 0, wins: 0, losses: 0, winRate: 0 });
+  const [longData, setLongData] = useState<LongData>({ profit: 0, wins: 0, losses: 0, winAmount: 0, lossAmount: 0, winRate: 0 })
+  const [currentMonth, setCurrentMonth] = useState({
+    month: new Date().getMonth(),
+    year: new Date().getFullYear()
+  });
   const calendarRef = useRef<FullCalendar>(null);
   const { isOpen, openModal, closeModal } = useModal();
   const { state, dispatch } = useGlobalState();
@@ -158,79 +206,289 @@ const Calendar: React.FC = () => {
   };
 
   function getDstStartUTC(year: number): Date {
-  // 2nd Sunday of March at 2:00 AM UTC (DST start)
-  const march = new Date(Date.UTC(year, 2, 1));
-  const firstSundayOffset = (7 - march.getUTCDay()) % 7;
-  const secondSunday = 1 + firstSundayOffset + 7;
-  return new Date(Date.UTC(year, 2, secondSunday, 2, 0, 0));
-}
-
-function getDstEndUTC(year: number): Date {
-  // 1st Sunday of November at 2:00 AM UTC (DST end)
-  const november = new Date(Date.UTC(year, 10, 1));
-  const firstSundayOffset = (7 - november.getUTCDay()) % 7;
-  const firstSunday = 1 + firstSundayOffset;
-  return new Date(Date.UTC(year, 10, firstSunday, 2, 0, 0));
-}
-function getMt5OffsetHours(dateUTC: Date): number {
-  const year = dateUTC.getUTCFullYear();
-  const dstStart = getDstStartUTC(year);
-  const dstEnd = getDstEndUTC(year);
-  return (dateUTC >= dstStart && dateUTC < dstEnd) ? 3 : 2;
-}
-
-function adjustTimeToLocal(dateStr: string, timeStr: string): { date: string; time: string } {
-  const year = parseInt(dateStr.substring(0, 4));
-  const dstStart = getDstStartUTC(year);
-  const dstEnd = getDstEndUTC(year);
-
-  // Parse server time string as if it were UTC (temporary)
-  let tempDate = new Date(`${dateStr}T${timeStr}Z`);
-  let utcTimestamp = tempDate.getTime();
-
-  // Initial assumption: standard offset (UTC+2)
-  utcTimestamp -= 2 * 60 * 60 * 1000;
-  let candidateDate = new Date(utcTimestamp);
-
-  // Compute offset based on candidate UTC
-  let offset = getMt5OffsetHours(candidateDate);
-
-  // If DST offset applies, subtract the additional hour
-  if (offset === 3) {
-    utcTimestamp -= 60 * 60 * 1000;
-    candidateDate = new Date(utcTimestamp);
-    // Double-check offset (handles edge cases near transitions)
-    offset = getMt5OffsetHours(candidateDate);
+    // 2nd Sunday of March at 2:00 AM UTC (DST start)
+    const march = new Date(Date.UTC(year, 2, 1));
+    const firstSundayOffset = (7 - march.getUTCDay()) % 7;
+    const secondSunday = 1 + firstSundayOffset + 7;
+    return new Date(Date.UTC(year, 2, secondSunday, 2, 0, 0));
   }
 
-  // Now convert UTC timestamp to user's local time
-  const localDate = new Date(utcTimestamp);
-  const localYear = localDate.getFullYear();
-  const localMonth = String(localDate.getMonth() + 1).padStart(2, '0');
-  const localDay = String(localDate.getDate()).padStart(2, '0');
-  const localHours = String(localDate.getHours()).padStart(2, '0');
-  const localMinutes = String(localDate.getMinutes()).padStart(2, '0');
-  const localSeconds = String(localDate.getSeconds()).padStart(2, '0');
+  function getDstEndUTC(year: number): Date {
+    // 1st Sunday of November at 2:00 AM UTC (DST end)
+    const november = new Date(Date.UTC(year, 10, 1));
+    const firstSundayOffset = (7 - november.getUTCDay()) % 7;
+    const firstSunday = 1 + firstSundayOffset;
+    return new Date(Date.UTC(year, 10, firstSunday, 2, 0, 0));
+  }
+  function getMt5OffsetHours(dateUTC: Date): number {
+    const year = dateUTC.getUTCFullYear();
+    const dstStart = getDstStartUTC(year);
+    const dstEnd = getDstEndUTC(year);
+    return (dateUTC >= dstStart && dateUTC < dstEnd) ? 3 : 2;
+  }
 
-  return {
-    date: `${localYear}-${localMonth}-${localDay}`,
-    time: `${localHours}:${localMinutes}:${localSeconds}`,
-  };
-}
+  function adjustTimeToLocal(dateStr: string, timeStr: string): { date: string; time: string } {
+    const year = parseInt(dateStr.substring(0, 4));
+    const dstStart = getDstStartUTC(year);
+    const dstEnd = getDstEndUTC(year);
+
+    // Parse server time string as if it were UTC (temporary)
+    let tempDate = new Date(`${dateStr}T${timeStr}Z`);
+    let utcTimestamp = tempDate.getTime();
+
+    // Initial assumption: standard offset (UTC+2)
+    utcTimestamp -= 2 * 60 * 60 * 1000;
+    let candidateDate = new Date(utcTimestamp);
+
+    // Compute offset based on candidate UTC
+    let offset = getMt5OffsetHours(candidateDate);
+
+    // If DST offset applies, subtract the additional hour
+    if (offset === 3) {
+      utcTimestamp -= 60 * 60 * 1000;
+      candidateDate = new Date(utcTimestamp);
+      // Double-check offset (handles edge cases near transitions)
+      offset = getMt5OffsetHours(candidateDate);
+    }
+
+    // Now convert UTC timestamp to user's local time
+    const localDate = new Date(utcTimestamp);
+    const localYear = localDate.getFullYear();
+    const localMonth = String(localDate.getMonth() + 1).padStart(2, '0');
+    const localDay = String(localDate.getDate()).padStart(2, '0');
+    const localHours = String(localDate.getHours()).padStart(2, '0');
+    const localMinutes = String(localDate.getMinutes()).padStart(2, '0');
+    const localSeconds = String(localDate.getSeconds()).padStart(2, '0');
+
+    return {
+      date: `${localYear}-${localMonth}-${localDay}`,
+      time: `${localHours}:${localMinutes}:${localSeconds}`,
+    };
+  }
 
   function adjustTrade(trade: any) {
-  const openAdjusted = adjustTimeToLocal(trade.open_date, trade.open_time);
-  const closeAdjusted = adjustTimeToLocal(trade.close_date, trade.close_time);
+    const openAdjusted = adjustTimeToLocal(trade.open_date, trade.open_time);
+    const closeAdjusted = adjustTimeToLocal(trade.close_date, trade.close_time);
 
-  return {
-    ...trade,
-    open_date: openAdjusted.date,
-    open_time: openAdjusted.time,
-    close_date: closeAdjusted.date,
-    close_time: closeAdjusted.time,
-  };
-}
+    return {
+      ...trade,
+      open_date: openAdjusted.date,
+      open_time: openAdjusted.time,
+      close_date: closeAdjusted.date,
+      close_time: closeAdjusted.time,
+    };
+  }
 
+  function calculateshortData(trades: any[], currentMonth: { month: number; year: number }) {
+    let sortTrades: any[] = [];
+    trades.map((trade) => {
+      let month = new Date(trade.close_date).getMonth();
+      let year = new Date(trade.close_date).getFullYear();
+      if (month === currentMonth.month && year === currentMonth.year && trade.type === 'sell') {
+        sortTrades.push(trade);
+      }
+    });
+    const short = {
+      profit: 0,
+      wins: 0,
+      losses: 0,
+      winAmount: 0,
+      lossAmount: 0,
+      winRate: 0
+    }
+    sortTrades.forEach((trade) => {
+      short.profit += trade.profit;
+      if (trade.profit > 0) {
+        short.wins += 1;
+        short.winAmount += trade.profit;
+      } else {
+        short.losses += 1;
+        short.lossAmount += Math.abs(trade.profit);
+      }
+    });
+    short.profit = Number(short.profit.toFixed(2));
+    short.winAmount = Number(short.winAmount.toFixed(2));
+    short.lossAmount = Number(short.lossAmount.toFixed(2));
+    let winRate = short.wins > 0 ? (short.wins / (short.wins + short.losses) * 100) : 0;
+    short.winRate = Number(winRate.toFixed(2));
+    setShortData(short);
+  }
+
+  function calculateprofitabilityData(trades: any[], currentMonth: { month: number; year: number }) {
+    let sortTrades: any[] = [];
+    trades.map((trade) => {
+      let month = new Date(trade.close_date).getMonth();
+      let year = new Date(trade.close_date).getFullYear();
+      if (month === currentMonth.month && year === currentMonth.year) {
+        sortTrades.push(trade);
+      }
+    });
+    const profitability = { totalTrades: 0, wins: 0, losses: 0, winRate: 0 }
+    sortTrades.forEach((trade) => {
+      profitability.totalTrades += 1;
+      if (trade.profit > 0) {
+        profitability.wins += 1;
+      } else {
+        profitability.losses += 1;
+      }
+    });
+    let winRate = profitability.wins > 0 ? (profitability.wins / (profitability.wins + profitability.losses) * 100) : 0;
+    profitability.winRate = Number(winRate.toFixed(2));
+    setProfitabilityData(profitability);
+  }
+
+  function calculatelongData(trades: any[], currentMonth: { month: number; year: number }) {
+    let sortTrades: any[] = [];
+    trades.map((trade) => {
+      let month = new Date(trade.close_date).getMonth();
+      let year = new Date(trade.close_date).getFullYear();
+      if (month === currentMonth.month && year === currentMonth.year && trade.type === 'buy') {
+        sortTrades.push(trade);
+      }
+    });
+    const longs = {
+      profit: 0,
+      wins: 0,
+      losses: 0,
+      winAmount: 0,
+      lossAmount: 0,
+      winRate: 0
+    }
+    sortTrades.forEach((trade) => {
+      longs.profit += trade.profit;
+      if (trade.profit > 0) {
+        longs.wins += 1;
+        longs.winAmount += trade.profit;
+      } else {
+        longs.losses += 1;
+        longs.lossAmount += Math.abs(trade.profit);
+      }
+    });
+    longs.profit = Number(longs.profit.toFixed(2));
+    longs.winAmount = Number(longs.winAmount.toFixed(2));
+    longs.lossAmount = Number(longs.lossAmount.toFixed(2));
+    let winRate = longs.wins > 0 ? (longs.wins / (longs.wins + longs.losses) * 100) : 0;
+    longs.winRate = Number(winRate.toFixed(2));
+    setLongData(longs);
+  }
+
+  function getCalendarWeeks(month: any, year: any) {
+    // This includes partial weeks from previous/next month
+    const formatDateLocal = (date: Date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+    const weeks = [];
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+
+    // Start from the Sunday before (or Monday) of the first week
+    let currentDate = new Date(firstDay);
+    currentDate.setDate(currentDate.getDate() - currentDate.getDay()); // Go to Sunday
+    let weekIndex = 0;
+    // Continue until we've covered the last day
+    while (currentDate <= lastDay) {
+      const weekStart = new Date(currentDate);
+      const weekEnd = new Date(currentDate);
+      weekEnd.setDate(weekEnd.getDate() + 6);
+      weekIndex++;
+      weeks.push({
+        week: weekIndex,
+        start: weekStart,
+        end: weekEnd,
+        startStr: formatDateLocal(weekStart),
+        endStr: formatDateLocal(weekEnd),
+      });
+
+      currentDate.setDate(currentDate.getDate() + 7);
+    }
+    return weeks;
+  }
+
+  function isInDateRange(startDate: string, endDate: string, givenDate: string) {
+    return givenDate >= startDate && givenDate <= endDate;
+  }
+
+  function calcualteWeeklyData(trades: any[], currentMonth: { month: number, year: number }) {
+    const weeekrange = getCalendarWeeks(currentMonth.month, currentMonth.year);
+    const weekTitle = ["Week One", "Week Two", "Week Three", "Week Four", "Week Five"];
+
+    // Initialize all weeks with default data
+    const weeksData: weekData[] = weeekrange.map((week, index) => {
+      const startDate = new Date(week.startStr);
+      const endDate = new Date(week.endStr);
+      const dateRange = `${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+      console.log('Date Range is', dateRange);
+      return {
+        id: index + 1,
+        title: weekTitle[index] || `Week ${index + 1}`,
+        dateRange: dateRange,
+        trades: '0',
+        pnl: '0',
+        days: '0',
+        pnlColor: 'text-white',
+      };
+    });
+
+    // Track unique trading days per week
+    const tradingDaysPerWeek: { [key: number]: Set<string> } = {};
+
+    trades.forEach((trade) => {
+      const month = new Date(trade.close_date).getMonth();
+      const year = new Date(trade.close_date).getFullYear();
+
+      // Only process trades from current month
+        weeekrange.forEach((week, weekIndex) => {
+          const isAvailable = isInDateRange(week.startStr, week.endStr, trade.close_date);
+
+          if (isAvailable) {
+            // Initialize trading days set if not exists
+            if (!tradingDaysPerWeek[weekIndex]) {
+              tradingDaysPerWeek[weekIndex] = new Set();
+            }
+
+            // Add the trading day
+            tradingDaysPerWeek[weekIndex].add(trade.close_date);
+
+            // Update trades count and PnL
+            if (weeksData[weekIndex].trades === '0') {
+              weeksData[weekIndex].trades = '1';
+              weeksData[weekIndex].pnl = trade.profit.toFixed(2);
+            } else {
+              weeksData[weekIndex].trades = String(Number(weeksData[weekIndex].trades) + 1);
+              const newPnl = Number(weeksData[weekIndex].pnl) + trade.profit;
+              weeksData[weekIndex].pnl = newPnl.toFixed(2);
+            }
+
+            // Update color based on PnL
+            const currentPnl = Number(weeksData[weekIndex].pnl);
+            weeksData[weekIndex].pnlColor = currentPnl >= 0 ? 'text-green-400' : 'text-red-400';
+
+            // Update trading days count
+            weeksData[weekIndex].days = String(tradingDaysPerWeek[weekIndex].size);
+          }
+        });
+      
+    });
+
+    setWeeksTradingData(weeksData);
+  }
+
+  useEffect(() => {
+    if (!selectedAccount) return;
+    const tradeHistory = state.tradeHistory[selectedAccount] || [];
+    calculateshortData(tradeHistory, currentMonth);
+    calculateprofitabilityData(tradeHistory, currentMonth);
+    calculatelongData(tradeHistory, currentMonth);
+    calcualteWeeklyData(tradeHistory, currentMonth);
+
+  }, [currentMonth, selectedAccount]);
+
+  useEffect(() => {
+    console.log("weekly anaylsis Data", weeeksTradingData);
+  }, [weeeksTradingData]);
 
   useEffect(() => {
     const fetchAccounts = async () => {
@@ -280,6 +538,8 @@ function adjustTimeToLocal(dateStr: string, timeStr: string): { date: string; ti
     };
   }, []);
 
+
+
   useEffect(() => {
     if (!selectedAccount) return;
 
@@ -315,12 +575,12 @@ function adjustTimeToLocal(dateStr: string, timeStr: string): { date: string; ti
               type: "SET_TRADE_HISTORY",
               payload: {
                 accountNumber: selectedAccount,
-                trades:adjustedTrades,
+                trades: adjustedTrades,
               },
             });
             // Calculate daily profits locally
             const dailyProfitMap: { [date: string]: number } = {};
-            adjustedTrades.forEach((trade:any) => {
+            adjustedTrades.forEach((trade: any) => {
               const date = trade?.close_date;
               if (!dailyProfitMap[date]) {
                 dailyProfitMap[date] = 0;
@@ -558,9 +818,16 @@ function adjustTimeToLocal(dateStr: string, timeStr: string): { date: string; ti
             </div>
           </div>
           <div className="custom-calendar ">
-            
+
             <FullCalendar
               ref={calendarRef}
+              datesSet={(dateInfo) => {
+                const currentDate = dateInfo.view.currentStart;
+                setCurrentMonth({
+                  month: currentDate.getMonth(),
+                  year: currentDate.getFullYear()
+                });
+              }}
               plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
               initialView="dayGridMonth"
               headerToolbar={{
@@ -723,114 +990,115 @@ function adjustTimeToLocal(dateStr: string, timeStr: string): { date: string; ti
           </div>
         </div>
       </Modal>
-       <div className=" bg-slate-900 p-6 md:p-8">
-      <h1 className="text-2xl font-bold text-white mb-8">Weekly Summary</h1>
+      <div className=" bg-slate-900 p-6 md:p-8">
+        <h1 className="text-2xl font-bold text-white mb-8">Weekly Summary</h1>
 
-      {/* Desktop: Horizontal Grid */}
-      <div className="hidden lg:grid lg:grid-cols-5 gap-4 mb-8">
-        {weeks.map((week) => (
-          <div
-            key={week.id}
-            className="bg-slate-800 rounded-lg p-6 border border-slate-700 hover:border-slate-600 transition-colors"
-          >
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold text-white mb-1">
-                {week.title}
-              </h2>
-              <p className="text-sm text-slate-400">{week.dateRange}</p>
-            </div>
-
-          
-
-            {week.pnl && (
-              <div className="flex items-end justify-between">
-                <div>
-                  <p className="text-xs text-slate-500 mb-1">PnL</p>
-                  <p className={`text-lg font-semibold ${week.pnlColor}`}>
-                    {week.pnl}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs text-slate-500 mb-1">Trading Days</p>
-                  <p className="text-lg font-semibold text-white">
-                    {week.days}
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Tablet: 2 Columns */}
-      <div className="hidden md:grid lg:hidden grid-cols-2 gap-4 mb-8">
-        {weeks.map((week) => (
-          <div
-            key={week.id}
-            className="bg-slate-800 rounded-lg p-6 border border-slate-700 hover:border-slate-600 transition-colors"
-          >
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold text-white mb-1">
-                {week.title}
-              </h2>
-              <p className="text-sm text-slate-400">{week.dateRange}</p>
-            </div>
-            {week.pnl && (
-              <div className="flex items-end justify-between">
-                <div>
-                  <p className="text-xs text-slate-500 mb-1">PnL</p>
-                  <p className={`text-lg font-semibold ${week.pnlColor}`}>
-                    {week.pnl}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs text-slate-500 mb-1">Trading Days</p>
-                  <p className="text-lg font-semibold text-white">
-                    {week.days}
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Mobile: Vertical Stack */}
-      <div className="md:hidden space-y-4">
-        {weeks.map((week) => (
-          <div
-            key={week.id}
-            className="bg-slate-800 rounded-lg p-6 border border-slate-700 hover:border-slate-600 transition-colors"
-          >
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h2 className="text-lg font-semibold text-white">
+        {/* Desktop: Horizontal Grid */}
+        <div className="hidden lg:grid lg:grid-cols-5 gap-4 mb-8">
+          {weeeksTradingData.map((week) => (
+            <div
+              key={week.id}
+              className="bg-slate-800 rounded-lg p-6 border border-slate-700 hover:border-slate-600 transition-colors"
+            >
+              <div className="mb-4">
+                <h2 className="text-lg font-semibold text-white mb-1">
                   {week.title}
                 </h2>
                 <p className="text-sm text-slate-400">{week.dateRange}</p>
               </div>
-            </div>
 
-            {week.pnl && (
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-xs text-slate-500 mb-1">PnL</p>
-                  <p className={`text-lg font-semibold ${week.pnlColor}`}>
-                    {week.pnl}
-                  </p>
+
+
+              {week.pnl && (
+                <div className="flex items-end justify-between">
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">PnL</p>
+                    <p className={`text-lg font-semibold ${week.pnlColor}`}>
+                      {week.pnl}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-slate-500 mb-1">Trading Days</p>
+                    <p className="text-lg font-semibold text-white">
+                      {week.days}
+                    </p>
+                  </div>
                 </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Tablet: 2 Columns */}
+        <div className="hidden md:grid lg:hidden grid-cols-2 gap-4 mb-8">
+          {weeeksTradingData.map((week) => (
+            <div
+              key={week.id}
+              className="bg-slate-800 rounded-lg p-6 border border-slate-700 hover:border-slate-600 transition-colors"
+            >
+              <div className="mb-4">
+                <h2 className="text-lg font-semibold text-white mb-1">
+                  {week.title}
+                </h2>
+                <p className="text-sm text-slate-400">{week.dateRange}</p>
+              </div>
+              {week.pnl && (
+                <div className="flex items-end justify-between">
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">PnL</p>
+                    <p className={`text-lg font-semibold ${week.pnlColor}`}>
+                      {week.pnl}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-slate-500 mb-1">Trading Days</p>
+                    <p className="text-lg font-semibold text-white">
+                      {week.days}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Mobile: Vertical Stack */}
+        <div className="md:hidden space-y-4">
+          {weeeksTradingData.map((week) => (
+            <div
+              key={week.id}
+              className="bg-slate-800 rounded-lg p-6 border border-slate-700 hover:border-slate-600 transition-colors"
+            >
+              <div className="flex justify-between items-start mb-4">
                 <div>
-                  <p className="text-xs text-slate-500 mb-1">Trading Days</p>
-                  <p className="text-lg font-semibold text-white">
-                    {week.days}
-                  </p>
+                  <h2 className="text-lg font-semibold text-white">
+                    {week.title}
+                  </h2>
+                  <p className="text-sm text-slate-400">{week.dateRange}</p>
                 </div>
               </div>
-            )}
-          </div>
-        ))}
+
+              {week.pnl && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">PnL</p>
+                    <p className={`text-lg font-semibold ${week.pnlColor}`}>
+                      {week.pnl}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">Trading Days</p>
+                    <p className="text-lg font-semibold text-white">
+                      {week.days}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+      <ProfitabilityAnalytics shortData={shortData} profitabilityData={profitabilityData} longData={longData} />
     </div>
   );
 };
