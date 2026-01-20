@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, ChangeEvent } from "react";
 
 const FieldSelect = ({
   label,
@@ -8,13 +8,15 @@ const FieldSelect = ({
   onChange,
   error,
   children,
+  className = "",
 }: {
   label?: string;
-  disabled?: any;
+  disabled?: boolean;
   value?: string;
-  onChange: (e: React.ChangeEvent<HTMLSelectElement> | { target: { value: string } }) => void;
+  onChange: (e: ChangeEvent<HTMLSelectElement> | { target: { value: string } }) => void;
   error?: string;
   children: React.ReactNode;
+  className?: string;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedText, setSelectedText] = useState("");
@@ -65,6 +67,7 @@ const FieldSelect = ({
               : "border-gray-300 dark:border-gray-700 bg-white/90 dark:bg-gray-800/70"
           }
     ${!disabled && (isOpen ? "ring-2 ring-blue-400 border-blue-400" : "hover:border-blue-400")}
+    ${className}
   `}
       >
 

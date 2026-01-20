@@ -765,4 +765,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   overflow: hidden;       /* important for rounding */
   
 }
+.scrollbar-stable {
+  scrollbar-gutter: stable;
+}
+
 
