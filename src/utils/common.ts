@@ -1,3 +1,5 @@
+import { useCallback } from "react";
+
 export const formatDateToYYYYMMDD = (date: string | Date): string => {
     const d = new Date(date);
     const year = d.getFullYear();
@@ -20,3 +22,17 @@ export const formatDateToYYYYMMDD = (date: string | Date): string => {
     return code; 
   }
 };
+
+export const formatToLocalTime = (utcTimestamp: string) => {
+  if (!utcTimestamp) return "N/A";
+  const date = new Date(utcTimestamp);
+  return date.toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  });
+}

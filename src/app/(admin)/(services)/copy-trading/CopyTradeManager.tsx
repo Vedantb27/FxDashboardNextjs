@@ -8,6 +8,10 @@ import PageBreadcrumb from "../../../../components/common/PageBreadCrumb";
 import { FloatingLabelInput } from "../../../../components/form/FloatingLabelInput";
 import FieldSelect from "../../../../components/form/FieldSelect";
 import Select from "react-select";
+import { formatToLocalTime } from "../../../../utils/common";
+import Image from "next/image";
+import mt5 from "../../../../icons/mt5.png";
+import cTraderIcon from "../../../../icons/ctrader.png";
 
 /* ============================================================================
    Types
@@ -157,7 +161,7 @@ const SkeletonTable: React.FC<{ cols: number; rows: number }> = ({ cols, rows })
         <tr>
           {Array(cols).fill(0).map((_, i) => (
             <th key={i} className="px-4 sm:px-8 py-3 sm:py-4 text-left">
-            <SkeletonBox className="h-4 w-full" />
+              <SkeletonBox className="h-4 w-full" />
 
             </th>
           ))}
@@ -190,7 +194,7 @@ const SkeletonMobileSlaves: React.FC<{ count: number }> = ({ count }) => (
           <SkeletonBox className="h-8 w-28 rounded-xl" />
         </div>
         <div className="flex items-center justify-between">
-         <SkeletonBox className="h-4 w-full" />
+          <SkeletonBox className="h-4 w-full" />
 
           <div className="flex gap-3">
             <SkeletonBox className="h-10 w-20 rounded" />
@@ -457,14 +461,13 @@ export default function CopyTradeManager() {
       setLoading(prev => ({ ...prev, logs: false }));
     }
   }, [accounts]);
-
   useEffect(() => {
     if (selectedSlave) {
       fetchSymbolMap(selectedSlave);
       fetchSlaveLogs(selectedSlave);
-      setLogsCurrentPage(1);
+      setLogsCurrentPage(1); // Reset page on slave/master change
     }
-  }, [selectedSlave, fetchSymbolMap, fetchSlaveLogs]);
+  }, [selectedSlave, selectedMaster, fetchSymbolMap, fetchSlaveLogs]);
 
   /* --------------------------------------------------------------------
      Handlers
@@ -615,17 +618,23 @@ export default function CopyTradeManager() {
 
   // Pagination for logs
   const currentLogs = useMemo(() => {
-    if (!selectedSlave) return [];
-    const logs = slaveLogs[selectedSlave] || [];
+    if (!selectedSlave || !selectedMaster) return [];
+    let logs = slaveLogs[selectedSlave] || [];
+
+
+    logs = logs.filter((log) => log.master_account === selectedMaster);
+
     const startIndex = (logsCurrentPage - 1) * logsPerPage;
     return logs.slice(startIndex, startIndex + logsPerPage);
-  }, [selectedSlave, slaveLogs, logsCurrentPage]);
+  }, [selectedSlave, selectedMaster, slaveLogs, logsCurrentPage]);
 
   const totalLogsPages = useMemo(() => {
-    if (!selectedSlave) return 0;
-    const logs = slaveLogs[selectedSlave] || [];
+    if (!selectedSlave || !selectedMaster) return 0;
+    let logs = slaveLogs[selectedSlave] || [];
+    logs = logs.filter((log) => log.master_account === selectedMaster);
+
     return Math.ceil(logs.length / logsPerPage);
-  }, [selectedSlave, slaveLogs]);
+  }, [selectedSlave, selectedMaster, slaveLogs]);
 
   const handleLogsPageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalLogsPages) {
@@ -669,7 +678,23 @@ export default function CopyTradeManager() {
     return (
       <div className="rounded-xl border border-slate-300/50 dark:border-slate-700/50 bg-white/90 dark:bg-slate-950/90 overflow-hidden shadow-lg">
         <div className="p-8 border-b border-slate-300/50 dark:border-slate-700/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
-          <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Slaves for Master {selectedMaster} ({masterAccount.platform}, Balance: {masterAccount.balance} {masterAccount.depositCurrency})</h3>
+          <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white flex flex-wrap items-center gap-x-3 gap-y-1.5">
+            <span>Slaves for Master</span>
+
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <Image
+                src={masterAccount.platform === "MT5" ? mt5 : cTraderIcon}
+                alt="Platform"
+                width={19}
+                height={19}
+                className="flex-shrink-0 opacity-90"
+              />
+              <span className="font-mono text-lg tracking-tight">{selectedMaster}</span>
+              <span className="text-slate-500 dark:text-slate-400 text-sm sm:text-base whitespace-nowrap">
+                ({masterAccount.balance} {masterAccount.depositCurrency})
+              </span>
+            </div>
+          </h3>
           <div className="flex gap-3">
             <PrimaryBtn onClick={() => setModals((prev) => ({ ...prev, linkSlave: true }))}>
               <IconPlus size={16} className="mr-2 inline" /> Link Slave
@@ -706,7 +731,15 @@ export default function CopyTradeManager() {
                     return (
                       <tr key={slave} className="hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors">
                         <td className="px-4 sm:px-8 py-4 sm:py-5 text-sm text-slate-900 dark:text-slate-200">{slave}</td>
-                        <td className="px-4 sm:px-8 py-4 sm:py-5 text-sm text-slate-900 dark:text-slate-200">{slaveAccount?.platform}</td>
+                        <td className="px-4 sm:px-8 py-4 sm:py-5 text-sm text-slate-900 dark:text-slate-200">  <div className="flex items-center gap-2">
+                          <span>{slaveAccount?.platform}</span>
+                          <Image
+                            src={slaveAccount?.platform === "MT5" ? mt5 : cTraderIcon}
+                            alt="Platform"
+                            width={20}
+                            height={20}
+                          />
+                        </div></td>
                         <td className="px-4 sm:px-8 py-4 sm:py-5 text-sm text-slate-900 dark:text-slate-200">{slaveAccount?.balance} {slaveAccount?.depositCurrency}</td>
                         <td className="px-4 sm:px-8 py-4 sm:py-5">
                           <PrimaryBtn
@@ -719,6 +752,7 @@ export default function CopyTradeManager() {
                         </td>
                         <td className="px-4 sm:px-8 py-4 sm:py-5 flex flex-col sm:flex-row items-start sm:items-center gap-3">
                           <FloatingLabelInput
+                            className="h-9 mt-4 text-center flex items-center leading-none"
                             type="number"
                             value={pendingMultiplier}
                             onChange={(e) => {
@@ -757,6 +791,7 @@ export default function CopyTradeManager() {
                               });
                             }}
                             disabled={pendingMultiplier === config.multiplier}
+                            className="h-9 px-3 mt-0.5"
                           >
                             <IconDeviceFloppy size={16} className="inline" />
                           </PrimaryBtn>
@@ -784,32 +819,83 @@ export default function CopyTradeManager() {
                 const config = currentSlaveConfigs[slave] || { paused: false, multiplier: 1.0 };
                 const pendingMultiplier = pendingMultipliers[slave] ?? config.multiplier;
                 return (
-                  <div key={slave} className="p-4 space-y-4 bg-white/90 dark:bg-slate-950/90 shadow-md rounded-lg m-2">
-                    <div className="font-bold text-sm text-slate-900 dark:text-slate-200">Slave Account: {slave}</div>
-                    <div className="text-sm text-slate-900 dark:text-slate-200">Platform: {slaveAccount?.platform}</div>
-                    <div className="text-sm text-slate-900 dark:text-slate-200">Balance: {slaveAccount?.balance} {slaveAccount?.depositCurrency}</div>
+                  <div
+                    key={slave}
+                    className="p-4 bg-white/90 dark:bg-slate-950/90 shadow-md rounded-lg m-2 space-y-4"
+                  >
+                    {/* Header */}
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs uppercase tracking-wide text-slate-500">
+                        Slave Account
+                      </span>
+                      <span className="font-bold text-sm text-slate-900 dark:text-slate-200">
+                        {slave}
+                      </span>
+                    </div>
+
+                    {/* Info Grid */}
+                    <div className="grid grid-cols-2 gap-y-3 text-sm">
+                      {/* Platform */}
+                      <span className="text-slate-500">Platform</span>
+                      <div className="flex items-center justify-end gap-2 text-slate-900 dark:text-slate-200">
+                        <span>{slaveAccount?.platform}</span>
+                        <Image
+                          src={slaveAccount?.platform === "MT5" ? mt5 : cTraderIcon}
+                          alt="Platform"
+                          width={18}
+                          height={18}
+                        />
+                      </div>
+
+                      {/* Balance */}
+                      <span className="text-slate-500">Balance</span>
+                      <span className="text-right font-medium text-slate-900 dark:text-slate-200">
+                        {slaveAccount?.balance} {slaveAccount?.depositCurrency}
+                      </span>
+                    </div>
+
+                    <hr className="border-slate-200 dark:border-slate-800" />
+
+                    {/* Paused */}
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-slate-900 dark:text-slate-200">Paused:</span>
+                      <span className="text-sm text-slate-900 dark:text-slate-200">
+                        Status
+                      </span>
                       <PrimaryBtn
                         onClick={() => handleSetPaused(slave, !config.paused)}
-                        className={`${config.paused ? "bg-rose-500 hover:bg-rose-600" : "bg-emerald-500 hover:bg-emerald-600"} px-4 py-2 text-sm`}
+                        className={`${config.paused
+                          ? "bg-rose-500 hover:bg-rose-600"
+                          : "bg-emerald-500 hover:bg-emerald-600"
+                          } px-4 py-2 text-sm`}
                       >
-                        {config.paused ? <IconPlayerPlay size={16} className="inline mr-2" /> : <IconPlayerPause size={16} className="inline mr-2" />}
+                        {config.paused ? (
+                          <IconPlayerPlay size={16} className="inline mr-2" />
+                        ) : (
+                          <IconPlayerPause size={16} className="inline mr-2" />
+                        )}
                         {config.paused ? "Resume" : "Pause"}
                       </PrimaryBtn>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-slate-900 dark:text-slate-200">Multiplier:</span>
-                      <div className="flex items-center gap-3">
+
+                    {/* Multiplier */}
+                    <div className="space-y-2">
+                      <span className="text-sm text-slate-900 dark:text-slate-200">
+                        Multiplier
+                      </span>
+
+                      <div className="flex items-end gap-2">
                         <FloatingLabelInput
                           type="number"
+                          className="flex-1 h-9"
                           value={pendingMultiplier}
+                          step="0.01"
+                          min="0.01"
+                          max="100"
                           onChange={(e) => {
                             const raw = e.target.value;
 
-                            // allow empty value while typing
                             if (raw === "") {
-                              setPendingMultipliers(prev => ({
+                              setPendingMultipliers((prev) => ({
                                 ...prev,
                                 [slave]: raw as any,
                               }));
@@ -817,44 +903,49 @@ export default function CopyTradeManager() {
                             }
 
                             const val = Number(raw);
-
                             if (!isNaN(val)) {
-                              setPendingMultipliers(prev => ({
+                              setPendingMultipliers((prev) => ({
                                 ...prev,
                                 [slave]: val,
                               }));
                             }
                           }}
-                          step="0.01"
-                          min="0.01"
-                          max="100"
                         />
+
                         <PrimaryBtn
                           onClick={() => {
                             handleSetMultiplier(slave, pendingMultiplier);
                             setPendingMultipliers((prev) => {
-                              const newPrev = { ...prev };
-                              delete newPrev[slave];
-                              return newPrev;
+                              const copy = { ...prev };
+                              delete copy[slave];
+                              return copy;
                             });
                           }}
                           disabled={pendingMultiplier === config.multiplier}
+                          className="h-9 px-3 mb-4 text-center flex items-center leading-none"
+
                         >
-                          <IconDeviceFloppy size={16} className="inline" />
+                          <IconDeviceFloppy size={14} />
                         </PrimaryBtn>
                       </div>
+
                     </div>
-                    <div className="flex justify-end">
-                      <DangerBtn
-                        onClick={() => {
-                          setCurrentModalData((prev) => ({ ...prev, slave }));
-                          setModals((prev) => ({ ...prev, unlinkSlave: true }));
-                        }}
-                      >
-                        <IconTrash size={16} className="inline mr-2" /> Unlink
-                      </DangerBtn>
-                    </div>
+
+                    <hr className="border-slate-200 dark:border-slate-800" />
+
+                    {/* Unlink */}
+                    <DangerBtn
+                      onClick={() => {
+                        setCurrentModalData((prev) => ({ ...prev, slave }));
+                        setModals((prev) => ({ ...prev, unlinkSlave: true }));
+                      }}
+                      className="w-full"
+                    >
+                      <IconTrash size={16} className="inline mr-2" />
+                      Unlink Account
+                    </DangerBtn>
                   </div>
+
                 );
               })}
             </div>
@@ -908,7 +999,23 @@ export default function CopyTradeManager() {
       <div className="space-y-10">
         <div className="rounded-xl border border-slate-300/50 dark:border-slate-700/50 bg-white/90 dark:bg-slate-950/90 overflow-hidden shadow-lg">
           <div className="p-8 border-b border-slate-300/50 dark:border-slate-700/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Symbol Mappings for Slave {selectedSlave} ({slaveAccount.platform}, Balance: {slaveAccount.balance} {slaveAccount.depositCurrency})</h3>
+            <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white flex flex-wrap items-center gap-x-3 gap-y-1.5">
+              <span>Symbol Mappings for Slave</span>
+
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <Image
+                  src={slaveAccount.platform === "MT5" ? mt5 : cTraderIcon}
+                  alt="Platform"
+                  width={19}
+                  height={19}
+                  className="flex-shrink-0 opacity-90"
+                />
+                <span className="font-mono text-lg tracking-tight">{selectedSlave}</span>
+                <span className="text-slate-500 dark:text-slate-400 text-sm sm:text-base whitespace-nowrap">
+                  ({slaveAccount.balance} {slaveAccount.depositCurrency})
+                </span>
+              </div>
+            </h3>
             <PrimaryBtn onClick={() => setModals((prev) => ({ ...prev, addSymbolMap: true }))}>
               <IconPlus size={16} className="mr-2 inline" /> Add Mapping
             </PrimaryBtn>
@@ -951,27 +1058,56 @@ export default function CopyTradeManager() {
                 </table>
               </div>
               {/* Mobile Box View */}
-              <div className="block sm:hidden divide-y divide-slate-300/50 dark:divide-slate-700/50">
+              <div
+                className="
+    block sm:hidden
+    max-h-[60vh]
+    overflow-y-auto
+    pr-1
+    divide-y divide-slate-300/50 dark:divide-slate-700/50
+    scrollbar-thin
+    scrollbar-thumb-slate-400/60
+    dark:scrollbar-thumb-slate-600/60
+    scrollbar-track-transparent
+  "
+              >
                 {Object.entries(symbolMaps[selectedSlave] || {}).map(([base, slaveSym]) => (
-                  <div key={base} className="p-4 space-y-4 bg-white/90 dark:bg-slate-950/90 shadow-md rounded-lg m-2">
-                    <div className="font-bold text-sm text-slate-900 dark:text-slate-200">Master Symbol: {base}</div>
-                    <div className="text-sm text-slate-900 dark:text-slate-200">Slave Symbol: {slaveSym}</div>
+                  <div
+                    key={base}
+                    className="p-4 space-y-4 bg-white/90 dark:bg-slate-950/90 shadow-md rounded-lg m-2"
+                  >
+                    <div className="font-bold text-sm text-slate-900 dark:text-slate-200">
+                      Master Symbol: {base}
+                    </div>
+
+                    <div className="text-sm text-slate-900 dark:text-slate-200">
+                      Slave Symbol: {slaveSym}
+                    </div>
+
                     <div className="flex justify-end gap-3">
                       <PrimaryBtn
                         onClick={() => {
-                          setCurrentModalData((prev) => ({ ...prev, baseSymbol: base, slaveSymbol: slaveSym }));
+                          setCurrentModalData((prev) => ({
+                            ...prev,
+                            baseSymbol: base,
+                            slaveSymbol: slaveSym,
+                          }));
                           setModals((prev) => ({ ...prev, editSymbolMap: true }));
                         }}
                       >
-                        <IconEdit size={16} className="inline" />
+                        <IconEdit size={16} />
                       </PrimaryBtn>
-                      <DangerBtn onClick={() => handleDeleteSymbolMap(selectedSlave, base)}>
-                        <IconTrash size={16} className="inline" />
+
+                      <DangerBtn
+                        onClick={() => handleDeleteSymbolMap(selectedSlave, base)}
+                      >
+                        <IconTrash size={16} />
                       </DangerBtn>
                     </div>
                   </div>
                 ))}
               </div>
+
             </>
           )}
         </div>
@@ -1002,7 +1138,9 @@ export default function CopyTradeManager() {
                   <tbody className="divide-y divide-slate-300/50 dark:divide-slate-700/50">
                     {currentLogs.map((log, index) => (
                       <tr key={index} className="hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors">
-                        <td className="px-4 sm:px-8 py-4 sm:py-5 text-sm text-slate-900 dark:text-slate-200">{log.timestamp}</td>
+                        <td className="px-4 sm:px-8 py-4 sm:py-5 text-sm text-slate-900 dark:text-slate-200">
+                          {formatToLocalTime(log.timestamp)}
+                        </td>
                         <td className="px-4 sm:px-8 py-4 sm:py-5 text-sm text-slate-900 dark:text-slate-200">{log.symbol}</td>
                         <td className="px-4 sm:px-8 py-4 sm:py-5 text-sm text-slate-900 dark:text-slate-200">{log.order_type}</td>
                         <td className="px-4 sm:px-8 py-4 sm:py-5 text-sm text-slate-900 dark:text-slate-200">{log.trade_setup || 'N/A'}</td>
@@ -1020,7 +1158,9 @@ export default function CopyTradeManager() {
               <div className="block sm:hidden divide-y divide-slate-300/50 dark:divide-slate-700/50">
                 {currentLogs.map((log, index) => (
                   <div key={index} className="p-4 space-y-2 bg-white/90 dark:bg-slate-950/90 shadow-md rounded-lg m-2">
-                    <div className="text-sm text-slate-900 dark:text-slate-200"><span className="font-bold">Timestamp:</span> {log.timestamp}</div>
+                    <div className="text-sm text-slate-900 dark:text-slate-200">
+                      <span className="font-bold">Timestamp:</span> {formatToLocalTime(log.timestamp)}
+                    </div>
                     <div className="text-sm text-slate-900 dark:text-slate-200"><span className="font-bold">Symbol:</span> {log.symbol}</div>
                     <div className="text-sm text-slate-900 dark:text-slate-200"><span className="font-bold">Order Type:</span> {log.order_type}</div>
                     <div className="text-sm text-slate-900 dark:text-slate-200"><span className="font-bold">Trade Setup:</span> {log.trade_setup || 'N/A'}</div>
@@ -1157,7 +1297,7 @@ export default function CopyTradeManager() {
               <option value="" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200">Select Master</option>
               {potentialMasters.map((acc) => (
                 <option key={acc.accountNumber} value={acc.accountNumber} className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200">
-                  {acc.accountNumber} ({acc.platform}, Balance: {acc.balance} {acc.depositCurrency}) {acc.role === 'Master' ? '(Master)' : ''}
+                  {acc.accountNumber} ({acc.platform}, {acc.balance} {acc.depositCurrency}) {acc.role === 'Master' ? '(Master)' : ''}
                 </option>
               ))}
             </FieldSelect>
@@ -1178,7 +1318,7 @@ export default function CopyTradeManager() {
               <option value="" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200">Select Slave</option>
               {potentialSlaves.map((acc) => (
                 <option key={acc.accountNumber} value={acc.accountNumber} className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200">
-                  {acc.accountNumber} ({acc.platform}, Balance: {acc.balance} {acc.depositCurrency})
+                  {acc.accountNumber} ({acc.platform}, {acc.balance} {acc.depositCurrency})
                 </option>
               ))}
             </FieldSelect>
@@ -1191,9 +1331,21 @@ export default function CopyTradeManager() {
             isOpen
             onClose={() => setModals((prev) => ({ ...prev, linkSlave: false }))}
           >
-            <h3 className="text-2xl font-bold mb-6">
-              Link Slave to Master {selectedMaster}
+            <h3 className="text-2xl font-bold mb-6 flex items-center gap-2 flex-wrap">
+              <span>Link Slave to Master</span>
+              <span className="text-base font-mono text-blue-700 dark:text-blue-400">
+                {selectedMaster}
+              </span>
+              <Image
+                src={mt5}
+                alt="Platform"
+                width={19}
+                height={19}
+                className="flex-shrink-0 opacity-90"
+              />
             </h3>
+
+
 
             <FieldSelect
               label="Select Slave Account"
@@ -1216,7 +1368,7 @@ export default function CopyTradeManager() {
                 )
                 .map((acc) => (
                   <option key={acc.accountNumber} value={acc.accountNumber}>
-                    {acc.accountNumber} ({acc.platform}, Balance: {acc.balance}{" "}
+                    {acc.accountNumber} ({acc.platform},  {acc.balance}{" "}
                     {acc.depositCurrency})
                   </option>
                 ))}
