@@ -1113,7 +1113,21 @@ export default function CopyTradeManager() {
         </div>
         <div className="rounded-xl border border-slate-300/50 dark:border-slate-700/50 bg-white/90 dark:bg-slate-950/90 overflow-hidden shadow-lg">
           <div className="p-8 border-b border-slate-300/50 dark:border-slate-700/50">
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Execution Logs for Slave {selectedSlave}</h3>
+             <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white flex flex-wrap items-center gap-x-3 gap-y-1.5">  <span>Execution Logs for Slave</span>
+
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <Image
+                  src={slaveAccount.platform === "MT5" ? mt5 : cTraderIcon}
+                  alt="Platform"
+                  width={19}
+                  height={19}
+                  className="flex-shrink-0 opacity-90"
+                />
+                <span className="font-mono text-lg tracking-tight">{selectedSlave}</span>
+                <span className="text-slate-500 dark:text-slate-400 text-sm sm:text-base whitespace-nowrap">
+                  ({slaveAccount.balance} {slaveAccount.depositCurrency})
+                </span>
+              </div></h3>
           </div>
           {currentLogs.length === 0 ? (
             <p className="p-8 text-center text-slate-600 dark:text-slate-400 text-lg">No execution logs available.</p>
@@ -1332,17 +1346,17 @@ export default function CopyTradeManager() {
             onClose={() => setModals((prev) => ({ ...prev, linkSlave: false }))}
           >
             <h3 className="text-2xl font-bold mb-6 flex items-center gap-2 flex-wrap">
-              <span>Link Slave to Master</span>
-              <span className="text-base font-mono text-blue-700 dark:text-blue-400">
-                {selectedMaster}
-              </span>
-              <Image
+              <span>Link Slave to Master</span> <Image
                 src={mt5}
                 alt="Platform"
                 width={19}
                 height={19}
                 className="flex-shrink-0 opacity-90"
               />
+              <span className="text-base font-mono text-grey-300 dark:text-blue-400 mt-1">
+                {selectedMaster}
+              </span>
+             
             </h3>
 
 

@@ -19,7 +19,7 @@ import {
   AccountBalanceWalletOutline
 } from "../icons/index";
 import SidebarWidget from "./SidebarWidget";
-import { IconCalculator, IconChartArrowsVertical,IconDeviceDesktopAnalytics,IconAdjustmentsUp, IconClipboardCheck   } from "@tabler/icons-react";
+import { IconCalculator, IconChartArrowsVertical,IconDeviceDesktopAnalytics,IconAdjustmentsUp, IconClipboardCheck, IconCreditCardPay, IconLibrary   } from "@tabler/icons-react";
 
 type NavItem = {
   name: string;
@@ -53,6 +53,8 @@ const navItems: NavItem[] = [
     icon: <IconDeviceDesktopAnalytics  />,
     name: "Services",
     subItems: [
+      { name: "Manage Credits",icon: <IconCreditCardPay   stroke={2} />, path: "/manage-credits", pro: false },
+      { name: "Manage Accounts",icon: <IconLibrary   stroke={2} />, path: "/manage-accounts", pro: false },
       { name: "Trade Manager",icon: <IconAdjustmentsUp  stroke={2} />, path: "/trade-manager", pro: true },
       { name: "Copy Trading",icon: <IconClipboardCheck   stroke={2} />, path: "/copy-trading", pro: true },
       // { name: "Avatar", path: "/avatars", pro: false },
