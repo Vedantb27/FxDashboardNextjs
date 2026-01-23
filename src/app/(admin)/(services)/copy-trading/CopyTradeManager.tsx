@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
 import Request from "../../../../utils/request";
@@ -252,6 +252,28 @@ export default function CopyTradeManager() {
   const [slaveLogs, setSlaveLogs] = useState<Record<string, SlaveLog[]>>({});
   const [pendingMultipliers, setPendingMultipliers] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState<{ [key: string]: boolean }>({ accounts: true, slaves: false, configs: false, symbols: false, logs: false });
+  const [showMasterDropdown, setShowMasterDropdown] = useState(false);
+  const [showSlaveDropdown, setShowSlaveDropdown] = useState(false);
+  const masterDropdownRef = useRef<HTMLDivElement>(null);
+  const slaveDropdownRef = useRef<HTMLDivElement>(null);
+  const [showLinkSlaveDropdown, setShowLinkSlaveDropdown] = useState(false);
+  const linkSlaveDropdownRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (masterDropdownRef.current && !masterDropdownRef.current.contains(event.target as Node)) {
+        setShowMasterDropdown(false);
+      }
+      if (slaveDropdownRef.current && !slaveDropdownRef.current.contains(event.target as Node)) {
+        setShowSlaveDropdown(false);
+      }
+      if (linkSlaveDropdownRef.current && !linkSlaveDropdownRef.current.contains(event.target as Node)) {
+        setShowLinkSlaveDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
   const [modals, setModals] = useState({
     linkSlave: false,
     unlinkSlave: false,
@@ -274,7 +296,18 @@ export default function CopyTradeManager() {
   // Filtered accounts for selects
   const potentialMasters = useMemo(() => accounts.filter(acc => acc.isActive && (acc.role === 'Master' || acc.role === null)), [accounts]);
   const potentialSlaves = useMemo(() => accounts.filter(acc => slaves.includes(acc.accountNumber)), [accounts, slaves]);
-
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (masterDropdownRef.current && !masterDropdownRef.current.contains(event.target as Node)) {
+        setShowMasterDropdown(false);
+      }
+      if (slaveDropdownRef.current && !slaveDropdownRef.current.contains(event.target as Node)) {
+        setShowSlaveDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
   // Detect dark mode
   useEffect(() => {
     const checkDarkMode = () => {
@@ -335,7 +368,7 @@ export default function CopyTradeManager() {
           setAccounts(sortedAccounts || []);
           const activeAccounts = sortedAccounts.filter((acc: Account) => acc.isActive);
           if (activeAccounts.length > 0) {
-            const firstPotentialMaster = activeAccounts.find(acc => acc.role === 'Master' || acc.role === null);
+            const firstPotentialMaster = activeAccounts.find((acc:any) => acc.role === 'Master' || acc.role === null);
             if (firstPotentialMaster) setSelectedMaster(firstPotentialMaster.accountNumber);
           }
           // Fetch symbols only for active accounts
@@ -755,7 +788,7 @@ export default function CopyTradeManager() {
                             className="h-9 mt-4 text-center flex items-center leading-none"
                             type="number"
                             value={pendingMultiplier}
-                            onChange={(e) => {
+                            onChange={(e:any) => {
                               const raw = e.target.value;
 
                               // allow empty value while typing
@@ -891,7 +924,7 @@ export default function CopyTradeManager() {
                           step="0.01"
                           min="0.01"
                           max="100"
-                          onChange={(e) => {
+                          onChange={(e:any) => {
                             const raw = e.target.value;
 
                             if (raw === "") {
@@ -1113,7 +1146,7 @@ export default function CopyTradeManager() {
         </div>
         <div className="rounded-xl border border-slate-300/50 dark:border-slate-700/50 bg-white/90 dark:bg-slate-950/90 overflow-hidden shadow-lg">
           <div className="p-8 border-b border-slate-300/50 dark:border-slate-700/50">
-             <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white flex flex-wrap items-center gap-x-3 gap-y-1.5">  <span>Execution Logs for Slave</span>
+            <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white flex flex-wrap items-center gap-x-3 gap-y-1.5">  <span>Execution Logs for Slave</span>
 
               <div className="flex items-center gap-2 flex-shrink-0">
                 <Image
@@ -1302,19 +1335,94 @@ export default function CopyTradeManager() {
         <section className="mb-16">
           <h2 className="text-3xl font-extrabold mb-8">Master Account Management</h2>
           <div className="flex items-center gap-6 mb-8">
-            <FieldSelect
-              label="Select Master Account"
-              value={selectedMaster || ""}
-              onChange={(e) => setSelectedMaster(e.target.value)}
-              className="text-slate-900 dark:text-slate-200 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600"
-            >
-              <option value="" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200">Select Master</option>
-              {potentialMasters.map((acc) => (
-                <option key={acc.accountNumber} value={acc.accountNumber} className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200">
-                  {acc.accountNumber} ({acc.platform}, {acc.balance} {acc.depositCurrency}) {acc.role === 'Master' ? '(Master)' : ''}
-                </option>
-              ))}
-            </FieldSelect>
+            <div className="w-full max-w-sm">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Select Master Account
+              </label>
+              <div ref={masterDropdownRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowMasterDropdown(!showMasterDropdown)}
+                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 hover:border-emerald-400 focus:border-emerald-500 transition-all"
+                >
+                  {selectedMaster ? (
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-xl">
+                        <Image
+                          src={
+                            accounts.find(a => a.accountNumber === selectedMaster)?.platform === "MT5"
+                              ? mt5
+                              : cTraderIcon
+                          }
+                          alt="Platform"
+                          width={26}
+                          height={26}
+                          className="object-contain"
+                        />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-slate-900 dark:text-white text-left">
+                          {selectedMaster}
+                        </div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 text-left">
+                          {accounts.find(a => a.accountNumber === selectedMaster)?.server} •{" "}
+                          {accounts.find(a => a.accountNumber === selectedMaster)?.balance}{" "}
+                          {accounts.find(a => a.accountNumber === selectedMaster)?.depositCurrency}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <span className="text-slate-500">Select Master Account</span>
+                  )}
+                  <svg xmlns="http://www.w3.org/2000/svg" className={`w-5 h-5 text-slate-400 transition-transform ${showMasterDropdown ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                <AnimatePresence>
+                  {showMasterDropdown && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      className="absolute z-50 mt-2 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl overflow-hidden max-h-[340px] overflow-y-auto"
+                    >
+                      {potentialMasters.map((acc) => (
+                        <button
+                          key={acc.accountNumber}
+                          onClick={() => {
+                            setSelectedMaster(acc.accountNumber);
+                            setShowMasterDropdown(false);
+                          }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${selectedMaster === acc.accountNumber ? "bg-emerald-50 dark:bg-emerald-950/50" : ""}`}
+                        >
+                          <div className="w-9 h-9 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-xl">
+                            <Image
+                              src={acc.platform === "MT5" ? mt5 : cTraderIcon}
+                              alt={acc.platform}
+                              width={28}
+                              height={28}
+                              className="object-contain"
+                            />
+                          </div>
+                          <div className="flex-1 text-left">
+                            <div className="font-medium text-slate-900 dark:text-white">
+                              {acc.accountNumber}
+                            </div>
+                            <div className="text-xs text-slate-500 dark:text-slate-400">
+                              {acc.server} • {acc.balance || "0"} {acc.depositCurrency}
+                            </div>
+                          </div>
+                          {selectedMaster === acc.accountNumber && (
+                            <div className="ml-auto w-2 h-2 bg-emerald-500 rounded-full"></div>
+                          )}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
           </div>
           {selectedMaster && renderMasterSlaves()}
         </section>
@@ -1322,20 +1430,115 @@ export default function CopyTradeManager() {
         {potentialSlaves.length > 0 && <section>
           <h2 className="text-3xl font-extrabold mb-8">Slave Account Settings</h2>
           <div className="flex items-center gap-6 mb-8">
-            <FieldSelect
-              label="Select Slave Account"
-              value={selectedSlave || ""}
-              onChange={(e) => setSelectedSlave(e.target.value)}
-              className="text-slate-900 dark:text-slate-200 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600"
-              disabled={!selectedMaster || slaves.length === 0}
-            >
-              <option value="" className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200">Select Slave</option>
-              {potentialSlaves.map((acc) => (
-                <option key={acc.accountNumber} value={acc.accountNumber} className="bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200">
-                  {acc.accountNumber} ({acc.platform}, {acc.balance} {acc.depositCurrency})
-                </option>
-              ))}
-            </FieldSelect>
+            <div className="w-full max-w-sm">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Select Slave Account
+              </label>
+
+              <div ref={slaveDropdownRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowSlaveDropdown(!showSlaveDropdown)}
+                  disabled={!selectedMaster || slaves.length === 0 || loading.slaves}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all
+                  ${!selectedMaster || slaves.length === 0
+                      ? "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 cursor-not-allowed"
+                      : "bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600 hover:border-emerald-400 focus:border-emerald-500"
+                    }`}
+                >
+                  {selectedSlave ? (
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-xl">
+                        <Image
+                          src={
+                            accounts.find(a => a.accountNumber === selectedSlave)?.platform === "MT5"
+                              ? mt5
+                              : cTraderIcon
+                          }
+                          alt="Platform"
+                          width={26}
+                          height={26}
+                          className="object-contain"
+                        />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-slate-900 dark:text-white text-left">
+                          {selectedSlave}
+                        </div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400">
+                          {accounts.find(a => a.accountNumber === selectedSlave)?.server} •{" "}
+                          {accounts.find(a => a.accountNumber === selectedSlave)?.balance}{" "}
+                          {accounts.find(a => a.accountNumber === selectedSlave)?.depositCurrency}
+
+                          
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <span className="text-slate-500">Select Slave Account</span>
+                  )}
+
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={`w-5 h-5 text-slate-400 transition-transform ${showSlaveDropdown ? "rotate-180" : ""}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                <AnimatePresence>
+                  {showSlaveDropdown && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      className="absolute z-50 mt-2 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl overflow-hidden max-h-[340px] overflow-y-auto"
+                    >
+                      {potentialSlaves.length === 0 ? (
+                        <div className="p-4 text-sm text-slate-500 dark:text-slate-400">
+                          No available slave accounts
+                        </div>
+                      ) : (
+                        potentialSlaves.map((acc) => (
+                          <button
+                            key={acc.accountNumber}
+                            onClick={() => {
+                              setSelectedSlave(acc.accountNumber);
+                              setShowSlaveDropdown(false);
+                            }}
+                            className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${selectedSlave === acc.accountNumber ? "bg-emerald-50 dark:bg-emerald-950/50" : ""}`}
+                          >
+                            <div className="w-9 h-9 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-xl">
+                              <Image
+                                src={acc.platform === "MT5" ? mt5 : cTraderIcon}
+                                alt={acc.platform}
+                                width={28}
+                                height={28}
+                                className="object-contain"
+                              />
+                            </div>
+                            <div className="flex-1 text-left">
+                              <div className="font-medium text-slate-900 dark:text-white">
+                                {acc.accountNumber}
+                              </div>
+                              <div className="text-xs text-slate-500 dark:text-slate-400">
+                               {acc.server} • {acc.balance || "0"} {acc.depositCurrency}
+                              </div>
+                            </div>
+                            {selectedSlave === acc.accountNumber && (
+                              <div className="ml-auto w-2 h-2 bg-emerald-500 rounded-full"></div>
+                            )}
+                          </button>
+                        ))
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
           </div>
           {renderSlaveSettings()}
         </section>}
@@ -1345,58 +1548,162 @@ export default function CopyTradeManager() {
             isOpen
             onClose={() => setModals((prev) => ({ ...prev, linkSlave: false }))}
           >
-            <h3 className="text-2xl font-bold mb-6 flex items-center gap-2 flex-wrap">
-              <span>Link Slave to Master</span> <Image
-                src={mt5}
-                alt="Platform"
-                width={19}
-                height={19}
-                className="flex-shrink-0 opacity-90"
-              />
-              <span className="text-base font-mono text-grey-300 dark:text-blue-400 mt-1">
-                {selectedMaster}
-              </span>
-             
+            <h3 className="text-2xl font-bold mb-6 flex items-center gap-3 flex-wrap">
+              <span>Link Slave to Master</span>
+              <div className="flex items-center gap-2">
+                <Image
+                  src={
+                    accounts.find(a => a.accountNumber === selectedMaster)?.platform === "MT5"
+                      ? mt5
+                      : cTraderIcon
+                  }
+                  alt="Platform"
+                  width={20}
+                  height={20}
+                  className="flex-shrink-0 opacity-90"
+                />
+                <span className="text-base font-mono text-gray-600 dark:text-blue-400">
+                  {selectedMaster}
+                </span>
+              </div>
             </h3>
 
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Select Slave Account to Link
+              </label>
 
+              <div ref={linkSlaveDropdownRef} className="relative">
+                {/* Trigger Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowLinkSlaveDropdown(!showLinkSlaveDropdown)}
+                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 hover:border-emerald-400 focus:border-emerald-500 transition-all"
+                >
+                  {currentModalData.slave ? (
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-xl">
+                        <Image
+                          src={
+                            accounts.find(a => a.accountNumber === currentModalData.slave)?.platform === "MT5"
+                              ? mt5
+                              : cTraderIcon
+                          }
+                          alt="Platform"
+                          width={26}
+                          height={26}
+                          className="object-contain"
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-semibold text-slate-900 dark:text-white truncate text-left">
+                          {currentModalData.slave}
+                        </div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 truncate text-left">
+                          {accounts.find(a => a.accountNumber === currentModalData.slave)?.server} •{" "}
+                          {accounts.find(a => a.accountNumber === currentModalData.slave)?.balance || "0"}{" "}
+                          {accounts.find(a => a.accountNumber === currentModalData.slave)?.depositCurrency}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <span className="text-slate-500">Select available slave account</span>
+                  )}
 
-            <FieldSelect
-              label="Select Slave Account"
-              value={currentModalData.slave}
-              onChange={(e) =>
-                setCurrentModalData((prev) => ({
-                  ...prev,
-                  slave: e.target.value,
-                }))
-              }
-            >
-              <option value="">Select Slave</option>
-              {accounts
-                .filter(
-                  (acc) =>
-                    acc.accountNumber !== selectedMaster &&
-                    !slaves.includes(acc.accountNumber) &&
-                    acc.isActive &&
-                    acc.role === null
-                )
-                .map((acc) => (
-                  <option key={acc.accountNumber} value={acc.accountNumber}>
-                    {acc.accountNumber} ({acc.platform},  {acc.balance}{" "}
-                    {acc.depositCurrency})
-                  </option>
-                ))}
-            </FieldSelect>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${showLinkSlaveDropdown ? "rotate-180" : ""}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {/* Dropdown Menu */}
+                <AnimatePresence>
+                  {showLinkSlaveDropdown && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.98 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute z-50 mt-2 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl overflow-hidden max-h-[340px] overflow-y-auto"
+                    >
+                      {accounts.filter(
+                        (acc) =>
+                          acc.accountNumber !== selectedMaster &&
+                          !slaves.includes(acc.accountNumber) &&
+                          acc.isActive &&
+                          acc.role === null
+                      ).length === 0 ? (
+                        <div className="p-5 text-center text-sm text-slate-500 dark:text-slate-400">
+                          No available slave accounts to link
+                        </div>
+                      ) : (
+                        accounts
+                          .filter(
+                            (acc) =>
+                              acc.accountNumber !== selectedMaster &&
+                              !slaves.includes(acc.accountNumber) &&
+                              acc.isActive &&
+                              acc.role === null
+                          )
+                          .map((acc) => (
+                            <button
+                              key={acc.accountNumber}
+                              type="button"
+                              onClick={() => {
+                                setCurrentModalData((prev) => ({ ...prev, slave: acc.accountNumber }));
+                                setShowLinkSlaveDropdown(false);
+                              }}
+                              className={`w-full flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/70 transition-colors
+                        ${currentModalData.slave === acc.accountNumber ? "bg-emerald-50 dark:bg-emerald-950/40" : ""}
+                      `}
+                            >
+                              <div className="w-10 h-10 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-xl flex-shrink-0">
+                                <Image
+                                  src={acc.platform === "MT5" ? mt5 : cTraderIcon}
+                                  alt={acc.platform}
+                                  width={28}
+                                  height={28}
+                                  className="object-contain"
+                                />
+                              </div>
+
+                              <div className="flex-1 min-w-0">
+                                <div className={`font-medium truncate ${currentModalData.slave === acc.accountNumber ? "text-emerald-700 dark:text-emerald-400" : "text-slate-900 dark:text-white"}`}>
+                                  {acc.accountNumber}
+                                </div>
+                                <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                                  {acc.server} • {acc.balance || "0"} {acc.depositCurrency}
+                                </div>
+                              </div>
+
+                              {currentModalData.slave === acc.accountNumber && (
+                                <div className="ml-auto">
+                                  <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full"></div>
+                                </div>
+                              )}
+                            </button>
+                          ))
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
 
             <div className="flex justify-end gap-3 mt-6">
               <MutedBtn
-                onClick={() =>
-                  setModals((prev) => ({ ...prev, linkSlave: false }))
-                }
+                onClick={() => {
+                  setModals((prev) => ({ ...prev, linkSlave: false }));
+                  setCurrentModalData((prev) => ({ ...prev, slave: "" }));
+                }}
               >
                 Cancel
               </MutedBtn>
-
               <PrimaryBtn
                 onClick={() => {
                   handleLinkSlave(currentModalData.slave);

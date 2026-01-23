@@ -75,6 +75,7 @@ interface Account {
   platform: "MT5" | "cTrader";
   createdAt: string;
   balance?: number;
+  depositCurrency?: string;
 }
 export interface MarketData {
   symbol: string;
@@ -314,11 +315,8 @@ export default function TradeManager() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const LIMIT = 10;
-
   type TradeTab = "pending" | "running" | "executed" | "removed";
-
   const [activeTab, setActiveTab] = useState<TradeTab>("pending");
-
   // Sync globals for modals
   useEffect(() => {
     pending = pendingState;
@@ -1097,9 +1095,9 @@ export default function TradeManager() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 backdrop-blur-md shadow-xl overflow-hidden"
+        className="-z-9999 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 backdrop-blur-md shadow-xl overflow-hidden"
       >
-        <div className="flex justify-between items-center px-6 py-4 border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-slate-50/60 to-emerald-50/30 dark:from-slate-800/60 dark:to-emerald-900/20">
+        <div className="-z-9999 flex justify-between items-center px-6 py-4 border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-slate-50/60 to-emerald-50/30 dark:from-slate-800/60 dark:to-emerald-900/20">
           <h3 className="text-xl font-bold text-slate-900 dark:text-white">
             {title}
           </h3>
@@ -1486,81 +1484,107 @@ export default function TradeManager() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/70 backdrop-blur-md p-6 mb-8 shadow-xl"
+          className="rounded-2xl  border border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/70 backdrop-blur-md p-6 mb-8 shadow-xl"
         >
           <div ref={dropdownRef} className="relative w-full max-w-sm mb-4">
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Trading Account
             </label>
             <button
-              className="w-full flex items-center justify-between p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white/80 dark:bg-slate-800/50 hover:ring-2 hover:ring-emerald-400 transition-all text-sm text-slate-900 dark:text-white"
+              type="button"
               onClick={() => setShowDropdown(!showDropdown)}
-              disabled={isConnecting}
+              disabled={isLoadingAccounts || accounts.length === 0 || isConnecting}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all
+                ${isLoadingAccounts || accounts.length === 0
+                  ? "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 cursor-not-allowed"
+                  : "bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600 hover:border-emerald-400 focus:border-emerald-500"
+                }`}
             >
-              {accounts.length > 0 && selectedAccount && !isLoadingAccounts ? (
-                <>
-                  <div className="flex items-center space-x-2">
+              {selectedAccount ? (
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-xl">
                     <Image
                       src={
-                        accounts.find(
-                          (acc) =>
-                            acc.accountNumber.toString() === selectedAccount
-                        )?.platform === "MT5"
+                        accounts.find(a => a.accountNumber.toString() === selectedAccount)?.platform === "MT5"
                           ? mt5
                           : cTraderIcon
                       }
                       alt="Platform"
-                      width={20}
-                      height={20}
+                      width={26}
+                      height={26}
+                      className="object-contain"
                     />
-                    <span>
-                      {selectedAccount} (
-                      {
-                        accounts.find(
-                          (acc) =>
-                            acc.accountNumber.toString() === selectedAccount
-                        )?.platform
-                      }
-                      )
-                    </span>
                   </div>
-                  {isConnecting && (
-                    <div className="animate-ping rounded-full h-3 w-3 bg-emerald-500"></div>
-                  )}
-                </>
+                  <div>
+                    <div className="font-semibold text-slate-900 dark:text-white text-left">
+                      {selectedAccount}
+                    </div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 text-left">
+                      {accounts.find(a => a.accountNumber.toString() === selectedAccount)?.server} •{" "}
+                      {accounts.find(a => a.accountNumber.toString() === selectedAccount)?.balance || "0"} {" "}
+                      {accounts.find(a => a.accountNumber.toString() === selectedAccount)?.depositCurrency}
+                    </div>
+                  </div>
+                </div>
               ) : (
-                isLoadingAccounts ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-900"></div> : ""
+                <span className="text-slate-500">Select Trading Account</span>
+              )}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className={`w-5 h-5 text-slate-400 transition-transform ${showDropdown ? "rotate-180" : ""}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+              {isConnecting && (
+                <div className="animate-ping rounded-full h-2 w-2 bg-emerald-500 ml-2"></div>
               )}
             </button>
             <AnimatePresence>
               {showDropdown && (
-                <motion.ul
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="absolute z-10 w-full mt-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 shadow-xl"
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  className="absolute z-[99999] mt-2 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl overflow-hidden max-h-[340px] overflow-y-auto"
                 >
-                  {accounts.map((account) => (
-                    <li key={account.accountNumber}>
+                  {accounts.length === 0 ? (
+                    <div className="p-4 text-sm text-slate-500 dark:text-slate-400">
+                      No available accounts
+                    </div>
+                  ) : (
+                    accounts.map((acc) => (
                       <button
-                        onClick={() =>
-                          handleAccountChange(account.accountNumber.toString())
-                        }
-                        className="w-full flex items-center gap-3 p-2 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-sm dark:text-white text-slate-800 "
+                        key={acc.accountNumber}
+                        onClick={() => handleAccountChange(acc.accountNumber.toString())}
+                        className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${selectedAccount === acc.accountNumber.toString() ? "bg-emerald-50 dark:bg-emerald-950/50" : ""}`}
                       >
-                        <Image
-                          src={
-                            account.platform === "MT5" ? mt5 : cTraderIcon
-                          }
-                          alt={account.platform}
-                          width={20}
-                          height={20}
-                        />
-                        {account.accountNumber} ({account.platform})
+                        <div className="w-9 h-9 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-xl">
+                          <Image
+                            src={acc.platform === "MT5" ? mt5 : cTraderIcon}
+                            alt={acc.platform}
+                            width={28}
+                            height={28}
+                            className="object-contain"
+                          />
+                        </div>
+                        <div className="flex-1 text-left">
+                          <div className="font-medium text-slate-900 dark:text-white">
+                            {acc.accountNumber}
+                          </div>
+                          <div className="text-xs text-slate-500 dark:text-slate-400">
+                            {acc.server} • {acc.balance || "0"} {acc.depositCurrency}
+                          </div>
+                        </div>
+                        {selectedAccount === acc.accountNumber.toString() && (
+                          <div className="ml-auto w-2 h-2 bg-emerald-500 rounded-full"></div>
+                        )}
                       </button>
-                    </li>
-                  ))}
-                </motion.ul>
+                    ))
+                  )}
+                </motion.div>
               )}
             </AnimatePresence>
           </div>
@@ -1583,7 +1607,6 @@ export default function TradeManager() {
           </div>
           )}
         </motion.div>
-
         {/* Tabs */}
         <div className="mb-6">
           <div className="flex flex-wrap gap-2 bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl p-2 shadow-sm">
@@ -1609,16 +1632,13 @@ export default function TradeManager() {
             ))}
           </div>
         </div>
-
         {/* Tables */}
         {selectedAccount ? (
           <div className="space-y-6">
             {activeTab === "pending" &&
               renderTable("Pending Orders", pendingState, true, false)}
-
             {activeTab === "running" &&
               renderTable("Open Positions", runningState, false, true)}
-
             {activeTab === "executed" &&
               renderTable(
                 "Closed Trades",
@@ -1632,7 +1652,6 @@ export default function TradeManager() {
                 () => fetchExecuted(executedPage),
                 loadingExecuted
               )}
-
             {activeTab === "removed" &&
               renderTable(
                 "Removed Orders",
@@ -1647,7 +1666,6 @@ export default function TradeManager() {
                 loadingRemoved
               )}
           </div>
-
         ) : (
           <motion.div
             initial={{ opacity: 0 }}
