@@ -314,6 +314,8 @@ export default function TradeManager() {
   const [detailsModal, setDetailsModal] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
+  const selectedAccountRef = useRef<string | null>(null);
+  const tokenRef = useRef<string | null>(null);
   const LIMIT = 10;
   type TradeTab = "pending" | "running" | "executed" | "removed";
   const [activeTab, setActiveTab] = useState<TradeTab>("pending");
@@ -496,61 +498,91 @@ export default function TradeManager() {
      WebSocket
   -------------------------------------------------------------------- */
   useEffect(() => {
-    if (!selectedAccount || !token) return;
-    const connectWS = () => {
-      setIsConnecting(true);
-      const wsUrl = `ws://localhost:8000?token=${encodeURIComponent(
-        token
-      )}&accountNumber=${encodeURIComponent(selectedAccount)}`;
-      const ws = new WebSocket(wsUrl);
-      wsRef.current = ws;
-      ws.onopen = () => {
-        console.log(`WebSocket connected for account ${selectedAccount}`);
-        setIsConnecting(false);
-        toast.success(`Connected to live trades for account ${selectedAccount}`);
-      };
-      ws.onmessage = (event) => {
-        try {
-          const parsed = JSON.parse(event.data);
-          const { type, data } = parsed;
-          if (type === "update") {
-            setPending(data?.pending || []);
-            setRunning(data?.running || []);
-            setMarket(data?.market || []);
-            setAccountInfo(data?.account || []);
-          } else if (type === "error") {
-            toast.error(data?.message || "Unknown error");
-          }
-        } catch (err) {
-          console.error("WebSocket message parse error:", err);
-        }
-      };
-      ws.onclose = (event) => {
-        console.log(
-          `WebSocket closed for account ${selectedAccount}:`,
-          event.code,
-          event.reason
-        );
-        setIsConnecting(false);
-        setTimeout(() => connectWS(), 3000);
-      };
-      ws.onerror = (err) => {
-        console.error("WebSocket error:", err);
-        setIsConnecting(false);
-        toast.error("Connection error; retrying...");
-      };
+    selectedAccountRef.current = selectedAccount;
+  }, [selectedAccount]);
+  useEffect(() => {
+    tokenRef.current = token;
+  }, [token]);
+  const connectWS = useCallback(() => {
+    if (!selectedAccountRef.current || !tokenRef.current) return;
+    setIsConnecting(true);
+    const wsUrl = `ws://localhost:8000?token=${encodeURIComponent(
+      tokenRef.current
+    )}&accountNumber=${encodeURIComponent(selectedAccountRef.current)}`;
+    const ws = new WebSocket(wsUrl);
+    wsRef.current = ws;
+    const accountAtConnect = selectedAccountRef.current;
+    ws.onopen = () => {
+      if (selectedAccountRef.current !== accountAtConnect) {
+        ws.close();
+        return;
+      }
+      console.log(`WebSocket connected for account ${accountAtConnect}`);
+      setIsConnecting(false);
+      toast.success(`Connected to live trades for account ${accountAtConnect}`);
     };
+    ws.onmessage = (event) => {
+      if (selectedAccountRef.current !== accountAtConnect) {
+        return;
+      }
+      try {
+        const parsed = JSON.parse(event.data);
+        const { type, data } = parsed;
+        if (type === "update") {
+          setPending(data?.pending || []);
+          setRunning(data?.running || []);
+          setMarket(data?.market || []);
+          setAccountInfo(data?.account || []);
+        } else if (type === "error") {
+          toast.error(data?.message || "Unknown error");
+        }
+      } catch (err) {
+        console.error("WebSocket message parse error:", err);
+      }
+    };
+    ws.onclose = (event) => {
+      console.log(
+        `WebSocket closed for account ${accountAtConnect}:`,
+        event.code,
+        event.reason
+      );
+      if (selectedAccountRef.current === accountAtConnect) {
+        setIsConnecting(true);
+        setTimeout(() => connectWS(), 3000);
+      } else {
+        console.log('Not reconnecting because account changed');
+      }
+    };
+    ws.onerror = (err) => {
+      console.error("WebSocket error:", err);
+      setIsConnecting(false);
+      toast.error("Connection error; retrying...");
+      if (selectedAccountRef.current === accountAtConnect) {
+        setTimeout(() => connectWS(), 3000);
+      }
+    };
+  }, []);
+  useEffect(() => {
+    if (!selectedAccount || !token) return;
     if (wsRef.current) wsRef.current.close();
     connectWS();
     return () => {
       if (wsRef.current) wsRef.current.close();
     };
-  }, [selectedAccount, token]);
+  }, [selectedAccount, token, connectWS]);
   const handleAccountChange = (accountNumber: string) => {
     const account = accounts.find(
       (acc) => acc.accountNumber.toString() === accountNumber
     );
     if (account) {
+      setPending([]);
+      setRunning([]);
+      setMarket([]);
+      setAccountInfo({});
+      setExecutedTrades([]);
+      setRemovedTrades([]);
+      setLoadingExecuted(true);
+      setLoadingRemoved(true);
       setSelectedAccount(accountNumber);
       setBalance(account.balance || 0);
       setShowDropdown(false);
@@ -1484,7 +1516,7 @@ export default function TradeManager() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="rounded-2xl  border border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/70 backdrop-blur-md p-6 mb-8 shadow-xl"
+          className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/70 backdrop-blur-md p-6 mb-8 shadow-xl"
         >
           <div ref={dropdownRef} className="relative w-full max-w-sm mb-4">
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
@@ -1594,14 +1626,14 @@ export default function TradeManager() {
               <span className="text-slate-500 dark:text-slate-400">Balance:</span>{" "}
               <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                 {getCurrencySymbol(accountInfo?.currency)}
-                {accountInfo?.balance?.toLocaleString()}
+                {accountInfo?.balance?.toLocaleString() ?? '0'}
               </span>
             </p>
             <p className="text-sm text-slate-700 dark:text-slate-300 font-medium mt-1 sm:mt-0">
               <span className="text-slate-500 dark:text-slate-400">Equity:</span>{" "}
               <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                 {getCurrencySymbol(accountInfo?.currency)}
-                {accountInfo?.equity?.toLocaleString()}
+                {accountInfo?.equity?.toLocaleString() ?? '0'}
               </span>
             </p>
           </div>
