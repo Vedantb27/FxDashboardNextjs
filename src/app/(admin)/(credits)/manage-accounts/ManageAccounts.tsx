@@ -385,7 +385,7 @@ export default function TradeManagerPage() {
   return (
     <div className="relative z-20">
       <PageBreadcrumb pageTitle="Trade Manager" />
-      <div className="min-h-screen rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12">
+      <div className="min-h-screen   w-full  md:max-w-[77.5vw] rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12">
         {/* Header */}
         <div className="mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90 flex items-center">
@@ -395,7 +395,7 @@ export default function TradeManagerPage() {
             <p className="text-sm text-gray-600 dark:text-gray-400">Available Credits</p>
             <p className="text-3xl font-bold text-gray-800 dark:text-white/90 flex items-center justify-start md:justify-end gap-2">
               <IconCoin size={28} className="text-amber-600" />
-              {balance}
+              {balance} Credits
             </p>
           </div>
         </div>

@@ -208,7 +208,7 @@ export default function ManageCreditsPage() {
           </div>
 
           <div className="text-left md:text-right w-full md:w-auto">
-            <p className="text-sm text-gray-600 dark:text-gray-400">Current Balance</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Available Credits</p>
             <p className="text-3xl font-bold text-gray-800 dark:text-white/90 flex items-center justify-start md:justify-end gap-2">
               <IconCoin size={28} className="text-amber-600" />
               {balance} Credits
