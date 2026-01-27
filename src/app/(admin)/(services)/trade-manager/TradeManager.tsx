@@ -76,6 +76,7 @@ interface Account {
   createdAt: string;
   balance?: number;
   depositCurrency?: string;
+  isActive?: Boolean;
 }
 export interface MarketData {
   symbol: string;
@@ -318,7 +319,7 @@ export default function TradeManager() {
   const tokenRef = useRef<string | null>(null);
   const LIMIT = 10;
   type TradeTab = "pending" | "running" | "executed" | "removed";
-  const [activeTab, setActiveTab] = useState<TradeTab>("pending");
+  const [activeTab, setActiveTab] = useState<TradeTab>("running");
   // Sync globals for modals
   useEffect(() => {
     pending = pendingState;
@@ -449,7 +450,7 @@ export default function TradeManager() {
           const sortedAccounts = response.sort((a: Account, b: Account) => {
             if (a.platform === b.platform) return a.accountNumber - b.accountNumber;
             return a.platform === "MT5" ? -1 : 1;
-          });
+          }).filter((acc: Account) => acc?.isActive);
           setAccounts(sortedAccounts || []);
           if (sortedAccounts.length > 0) {
             setSelectedAccount(sortedAccounts[0]?.accountNumber.toString());
@@ -1643,8 +1644,8 @@ export default function TradeManager() {
         <div className="mb-6">
           <div className="flex flex-wrap gap-2 bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl p-2 shadow-sm">
             {[
-              { key: "pending", label: "Pending Orders" },
               { key: "running", label: "Open Positions" },
+              { key: "pending", label: "Pending Orders" },
               { key: "executed", label: "Closed Trades" },
               { key: "removed", label: "Removed Orders" },
             ].map((tab) => (
