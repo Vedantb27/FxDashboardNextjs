@@ -282,14 +282,14 @@ export default function TradeManagerPage() {
 
         <div className="grid grid-cols-2 gap-6 mb-6">
           <div>
-            <div className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">Expiry</div>
-            <div className="font-medium">
+            <div className="text-xs uppercase tracking-widest text-gray-700 dark:text-gray-300 mb-1">Expiry</div>
+            <div className="font-medium text-gray-700 dark:text-gray-300">
               {account.creditExpiryTime ? formatDate(account.creditExpiryTime) : "—"}
             </div>
           </div>
           <div>
-            <div className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">Role</div>
-            <div className="font-medium">{role}</div>
+            <div className="text-xs uppercase tracking-widest text-gray-700 dark:text-gray-300 mb-1">Role</div>
+            <div className="font-medium text-gray-700 dark:text-gray-300">{role}</div>
           </div>
         </div>
 

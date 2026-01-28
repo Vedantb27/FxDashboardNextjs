@@ -233,7 +233,7 @@ export default function EcommerceClient() {
             <button
               className="h-9 sm:h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-left text-xs sm:text-sm text-gray-900 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
               onClick={() => setShowDropdown(!showDropdown)}
-            >{accounts?.length>0 &&
+            >{accounts?.length > 0 &&
               <div className="flex items-center space-x-2">
                 <Image
                   src={
@@ -262,15 +262,22 @@ export default function EcommerceClient() {
                       setCurrency(account?.depositCurrency);
                       setShowDropdown(false);
                     }}
-                    className="cursor-pointer px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 text-sm text-gray-900 dark:text-white"
+                    className={`cursor-pointer px-3 py-2 flex items-center text-sm
+    ${selectedAccount === account.accountNumber.toString()
+                        ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
+                        : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white"
+
+                      }
+  `}
                   >
+
                     <Image
                       src={account.platform === 'MT5' ? mt5 : cTraderIcon}
                       alt={`${account.platform} Icon`}
                       width={16}
                       height={16}
-                    />
-                    {account.accountNumber} ({account.platform})
+                    />&nbsp;
+                    {account.accountNumber}&nbsp;({account.platform})
                   </li>
                 ))}
               </ul>
@@ -278,30 +285,30 @@ export default function EcommerceClient() {
           </div>
         )}
       </div>
-     
-     
-        <div className="grid grid-cols-12 gap-4 md:gap-6">
-          <div className="col-span-12 space-y-6 xl:col-span-7">
-            <EcommerceMetrics tradeHistory={tradeHistory} isLoadingTrades={isLoadingTrades} currency={currency}/>
-            <MonthlySalesChart tradeHistory={tradeHistory} isLoadingTrades={isLoadingTrades} />
-          </div>
-          <div className="col-span-12 xl:col-span-5">
-            <MonthlyTarget tradeHistory={tradeHistory} balance={balance}isLoadingTrades={isLoadingTrades} currency={currency}/>
-          </div>
-          <div className="col-span-12">
-            <StatisticsChart tradeHistory={tradeHistory} balance={balance} isLoadingTrades={isLoadingTrades} currency={currency}/>
-          </div>
-          {/* <div className="col-span-12">
+
+
+      <div className="grid grid-cols-12 gap-4 md:gap-6">
+        <div className="col-span-12 space-y-6 xl:col-span-7">
+          <EcommerceMetrics tradeHistory={tradeHistory} isLoadingTrades={isLoadingTrades} currency={currency} />
+          <MonthlySalesChart tradeHistory={tradeHistory} isLoadingTrades={isLoadingTrades} />
+        </div>
+        <div className="col-span-12 xl:col-span-5">
+          <MonthlyTarget tradeHistory={tradeHistory} balance={balance} isLoadingTrades={isLoadingTrades} currency={currency} />
+        </div>
+        <div className="col-span-12">
+          <StatisticsChart tradeHistory={tradeHistory} balance={balance} isLoadingTrades={isLoadingTrades} currency={currency} />
+        </div>
+        {/* <div className="col-span-12">
             <PairwiseGainLossChart tradeHistory={tradeHistory} isLoadingTrades={isLoadingTrades} currency={currency}/>
           </div> */}
-          <div className="col-span-12 xl:col-span-5">
-            {/* <DemographicCard isLoadingTrades={isLoadingTrades} /> */}
-          </div>
-          <div className="col-span-12">
-            <RecentOrders tradeHistory={tradeHistory} isLoadingTrades={isLoadingTrades} currency={currency}/>
-          </div>
+        <div className="col-span-12 xl:col-span-5">
+          {/* <DemographicCard isLoadingTrades={isLoadingTrades} /> */}
         </div>
-      
+        <div className="col-span-12">
+          <RecentOrders tradeHistory={tradeHistory} isLoadingTrades={isLoadingTrades} currency={currency} />
+        </div>
+      </div>
+
     </div>
   );
 }
